@@ -23,7 +23,8 @@ using namespace std;
 // self-definition util
 // 易造成循环引用
 // 改用 extern 方式
-#include "util.h"
+//#include "util.h"
+// main中引用
 
 
 
