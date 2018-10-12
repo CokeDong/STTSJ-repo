@@ -70,7 +70,7 @@ public:
 	void STSimilarityJoinCalcCPUV2(
 		const STTrajectory &T1,
 		const STTrajectory &T2,
-		double result
+		double &result // ÒýÓÃ´«µÝ
 	);
 
 protected:

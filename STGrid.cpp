@@ -169,7 +169,7 @@ void STGrid::STSimilarityJoinCalcCPU(
 void STGrid::STSimilarityJoinCalcCPUV2(
 	const STTrajectory &T1,
 	const STTrajectory &T2,
-	double result
+	double &result // 不能用值传递 
 ){
 	result = T1.CalcTTSTSim(T2);
 }
