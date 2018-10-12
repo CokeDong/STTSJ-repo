@@ -37,5 +37,5 @@ double STPoint::CalcPPSTSim(const STPoint &p) const{
 	}
 
 	
-	return(ssim + tsim);
+	return(ALPHA * ssim + (1- ALPHA) * tsim);
 }
