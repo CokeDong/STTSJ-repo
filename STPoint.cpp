@@ -1,4 +1,5 @@
 #include "STPoint.h"
+#include "util.h"
 
 //extern float calculateDistance(float LatA, float LonA, float LatB, float LonB); //±‡“Î≤ªÕ®π˝ πÓ“Ï
 
