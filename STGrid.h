@@ -37,6 +37,16 @@ public:
 	// int: 2,147,483,647 actually is not big enough
 	// 49001 * 49001 = 2,401,098,001
 
+	void joinExhaustedCPUonethread(
+		//double epsilon,
+		//double alpha,
+		int sizeP,
+		int sizeQ,
+		map<trajPair, double>& result
+		//vector<STTrajectory> &P,
+		//vector<STTrajectory> &Q
+	);
+
 	// no filter and verification here
 	void joinExhaustedCPU(
 		//double epsilon,
