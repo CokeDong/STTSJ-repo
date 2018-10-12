@@ -74,8 +74,8 @@ void split3(string s, string delim, vector<string>* ret)
 }
 
 
-
-inline float calculateDistance(float LatA, float LonA, float LatB, float LonB)
+// inline 非声明？ 如何改
+float calculateDistance(float LatA, float LonA, float LatB, float LonB)
 {
 	float Pi = 3.1415926;
 	float R = 6371004;
