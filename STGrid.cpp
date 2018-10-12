@@ -131,7 +131,7 @@ void STGrid::joinExhaustedCPU(
 		// thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPU),this, epsilon, alpha, dataPtr[totaltaskCPU[i].first], dataPtr[totaltaskCPU[i].second],result));
 		
 		// only calculation, no judgement
-		thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPUV2), this, dataPtr[totaltaskCPU[i].first], dataPtr[totaltaskCPU[i].second], tmpresult[i]));
+		thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPUV3), this, &dataPtr[totaltaskCPU[i].first], &dataPtr[totaltaskCPU[i].second], &tmpresult[i]));
 		//threads_FD.push_back(thread(std::mem_fn(&Grid::FDCalculateParallelHandeler), this, &queryQueue[qID], &freqVectors[qID]));
 	}
 	std::for_each(thread_STSim.begin(), thread_STSim.end(), std::mem_fn(&std::thread::join));
@@ -165,11 +165,20 @@ void STGrid::STSimilarityJoinCalcCPU(
 	
 }
 
-
+// 引用传递不能用到多线程？
 void STGrid::STSimilarityJoinCalcCPUV2(
 	const STTrajectory &T1,
 	const STTrajectory &T2,
 	double &result // 不能用值传递 
 ){
 	result = T1.CalcTTSTSim(T2);
+}
+
+// 指针传递
+void STGrid::STSimilarityJoinCalcCPUV3(
+	const STTrajectory *T1,
+	const STTrajectory *T2,
+	double *result // 不能用值传递 
+) {
+	(*result) = (*T1).CalcTTSTSim((*T2));
 }

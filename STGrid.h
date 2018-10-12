@@ -73,6 +73,12 @@ public:
 		double &result // 引用传递
 	);
 
+	void STGrid::STSimilarityJoinCalcCPUV3(
+		const STTrajectory *T1,
+		const STTrajectory *T2,
+		double *result // 不能用值传递 
+	);
+
 protected:
 
 
