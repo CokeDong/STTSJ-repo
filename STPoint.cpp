@@ -1,7 +1,7 @@
 #include "STPoint.h"
 #include "util.h"
 
-//extern float calculateDistance(float LatA, float LonA, float LatB, float LonB); //编译不通过 诡异
+//extern float calculateDistance(float LatA, float LonA, float LatB, float LonB); //编译不通过 诡异: makefile没添加，，
 
 // 数据成员初始化是在进入构造函数之前完成的
 //STPoint::STPoint() {

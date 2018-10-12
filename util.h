@@ -16,7 +16,8 @@ using namespace std;
 
 #pragma once
 
-float calculateDistance(float LatA, float LonA, float LatB, float LonB);
+// only simple fuction, no while, no switch, no recursion
+inline float calculateDistance(float LatA, float LonA, float LatB, float LonB); // ÄÚÁªº¯Êý
 
 void split(string s, string delim, vector<string>* ret);
 void split2(string s, string delim, vector<string>* ret);

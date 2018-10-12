@@ -21,10 +21,9 @@ using namespace std;
 
 // not recommended!!
 // self-definition util
-// 易造成循环引用
-// 改用 extern 方式
-//#include "util.h"
-// main中引用
+// 易造成循环引用 不重要
+// way1: 改用 extern 方式
+// way2: #include "util.h" / main中引用
 
 
 

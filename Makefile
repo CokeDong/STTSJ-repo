@@ -39,7 +39,9 @@ OBJECTS = \
 	STInvertedList.o\
 	STPoint.o\
 	STTrajectory.o\
-	STzorder.o
+	STzorder.o\
+	test.o\
+	util.o
 
 install: CUDASTTSJ
 
