@@ -75,17 +75,17 @@ void split3(string s, string delim, vector<string>* ret)
 
 
 // inline 非声明？ 如何改
-float calculateDistance(float LatA, float LonA, float LatB, float LonB)
+double calculateDistance(double LatA, double LonA, double LatB, double LonB)
 {
-	float Pi = 3.1415926;
-	float R = 6371004;
-	float MLatA, MLatB, MLonA, MLonB;
+	double Pi = 3.1415926;
+	double R = 6371004;
+	double MLatA, MLatB, MLonA, MLonB;
 	MLatA = 90 - LatA;
 	MLatB = 90 - LatB;
 	MLonA = LonA;
 	MLonB = LonB;
-	float C = sin(MLatA)*sin(MLatB)*cos(MLonA - MLonB) + cos(MLatA)*cos(MLatB);
-	float Distance = R*acos(C)*Pi / 180;
+	double C = sin(MLatA)*sin(MLatB)*cos(MLonA - MLonB) + cos(MLatA)*cos(MLatB);
+	double Distance = R*acos(C)*Pi / 180;
 	return Distance;
 }
 

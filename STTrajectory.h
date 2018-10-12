@@ -22,7 +22,7 @@ public:
 	void GettingSTPointOnpointID(vector<STPoint> &pointdb); // maybe pointdb actually can be released
 	
 	// 常量成员函数 for safety consideration 更重要是多线程考虑
-	float CalcTTSTSim (const STTrajectory &stt) const;
+	double CalcTTSTSim (const STTrajectory &stt) const;
 
 
 

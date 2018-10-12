@@ -56,7 +56,7 @@ public:
 	{
 		iEnd = cpuSecond();
 	}
-	inline float elapse()
+	inline double elapse()
 	{
 		return iEnd - iStart;
 	}
@@ -75,13 +75,13 @@ public:
 
 typedef struct Keywordtuple {
 	int keywordid;
-	float keywordvalue;
+	double keywordvalue;
 }Keywordtuple;
 
 
 typedef struct Pointtuple {
 	int pointid;
-	float keywordvalue;
+	double keywordvalue;
 }Pointtuple;
 
 typedef pair<size_t, size_t> trajPair; // very smart 定义数据结构

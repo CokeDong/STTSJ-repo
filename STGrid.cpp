@@ -10,11 +10,11 @@ void STGrid::init(const vector<STTrajectory> &dptr) {
 }
 
 void STGrid::joinExhaustedCPU(
-	//float epsilon,
-	//float alpha,
+	//double epsilon,
+	//double alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, float>& result) {
+	map<trajPair, double>& result) {
 	
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
@@ -50,7 +50,7 @@ void STGrid::joinExhaustedCPU(
 	// 多线程同时读是可以的
 	
 	// 多线程写 引入tmpresult
-	float* tmpresult = new float[totaltaskCPU.size()];
+	double* tmpresult = new double[totaltaskCPU.size()];
 	vector<thread> thread_STSim;
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 	
@@ -62,6 +62,9 @@ void STGrid::joinExhaustedCPU(
 	}
 	std::for_each(thread_STSim.begin(), thread_STSim.end(), std::mem_fn(&std::thread::join));
 
+	for (size_t i = 0; i < 20; i++) {
+		cout << tmpresult[i] << endl;
+	}
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
@@ -78,11 +81,11 @@ void STGrid::joinExhaustedCPU(
 
 
 void STGrid::STSimilarityJoinCalcCPU(
-	//float epsilon,
-	//float alpha,
+	//double epsilon,
+	//double alpha,
 	const STTrajectory &T1,
 	const STTrajectory &T2,
-	map<trajPair, float>& result
+	map<trajPair, double>& result
 ) {
 	// aborted
 	
@@ -92,7 +95,7 @@ void STGrid::STSimilarityJoinCalcCPU(
 void STGrid::STSimilarityJoinCalcCPUV2(
 	const STTrajectory &T1,
 	const STTrajectory &T2,
-	float result
+	double result
 ){
 	result = T1.CalcTTSTSim(T2);
 }

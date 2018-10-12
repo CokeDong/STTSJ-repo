@@ -56,7 +56,7 @@ int main() {
 	pp.ReadTrajDBPointID(trajDB, "./NY/TrajExtc.txt", pointDB);
 	pp.ReadTrajDBPoint(trajDB, pointDB);
 
-	map<trajPair, float> result;
+	map<trajPair, double> result;
 
 	STGrid grid;
 	grid.init(trajDB); // clever£¡£¡

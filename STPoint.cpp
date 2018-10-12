@@ -1,7 +1,7 @@
 #include "STPoint.h"
 #include "util.h"
 
-//extern float calculateDistance(float LatA, float LonA, float LatB, float LonB); //编译不通过 诡异: makefile没添加，，
+//extern double calculateDistance(double LatA, double LonA, double LatB, double LonB); //编译不通过 诡异: makefile没添加，，
 
 // 数据成员初始化是在进入构造函数之前完成的
 //STPoint::STPoint() {
@@ -20,13 +20,13 @@
 
 
 
-float STPoint::CalcPPSTSim(const STPoint &p) const{
+double STPoint::CalcPPSTSim(const STPoint &p) const{
 	//spacial
-	float ssim = 0;
+	double ssim = 0;
 	ssim = 1 - calculateDistance(this->lat, this->lon, p.lat, p.lon) / MAX_DIST;
 	
 	//textual
-	float tsim = 0;
+	double tsim = 0;
 	for (size_t i = 0; i < this->keywords.size(); i++) {
 		for (size_t j = 0; j < p.keywords.size(); j++) {
 			if (this->keywords[i].keywordid == p.keywords[j].keywordid) {

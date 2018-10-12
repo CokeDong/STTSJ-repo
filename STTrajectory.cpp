@@ -11,7 +11,7 @@ void STTrajectory::GettingSTPointOnpointID(vector<STPoint> &pointdb) {
 	
 }
 
-float STTrajectory::CalcTTSTSim(const STTrajectory &stt) const {
+double STTrajectory::CalcTTSTSim(const STTrajectory &stt) const {
 
 	// Spacial + Textual
 	double stsim12 = 0;

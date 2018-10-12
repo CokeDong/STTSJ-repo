@@ -39,28 +39,28 @@ public:
 
 	// no filter and verification here
 	void joinExhaustedCPU(
-		//float epsilon,
-		//float alpha,
+		//double epsilon,
+		//double alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, float>& result
+		map<trajPair, double>& result
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);
 
 	void STSimilarityJoinCalcCPU(
-		//float epsilon,
-		//float alpha,
+		//double epsilon,
+		//double alpha,
 		const STTrajectory &T1,
 		const STTrajectory &T2,
-		map<trajPair, float>& result
+		map<trajPair, double>& result
 	);
 
 	// const ¶àÏß³Ì¿¼ÂÇ
 	void STSimilarityJoinCalcCPUV2(
 		const STTrajectory &T1,
 		const STTrajectory &T2,
-		float result
+		double result
 	);
 
 protected:

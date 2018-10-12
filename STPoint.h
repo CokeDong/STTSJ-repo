@@ -16,8 +16,8 @@ public:
 
 	//STPoint();
 	//~STPoint();
-	float lat;
-	float lon;
+	double lat;
+	double lon;
 	
 	// done by Cpp
 	int zorder; // *** not INIT 仅仅在filter使用
@@ -42,7 +42,7 @@ public:
 	//double CalcPPSSim(const STPoint &p);
 	//double CalcPPTSim(const STPoint &p);
 
-	float CalcPPSTSim(const STPoint &p) const;
+	double CalcPPSTSim(const STPoint &p) const;
 
 
 protected:
