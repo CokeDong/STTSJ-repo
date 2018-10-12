@@ -24,6 +24,7 @@ float STPoint::CalcPPSTSim(const STPoint &p) const{
 	//spacial
 	float ssim = 0;
 	ssim = 1 - calculateDistance(this->lat, this->lon, p.lat, p.lon) / MAX_DIST;
+	
 	//textual
 	float tsim = 0;
 	for (size_t i = 0; i < this->keywords.size(); i++) {
@@ -34,5 +35,7 @@ float STPoint::CalcPPSTSim(const STPoint &p) const{
 			}
 		}
 	}
+
+	
 	return(ssim + tsim);
 }

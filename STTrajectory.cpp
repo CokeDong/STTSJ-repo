@@ -38,5 +38,6 @@ float STTrajectory::CalcTTSTSim(const STTrajectory &stt) const {
 	}
 	stsim21 /= stt.traj_length;
 
+	cout << stsim12 << '\t' << stsim21 << '\n';
 	return(stsim12 + stsim21);
 }
