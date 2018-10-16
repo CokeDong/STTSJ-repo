@@ -60,22 +60,10 @@ int main() {
 
 	STGrid grid;
 	grid.init(trajDB); // clever£¡£¡
-	grid.joinExhaustedCPUonethread(128, 128, result);
-	grid.joinExhaustedCPU(128,128,result);
+	//grid.joinExhaustedCPUonethread(128, 128, result);
+	//grid.joinExhaustedCPU(128,128,result);
+	grid.joinExhaustedCPUconfigurablethread(128, 128, result,8);
 
-
-
-
-
-
-
-
-
-	//vector<string> ss;
-	//split2("asdasaaadsdsdsaaaasdsdsadaaaa", "aaa", &ss);
-	//for (vector<string>::iterator it = ss.begin(); it != ss.end(); it++) {
-	//	cout << *it<<ss.size();
-	//}
 
 	cout << "finished" << endl;
 	getchar();

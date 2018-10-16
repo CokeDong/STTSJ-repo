@@ -16,16 +16,21 @@
 #include <string>
 #include <cstdlib>
 
-using namespace std;
-
-
 // not recommended!!
 // self-definition util
 // 易造成循环引用 不重要
 // way1: 改用 extern 方式
 // way2: #include "util.h" / main中引用
+// 编译不通过 : makefile没更新
+
+using namespace std;
 
 
+#define MAX_TRAJ 100
+
+#define MAX_DIST 300 // too large!!
+#define ALPHA 0.5
+#define EPSILON 0.2
 
 
 
@@ -64,14 +69,6 @@ public:
 #endif
 
 
-
-
-
-#define MAX_TRAJ 100
-
-#define MAX_DIST 500 // too large!!
-#define ALPHA 0.5
-#define EPSILON 0.05
 
 typedef struct Keywordtuple {
 	int keywordid;

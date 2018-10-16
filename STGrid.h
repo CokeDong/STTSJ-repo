@@ -19,9 +19,6 @@ public:
 	void init(const vector<STTrajectory> &dptr);
 
 
-	
-	void STSimilarityJoinGPU();
-
 
 	// 宏观调用 需要优化?  函数调用是太频繁
 	//// unit test
@@ -58,6 +55,18 @@ public:
 		//vector<STTrajectory> &Q
 	);
 
+	// only for test
+	void joinExhaustedCPUconfigurablethread(
+		//double epsilon,
+		//double alpha,
+		int sizeP,
+		int sizeQ,
+		map<trajPair, double>& result,
+		int threadnum
+		//vector<STTrajectory> &P,
+		//vector<STTrajectory> &Q
+	);
+
 	void STSimilarityJoinCalcCPU(
 		//double epsilon,
 		//double alpha,
@@ -78,6 +87,18 @@ public:
 		const STTrajectory *T2,
 		double *result // 不能用值传递 
 	);
+
+
+	void joinExhaustedGPU(
+		//double epsilon,
+		//double alpha,
+		int sizeP,
+		int sizeQ,
+		map<trajPair, double>& result
+		//vector<STTrajectory> &P,
+		//vector<STTrajectory> &Q
+	);
+
 
 protected:
 

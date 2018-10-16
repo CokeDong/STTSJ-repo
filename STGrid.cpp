@@ -135,10 +135,89 @@ void STGrid::joinExhaustedCPU(
 		//threads_FD.push_back(thread(std::mem_fn(&Grid::FDCalculateParallelHandeler), this, &queryQueue[qID], &freqVectors[qID]));
 	}
 	std::for_each(thread_STSim.begin(), thread_STSim.end(), std::mem_fn(&std::thread::join));
-
+	
+	/*
 	for (size_t i = 0; i < 20; i++) {
 		cout << tmpresult[i] << endl;
 	}
+	*/
+
+	// get final results
+	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
+		if (tmpresult[i] > EPSILON) {
+			result[totaltaskCPU[i]] = tmpresult[i];
+		}
+	}
+
+	cout << "finalresult size: " << result.size() << endl;
+
+	delete[] tmpresult;
+
+}
+
+
+
+void STGrid::joinExhaustedCPUconfigurablethread(
+	//double epsilon,
+	//double alpha,
+	int sizeP,
+	int sizeQ,
+	map<trajPair, double>& result,
+	int threadnum) {
+
+	// only one TrajDB - selfjoin
+	// get ID only one trajDB
+	set<size_t> P;
+	for (size_t i = 0; i < sizeP; i++) {
+		taskSet1.push_back(i);
+	}
+	set<size_t> Q;
+	for (size_t j = 0; j < sizeQ; j++) {
+		taskSet2.push_back(j);
+	}
+
+
+	// filtering 
+
+
+
+
+
+	// get the trajPAIR(candidate pair)
+	for (size_t i = 0; i < sizeP; i++) {
+		for (size_t j = 0; j < sizeQ; j++) {
+			//if(i != j){ // no need
+			trajPair tmppair = trajPair(taskSet1[i], taskSet2[j]); // 这样是否不利于 多线程？？是否有性能影响 
+			totaltaskCPU.push_back(tmppair); // 这里不考虑GPU内存拷贝问题
+											 //}
+		}
+	}
+
+	cout << "totaltaskCPU size: " << totaltaskCPU.size() << endl;
+
+
+	// 多线程同时读是可以的
+
+	// 多线程写 引入tmpresult
+	double* tmpresult = new double[totaltaskCPU.size()];
+	
+	for (size_t j = 0; j < totaltaskCPU.size(); j += threadnum) {		
+		vector<thread> thread_STSim;
+		for (size_t i = 0; i < (j + threadnum > totaltaskCPU.size() ? totaltaskCPU.size()-j :threadnum); i++) {
+			// thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPU),this, epsilon, alpha, dataPtr[totaltaskCPU[i].first], dataPtr[totaltaskCPU[i].second],result));
+			// only calculation, no judgement
+			thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPUV3), this, &dataPtr[totaltaskCPU[i + j].first], &dataPtr[totaltaskCPU[i + j].second], &tmpresult[i + j]));
+			//threads_FD.push_back(thread(std::mem_fn(&Grid::FDCalculateParallelHandeler), this, &queryQueue[qID], &freqVectors[qID]));
+		}
+		std::for_each(thread_STSim.begin(), thread_STSim.end(), std::mem_fn(&std::thread::join));
+		//thread_STSim.clear();//no need 作用域即可
+	}
+	/*
+	for (size_t i = 0; i < 20; i++) {
+	cout << tmpresult[i] << endl;
+	}
+	*/
+
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
@@ -165,13 +244,16 @@ void STGrid::STSimilarityJoinCalcCPU(
 	
 }
 
-// 引用传递不能用到多线程？
+
+// Question1：const必要么？ 貌似应该这样 最好这样 安全
+// Question2：const不适合多线程么 引用传递不能用到多线程？ 貌似是
 void STGrid::STSimilarityJoinCalcCPUV2(
 	const STTrajectory &T1,
 	const STTrajectory &T2,
 	double &result // 不能用值传递 
 ){
 	result = T1.CalcTTSTSim(T2);
+	// aborted
 }
 
 // 指针传递
@@ -180,5 +262,7 @@ void STGrid::STSimilarityJoinCalcCPUV3(
 	const STTrajectory *T2,
 	double *result // 不能用值传递 
 ) {
+
 	(*result) = (*T1).CalcTTSTSim((*T2));
+
 }
