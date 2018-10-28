@@ -32,7 +32,20 @@ using namespace std;
 #define ALPHA 0.5
 #define EPSILON 0.2
 
+#define GPUOnceCnt 128
+#define DUALGPU false
 
+#define THREADNUM 256
+
+#define THREADROW 32
+#define THREADCOLUMN 8
+
+// NY: 200
+// LA:
+// TWITTER:
+
+// predefined !!!
+#define MAXTRAJLEN 256
 
 #ifdef WIN32
 #include "WinTimer.h"
@@ -44,13 +57,13 @@ class MyTimer
 public:
 	MyTimer() {
 	};
-	double iStart;
-	double iEnd;
+	float iStart;
+	float iEnd;
 
-	double cpuSecond() {
+	float cpuSecond() {
 		struct timeval tp;
 		gettimeofday(&tp, NULL);
-		return ((double)tp.tv_sec + (double)tp.tv_usec*1.e-6);
+		return ((float)tp.tv_sec + (float)tp.tv_usec*1.e-6);
 	}
 
 	inline void start()
@@ -61,7 +74,7 @@ public:
 	{
 		iEnd = cpuSecond();
 	}
-	inline double elapse()
+	inline float elapse()
 	{
 		return iEnd - iStart;
 	}
@@ -72,13 +85,34 @@ public:
 
 typedef struct Keywordtuple {
 	int keywordid;
-	double keywordvalue;
+	float keywordvalue;
 }Keywordtuple;
 
 
+// only for invert-list
 typedef struct Pointtuple {
-	int pointid;
-	double keywordvalue;
+	uint32_t pointid;
+	float keywordvalue;
 }Pointtuple;
 
 typedef pair<size_t, size_t> trajPair; // very smart 定义数据结构
+
+
+// 8 bytes [* 4 = 32 bytes(L2 Cache)]
+typedef struct Latlon {
+	float lat;
+	float lon;
+}Latlon;
+
+
+// every task of GPU has a StatInfoTable
+// 16 bytes now
+typedef struct StatInfoTable {
+	uint32_t latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block)
+	uint32_t pointNumP, pointNumQ; // # of points in each traj
+
+	//uint32_t textIdxP, textIdxQ; // starting position of text data for each task / block
+	//uint32_t textNumP, textNumQ; // total # word in each traj
+
+
+}StatInfoTable;

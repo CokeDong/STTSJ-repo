@@ -17,7 +17,7 @@ using namespace std;
 #pragma once
 
 // only simple fuction, no while, no switch, no recursion
-double calculateDistance(double LatA, double LonA, double LatB, double LonB); // Question: 内联函数如何实现？
+float calculateDistance(float LatA, float LonA, float LatB, float LonB); // Question: 内联函数如何实现？
 
 void split(string s, string delim, vector<string>* ret);
 void split2(string s, string delim, vector<string>* ret);

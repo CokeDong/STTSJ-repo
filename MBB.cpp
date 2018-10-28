@@ -11,7 +11,7 @@ using namespace std;
 //	ymax = 0;
 //}
 //
-//MBB::MBB(double val_xmin,double val_ymin,double val_xmax,double val_ymax)
+//MBB::MBB(float val_xmin,float val_ymin,float val_xmax,float val_ymax)
 //{
 //	xmin = val_xmin;
 //	xmax = val_xmax;
@@ -19,7 +19,7 @@ using namespace std;
 //	ymax = val_ymax;
 //}
 //
-//bool MBB::pInBox(double x, double y) {
+//bool MBB::pInBox(float x, float y) {
 //	if (x <= xmax &&x >= xmin&&y <= ymax&&y >= ymin)
 //		return true;
 //	else
@@ -84,18 +84,18 @@ using namespace std;
 //
 //int MBB::randomGenerateMBB(MBB& generated)
 //{
-//	double minx, maxx, miny, maxy;
+//	float minx, maxx, miny, maxy;
 //	minx = this->xmin;
 //	miny = this->ymin;
 //	maxx = this->xmax;
 //	maxy = this->ymax;
 //
-//	double x1, x2;
-//	double y1, y2;
-//	x1 = (rand() / double(RAND_MAX))*(maxx - minx) + minx;
-//	x2 = (rand() / double(RAND_MAX))*(maxx - minx) + minx;
-//	y1 = (rand() / double(RAND_MAX))*(maxy - miny) + miny;
-//	y2 = (rand() / double(RAND_MAX))*(maxy - miny) + miny;
+//	float x1, x2;
+//	float y1, y2;
+//	x1 = (rand() / float(RAND_MAX))*(maxx - minx) + minx;
+//	x2 = (rand() / float(RAND_MAX))*(maxx - minx) + minx;
+//	y1 = (rand() / float(RAND_MAX))*(maxy - miny) + miny;
+//	y2 = (rand() / float(RAND_MAX))*(maxy - miny) + miny;
 //	minx = x1 > x2 ? x2 : x1;
 //	maxx = x1 > x2 ? x1 : x2;
 //	miny = y1 > y2 ? y2 : y1;
@@ -121,7 +121,7 @@ using namespace std;
 //
 //}
 //
-//double MBB::GetMBBArea(void) {
+//float MBB::GetMBBArea(void) {
 //	return (this->xmax - this->xmin)*(this->ymax - this->ymin)*1e6;
 //}
 //MBB::~MBB()

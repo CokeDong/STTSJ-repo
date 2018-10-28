@@ -11,19 +11,19 @@ void STGrid::init(const vector<STTrajectory> &dptr) {
 
 
 void STGrid::joinExhaustedCPUonethread(
-	//double epsilon,
-	//double alpha,
+	//float epsilon,
+	//float alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, double>& result) {
+	map<trajPair, float>& result) {
 
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
-	set<size_t> P;
+	//set<size_t> P;
 	for (size_t i = 0; i < sizeP; i++) {
 		taskSet1.push_back(i);
 	}
-	set<size_t> Q;
+	//set<size_t> Q;
 	for (size_t j = 0; j < sizeQ; j++) {
 		taskSet2.push_back(j);
 	}
@@ -51,7 +51,7 @@ void STGrid::joinExhaustedCPUonethread(
 	// 多线程同时读是可以的
 
 	// 多线程写 引入tmpresult
-	double* tmpresult = new double[totaltaskCPU.size()];
+	float* tmpresult = new float[totaltaskCPU.size()];
 	//vector<thread> thread_STSim;
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 
@@ -84,19 +84,19 @@ void STGrid::joinExhaustedCPUonethread(
 
 
 void STGrid::joinExhaustedCPU(
-	//double epsilon,
-	//double alpha,
+	//float epsilon,
+	//float alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, double>& result) {
+	map<trajPair, float>& result) {
 	
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
-	set<size_t> P;
+	//set<size_t> P;
 	for (size_t i = 0; i < sizeP; i++) {
 		taskSet1.push_back(i);
 	}
-	set<size_t> Q;
+	//set<size_t> Q;
 	for (size_t j = 0; j < sizeQ; j++) {
 		taskSet2.push_back(j);
 	}
@@ -124,7 +124,7 @@ void STGrid::joinExhaustedCPU(
 	// 多线程同时读是可以的
 	
 	// 多线程写 引入tmpresult
-	double* tmpresult = new double[totaltaskCPU.size()];
+	float* tmpresult = new float[totaltaskCPU.size()];
 	vector<thread> thread_STSim;
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 	
@@ -158,20 +158,20 @@ void STGrid::joinExhaustedCPU(
 
 
 void STGrid::joinExhaustedCPUconfigurablethread(
-	//double epsilon,
-	//double alpha,
+	//float epsilon,
+	//float alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, double>& result,
+	map<trajPair, float>& result,
 	int threadnum) {
 
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
-	set<size_t> P;
+	//set<size_t> P;
 	for (size_t i = 0; i < sizeP; i++) {
 		taskSet1.push_back(i);
 	}
-	set<size_t> Q;
+	//set<size_t> Q;
 	for (size_t j = 0; j < sizeQ; j++) {
 		taskSet2.push_back(j);
 	}
@@ -199,7 +199,9 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	// 多线程同时读是可以的
 
 	// 多线程写 引入tmpresult
-	double* tmpresult = new double[totaltaskCPU.size()];
+	
+	// 总是无法满载！！
+	float* tmpresult = new float[totaltaskCPU.size()];
 	
 	for (size_t j = 0; j < totaltaskCPU.size(); j += threadnum) {		
 		vector<thread> thread_STSim;
@@ -234,11 +236,11 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 
 
 void STGrid::STSimilarityJoinCalcCPU(
-	//double epsilon,
-	//double alpha,
+	//float epsilon,
+	//float alpha,
 	const STTrajectory &T1,
 	const STTrajectory &T2,
-	map<trajPair, double>& result
+	map<trajPair, float>& result
 ) {
 	// aborted
 	
@@ -250,19 +252,93 @@ void STGrid::STSimilarityJoinCalcCPU(
 void STGrid::STSimilarityJoinCalcCPUV2(
 	const STTrajectory &T1,
 	const STTrajectory &T2,
-	double &result // 不能用值传递 
+	float &result // 不能用值传递 
 ){
 	result = T1.CalcTTSTSim(T2);
 	// aborted
 }
 
 // 指针传递
+// 多线程
 void STGrid::STSimilarityJoinCalcCPUV3(
 	const STTrajectory *T1,
 	const STTrajectory *T2,
-	double *result // 不能用值传递 
+	float *result // 不能用值传递 
 ) {
 
 	(*result) = (*T1).CalcTTSTSim((*T2));
+
+}
+
+
+
+void STGrid::joinExhaustedGPU(
+	//float epsilon,
+	//float alpha,
+	int sizeP,
+	int sizeQ,
+	map<trajPair, float>& result
+	//vector<STTrajectory> &P,
+	//vector<STTrajectory> &Q
+) {
+	// only one TrajDB - selfjoin
+	// get ID only one trajDB
+	set<size_t> P;
+	for (size_t i = 0; i < sizeP; i++) {
+		taskSet1.push_back(i);
+	}
+	set<size_t> Q;
+	for (size_t j = 0; j < sizeQ; j++) {
+		taskSet2.push_back(j);
+	}
+
+
+	// filtering 
+
+
+
+
+	/*
+	// get the trajPAIR(candidate pair)
+	for (size_t i = 0; i < taskSet1.size(); i++) {
+		for (size_t j = 0; j < taskSet2.size(); j++) {
+			//if(i != j){ // no need
+			trajPair tmppair = trajPair(taskSet1[i], taskSet2[j]); // 这样是否不利于 多线程？？是否有性能影响 
+			totaltaskGPU.push_back(tmppair); // 这里不考虑GPU内存拷贝问题
+											 //}
+		}
+	}
+
+	cout << "totaltaskGPU size: " << totaltaskGPU.size() << endl;
+	*/
+	vector<STTrajectory> trajSetP, trajSetQ;
+	
+	for (size_t i = 0; i < taskSet1.size(); i += GPUOnceCnt) {
+		// Pbatch
+		for (size_t k = 0; k < ( i + GPUOnceCnt > taskSet1.size() ? taskSet1.size()-i : GPUOnceCnt); k++) {
+			trajSetP.push_back(this->dataPtr[i + k]);
+		}
+		for (size_t j = 0; j < taskSet2.size(); j += GPUOnceCnt) {
+			// Qbatch
+			for (size_t k = 0; k < (j + GPUOnceCnt > taskSet2.size() ? taskSet2.size() - j : GPUOnceCnt); k++) {
+				trajSetQ.push_back(this->dataPtr[j + k]);
+			}
+			// P Q batch-join
+			map<trajPair, float> partialResult;
+			
+			STSimilarityJoinCalcGPU(trajSetP, trajSetQ, result);
+			
+			// insert new result
+			for (map<trajPair, float>::iterator it = partialResult.begin(); it != partialResult.end(); it++) {
+				//if ( (*it).second > EPSILON ) {
+				if (it->second > EPSILON) {
+					result.insert(*it);
+				}		
+			}
+		}
+	
+	}
+	
+	cout << "finalresult size: " << result.size() << endl;
 
 }

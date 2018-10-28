@@ -16,8 +16,8 @@ public:
 
 	//STPoint();
 	//~STPoint();
-	double lat;
-	double lon;
+	float lat;
+	float lon;
 	
 	// done by Cpp
 	int zorder; // *** not INIT 仅仅在filter使用
@@ -39,10 +39,10 @@ public:
 	// functions related with this single point!
 	
 	//减少函数调用栈使用
-	//double CalcPPSSim(const STPoint &p);
-	//double CalcPPTSim(const STPoint &p);
+	//float CalcPPSSim(const STPoint &p);
+	//float CalcPPTSim(const STPoint &p);
 
-	double CalcPPSTSim(const STPoint &p) const;
+	float CalcPPSTSim(const STPoint &p) const;
 
 
 protected:

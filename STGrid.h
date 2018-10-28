@@ -2,6 +2,7 @@
 #include "STPoint.h"
 #include "STTrajectory.h"
 #include "ConstDefine.h"
+#include "gpukernel.h"
 
 class STGrid {
 
@@ -14,7 +15,10 @@ public:
 	
 	vector<trajPair> totaltaskCPU; // 是否会太大？？？
 
+	vector<trajPair> totaltaskGPU; // 是否会太大？？？
 								   
+
+
 	// functions started here
 	void init(const vector<STTrajectory> &dptr);
 
@@ -34,67 +38,71 @@ public:
 	// int: 2,147,483,647 actually is not big enough
 	// 49001 * 49001 = 2,401,098,001
 
+
+
+
 	void joinExhaustedCPUonethread(
-		//double epsilon,
-		//double alpha,
+		//float epsilon,
+		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, double>& result
+		map<trajPair, float>& result
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);
 
 	// no filter and verification here
+	// 全速 all thread
 	void joinExhaustedCPU(
-		//double epsilon,
-		//double alpha,
+		//float epsilon,
+		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, double>& result
+		map<trajPair, float>& result
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);
 
 	// only for test
 	void joinExhaustedCPUconfigurablethread(
-		//double epsilon,
-		//double alpha,
+		//float epsilon,
+		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, double>& result,
+		map<trajPair, float>& result,
 		int threadnum
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);
 
 	void STSimilarityJoinCalcCPU(
-		//double epsilon,
-		//double alpha,
+		//float epsilon,
+		//float alpha,
 		const STTrajectory &T1,
 		const STTrajectory &T2,
-		map<trajPair, double>& result
+		map<trajPair, float>& result
 	);
 
 	// const 多线程考虑
 	void STSimilarityJoinCalcCPUV2(
 		const STTrajectory &T1,
 		const STTrajectory &T2,
-		double &result // 引用传递
+		float &result // 引用传递
 	);
 
 	void STSimilarityJoinCalcCPUV3(
 		const STTrajectory *T1,
 		const STTrajectory *T2,
-		double *result // 不能用值传递 
+		float *result // 不能用值传递 
 	);
 
 
 	void joinExhaustedGPU(
-		//double epsilon,
-		//double alpha,
+		//float epsilon,
+		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, double>& result
+		map<trajPair, float>& result
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);

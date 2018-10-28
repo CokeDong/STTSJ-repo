@@ -134,7 +134,7 @@ void Preprocess::TipsExtraction(string fileName) {
 
 
 
-	// open twice FOOOOOOOOOOOOOL, double time consuming!!! while-loop, solve by saving results to parameter before write into file
+	// open twice FOOOOOOOOOOOOOL, float time consuming!!! while-loop, solve by saving results to parameter before write into file
 	fin.open(fileName);
 	fout.open("./NY/CorpusExtc.txt");
 	if (!fin.is_open())
@@ -263,6 +263,7 @@ void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName
 	}
 	string linestr;
 	int linecnt = 0;
+	int maxlen = -1;
 	while (getline(fin, linestr)) {
 
 		string s = linestr;
@@ -281,8 +282,13 @@ void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName
 			pointdb.at(pointID).belongtraj.push_back(trajid);
 		}
 		trajtmp.traj_length = trajtmp.traj_of_stpoint_id.size();
+		if (maxlen < trajtmp.traj_length) {
+			maxlen = trajtmp.traj_length;
+		}
+		
 		trajdb.push_back(trajtmp);
 	}
+	cout << "maxlen: " << maxlen << endl;
 	cout << "TrajDBpointsID reading finished" << endl;
 	fin.close();
 }

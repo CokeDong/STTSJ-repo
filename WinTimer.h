@@ -24,9 +24,9 @@ public:
 		QueryPerformanceCounter(&_stop);
 	}
 
-	inline double elapse()
+	inline float elapse()
 	{
-		return double(1e3*(_stop.QuadPart - _start.QuadPart) / _freq.QuadPart); //  windows ∫¡√Î
+		return float(1e3*(_stop.QuadPart - _start.QuadPart) / _freq.QuadPart); //  windows ∫¡√Î
 	}
 
 	inline long long ticks()
