@@ -25,12 +25,12 @@
 
 using namespace std;
 
-
+#define MAX_CPU_THREAD 16384
 #define MAX_TRAJ 100
 
 #define MAX_DIST 300 // too large!!
 #define ALPHA 0.5
-#define EPSILON 0.1
+#define EPSILON 0.0001
 
 #define GPUOnceCnt 128
 #define DUALGPU false

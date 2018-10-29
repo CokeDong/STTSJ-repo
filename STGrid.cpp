@@ -18,6 +18,8 @@ void STGrid::joinExhaustedCPUonethread(
 	map<trajPair, float>& result) {
 
 
+	MyTimer timer;
+	timer.start();
 
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
@@ -79,11 +81,13 @@ void STGrid::joinExhaustedCPUonethread(
 			result[totaltaskCPU[i]] = tmpresult[i];
 		}
 	}
+	delete[] tmpresult;
 
 	cout << "finalresult size: " << result.size() << endl;
 
-	delete[] tmpresult;
-
+	
+	timer.stop();
+	printf("CPU tiime: %f s\n", timer.elapse());
 }
 
 
@@ -157,13 +161,14 @@ void STGrid::joinExhaustedCPU(
 			result[totaltaskCPU[i]] = tmpresult[i];
 		}
 	}
-
-	cout << "finalresult size: " << result.size() << endl;
+	delete[] tmpresult;
 
 	timer.stop();
 	printf("CPU tiime: %f s\n", timer.elapse());
 
-	delete[] tmpresult;
+	cout << "finalresult size: " << result.size() << endl;
+	
+
 
 }
 
@@ -180,7 +185,8 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
 	//set<size_t> P;
-
+	MyTimer timer;
+	timer.start();
 
 	vector<size_t> taskSet1, taskSet2;
 	vector<trajPair> totaltaskCPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
@@ -217,6 +223,8 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	// 多线程写 引入tmpresult
 	
 	// 总是无法满载！！
+	// 原因：threadnum  不够大 ---> MAX_CPU_THREAD
+
 	float* tmpresult = new float[totaltaskCPU.size()];
 	
 	for (size_t j = 0; j < totaltaskCPU.size(); j += threadnum) {		
@@ -242,10 +250,14 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 			result[totaltaskCPU[i]] = tmpresult[i];
 		}
 	}
+	delete[] tmpresult;
+
+	timer.stop();
+	printf("CPU tiime: %f s\n", timer.elapse());
 
 	cout << "finalresult size: " << result.size() << endl;
 
-	delete[] tmpresult;
+
 
 }
 
@@ -377,10 +389,12 @@ void STGrid::joinExhaustedGPU(
 		}
 	
 	}
-	
-	cout << "finalresult size: " << result.size() << endl;
+
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
+
+	cout << "finalresult size: " << result.size() << endl;
+
 }
 
 
