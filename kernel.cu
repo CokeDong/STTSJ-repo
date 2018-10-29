@@ -391,10 +391,10 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	// running kernel
 	cudaDeviceSynchronize();
 
-	computeSimGPU << < dataSizeP*dataSizeQ, THREAD_NUM, 0, stream >> > (latDataPGPU, latDataQGPU, lonDataPGPU, lonDataQGPU,
-		textDataPIndexGPU, textDataQIndexGPU, textDataPValueGPU, textDataQValueGPU,
-		textIdxPGPU, textIdxQGPU, numWordPGPU, numWordQGPU,
-		stattableGPU, SimResultGPU
+	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+		(uint32_t*)textDataPIndexGPU, (uint32_t*)textDataQIndexGPU, (uint32_t*)textDataPValueGPU, (uint32_t*)textDataQValueGPU,
+		(uint32_t*)textIdxPGPU, (uint32_t*)textIdxQGPU, (uint32_t*)numWordPGPU, (uint32_t*)numWordQGPU,
+		(StatInfoTable*)stattableGPU, (float*)SimResultGPU
 		);
 
 	cudaDeviceSynchronize();
