@@ -86,17 +86,21 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 	float latP, latQ, lonP, lonQ;
 
 	for (size_t i = 0; i < pointNumP; i += THREADROW) {
-		latP = latDataPGPU[pointIdP + i + tId%THREADROW];
-		lonP = lonDataPGPU[pointIdP + i + tId%THREADROW];
-		printf("%f,%f \n", latP, lonP);
+		int tmpflagi = i + tId % THREADROW;
+		if(tmpflagi < pointNumP){
+			latP = latDataPGPU[pointIdP + tmpflagi];
+			lonP = lonDataPGPU[pointIdP + tmpflagi];
+			printf("%f,%f \n", latP, lonP);
+		}
 
-/*
 		for (size_t j = 0; j < pointNumQ; j += THREADCOLUMN) {
+			int tmpflagj = j + tId / THREADROW;
+			if (tmpflagj < pointNumQ) {
+				latQ = latDataQGPU[pointIdQ + tmpflagj];
+				lonQ = lonDataQGPU[pointIdQ + tmpflagj];
+			}
 
-			latQ = latDataQGPU[pointIdQ + j + tId / THREADROW];
-			lonQ = lonDataQGPU[pointIdQ + j + tId / THREADROW];
-
-			if ((i + tId % THREADROW < pointNumP) && (j + tId / THREADROW < pointNumQ)) { // bound condition
+			if (tmpflagi && tmpflagj) { // bound condition
 				float tsim = 0;
 				float ssim = SSimGPU(latQ, lonQ, latP, lonP);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
@@ -107,7 +111,8 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 			
 			// block 同步
 			__syncthreads();
-		
+
+/*	
 			////
 			//// //优化
 			////if (tId == 0) {
@@ -150,8 +155,10 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 				maxSimColumn[j + tId / THREADROW] = (maxSimColumn[j + tId / THREADROW] > tmpmaxSim ? maxSimColumn[j + tId / THREADROW] : tmpmaxSim);
 			}
 			__syncthreads(); // still need!
-		}
 */
+
+		}
+
 	}
 
 
