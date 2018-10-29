@@ -66,7 +66,7 @@ int main() {
 	
 	//grid.joinExhaustedCPUconfigurablethread(128, 128, result, MAX_CPU_THREAD);
 	
-	grid.joinExhaustedGPU(128, 128, result);
+	grid.joinExhaustedGPU(32, 32, result);
 
 	cout << "finished" << endl;
 	getchar();

@@ -46,7 +46,7 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 	) {
 	int bId = blockIdx.x;
 	int tId = threadIdx.x;
-
+	
 	__shared__ StatInfoTable task;
 	__shared__ uint32_t pointIdP, pointNumP, pointIdQ, pointNumQ;
 
@@ -88,7 +88,9 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 	for (size_t i = 0; i < pointNumP; i += THREADROW) {
 		latP = latDataPGPU[pointIdP + i + tId%THREADROW];
 		lonP = lonDataPGPU[pointIdP + i + tId%THREADROW];
-		
+		printf("%f,%f \n", latP, lonP);
+
+/*
 		for (size_t j = 0; j < pointNumQ; j += THREADCOLUMN) {
 
 			latQ = latDataQGPU[pointIdQ + j + tId / THREADROW];
@@ -106,14 +108,14 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 			// block 同步
 			__syncthreads();
 		
-			/*
-			// 优化
-			if (tId == 0) {
-				tid_row = i + THREADROW > pointNumP ? pointNumP - i : THREADROW;
-				tid_column = j + THREADCOLUMN > pointNumP ? pointNumQ - j : THREADCOLUMN;
-			}
-			__syncthreads();
-			*/
+			////
+			//// //优化
+			////if (tId == 0) {
+			////	tid_row = i + THREADROW > pointNumP ? pointNumP - i : THREADROW;
+			////	tid_column = j + THREADCOLUMN > pointNumP ? pointNumQ - j : THREADCOLUMN;
+			////}
+			////__syncthreads();
+			////
 
 
 			// ************--shared_mem process--************
@@ -149,9 +151,11 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 			}
 			__syncthreads(); // still need!
 		}
-	
+*/
 	}
 
+
+	/*
 	// sum reduction
 //	for (size_t i = 0; i < ((MAXTRAJLEN - 1) / THREADNUM) + 1; i++) {
 
@@ -179,6 +183,8 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 	if (tId == 0) {
 		SimResultGPU[bId] = maxSimRow[0] / pointNumP + maxSimColumn[0] / pointNumQ;
 	}
+	*/
+
 	return;
 }
 
@@ -281,10 +287,10 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		}
 
 		// for L2 cache(32 byte) alignment
-		int remainder = 4 * trajSetP[i].traj_of_stpoint.size() % 32;
+		int remainder = 4 * trajSetP[i].traj_of_stpoint.size() % 32; // bytes
 		Latlon p; p.lat = 180.0; p.lon = 360.0;
 		if (remainder) {
-			for (size_t k = 0; k < remainder / 4; k++) {
+			for (size_t k = 0; k < (32-remainder)/4; k++) {
 				latDataPCPU.push_back(p.lat);
 				lonDataPCPU.push_back(p.lon);
 				numWordPCPU.push_back(-1);
@@ -294,7 +300,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		}
 		remainder = 4 * textPId % 32;
 		if (remainder) {
-			for (size_t k = 0; k < remainder / 4; k++) {
+			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
 				textDataPIndexCPU.push_back(-1);
 				textDataPValueCPU.push_back(-1);
 				textPId++;
@@ -357,7 +363,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		int remainder = 4 * trajSetQ[i].traj_of_stpoint.size() % 32;
 		Latlon p; p.lat = 180.0; p.lon = 360.0;
 		if (remainder) {
-			for (size_t k = 0; k < remainder / 4; k++) {
+			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
 				latDataQCPU.push_back(p.lat);
 				lonDataQCPU.push_back(p.lon);
 				numWordQCPU.push_back(-1);
@@ -367,7 +373,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		}
 		remainder = 4 * textQId % 32;
 		if (remainder) {
-			for (size_t k = 0; k < remainder / 4; k++) {
+			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
 				textDataQIndexCPU.push_back(-1);
 				textDataQValueCPU.push_back(-1);
 				textQId++;
@@ -437,7 +443,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	// GPU stream management
 	CUDA_CALL(cudaStreamDestroy(stream));
-
+	CUDA_CALL(cudaDeviceReset());
 	return;
 }
 
