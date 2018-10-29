@@ -98,6 +98,8 @@ void STGrid::joinExhaustedCPU(
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
 	//set<size_t> P;
+	MyTimer timer;
+	timer.start();
 
 	vector<size_t> taskSet1, taskSet2;
 	vector<trajPair> totaltaskCPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
@@ -157,6 +159,9 @@ void STGrid::joinExhaustedCPU(
 	}
 
 	cout << "finalresult size: " << result.size() << endl;
+
+	timer.stop();
+	printf("CPU tiime: %f s\n", timer.elapse());
 
 	delete[] tmpresult;
 
@@ -294,6 +299,8 @@ void STGrid::joinExhaustedGPU(
 ) {
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
+	MyTimer timer;
+	timer.start();
 
 	vector<size_t> taskSet1, taskSet2;
 	
@@ -372,7 +379,8 @@ void STGrid::joinExhaustedGPU(
 	}
 	
 	cout << "finalresult size: " << result.size() << endl;
-
+	timer.stop();
+	printf("GPU time: %f s\n", timer.elapse());
 }
 
 

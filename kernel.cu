@@ -437,6 +437,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	// GPU stream management
 	CUDA_CALL(cudaStreamDestroy(stream));
+
+	return;
 }
 
 

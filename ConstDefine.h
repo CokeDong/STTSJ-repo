@@ -30,7 +30,7 @@ using namespace std;
 
 #define MAX_DIST 300 // too large!!
 #define ALPHA 0.5
-#define EPSILON 0.2
+#define EPSILON 0.1
 
 #define GPUOnceCnt 128
 #define DUALGPU false
@@ -61,6 +61,7 @@ public:
 	float iStart;
 	float iEnd;
 
+	// linux √Î
 	float cpuSecond() {
 		struct timeval tp;
 		gettimeofday(&tp, NULL);
