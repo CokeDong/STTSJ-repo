@@ -43,9 +43,10 @@ using namespace std;
 // NY: 200
 // LA:
 // TWITTER:
-
 // predefined !!!
 #define MAXTRAJLEN 256
+
+
 
 #ifdef WIN32
 #include "WinTimer.h"

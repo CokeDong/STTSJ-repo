@@ -196,6 +196,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	*/
 
 	// GPUmem-alloc
+	// 需要手动free!!
 	void* gpuAddrPSet = GPUMalloc((size_t)1000 * 1024 * 1024);
 	void* gpuAddrQSet = GPUMalloc((size_t)1500 * 1024 * 1024);
 
@@ -223,6 +224,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	vector<uint32_t> numWordPCPU, numWordQCPU; // keyword num in each point
 
 	
+	// 需要手动free!!
 	StatInfoTable* stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
 	if (stattableCPU == NULL) { printf("malloc failed!");  assert(0); };
 
@@ -382,7 +384,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	pnow = (void*)((StatInfoTable*)pnow + dataSizeP * dataSizeQ);
 
 	
-	// zero-copy 内存
+	// zero-copy 内存 
+	// 需要手动free!!
 	float *SimResult, *SimResultGPU;
 	CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
 	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
@@ -404,6 +407,17 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		result.push_back(SimResult[i]);
 	}
 
+
+	// free CPU memory
+	free(stattableCPU);
+
+	// free GPU memory
+	CUDA_CALL(cudaFreeHost(SimResult));
+	CUDA_CALL(cudaFree(gpuAddrPSet));
+	CUDA_CALL(cudaFree(gpuAddrQSet));
+
+	// GPU stream management
+	CUDA_CALL(cudaStreamDestroy(stream));
 }
 
 
