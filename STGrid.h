@@ -11,11 +11,9 @@ public:
 	// really in this way. must done before 7/17
 
 	vector<STTrajectory> dataPtr; // 小技巧：引入引用/指针 一次初始化后便不需要每次都把vector<STTrajectory> trajDB 作为参数 简化程序
-	vector<size_t> taskSet1, taskSet2;
 	
-	vector<trajPair> totaltaskCPU; // 是否会太大？？？
+	
 
-	vector<trajPair> totaltaskGPU; // 是否会太大？？？
 								   
 
 
@@ -107,6 +105,7 @@ public:
 		//vector<STTrajectory> &Q
 	);
 
+	void GetTaskPair(vector<size_t> &taskp, vector<size_t> &taskq, vector<trajPair> &resultpair);
 
 protected:
 

@@ -17,9 +17,14 @@ void STGrid::joinExhaustedCPUonethread(
 	int sizeQ,
 	map<trajPair, float>& result) {
 
+
+
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
 	//set<size_t> P;
+
+	vector<size_t> taskSet1, taskSet2;
+	vector<trajPair> totaltaskCPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
 	for (size_t i = 0; i < sizeP; i++) {
 		taskSet1.push_back(i);
 	}
@@ -93,6 +98,10 @@ void STGrid::joinExhaustedCPU(
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
 	//set<size_t> P;
+
+	vector<size_t> taskSet1, taskSet2;
+	vector<trajPair> totaltaskCPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
+
 	for (size_t i = 0; i < sizeP; i++) {
 		taskSet1.push_back(i);
 	}
@@ -107,7 +116,6 @@ void STGrid::joinExhaustedCPU(
 
 
 
-
 	// get the trajPAIR(candidate pair)
 	for (size_t i = 0; i < sizeP; i++) {
 		for (size_t j = 0; j < sizeQ; j++) {
@@ -117,7 +125,6 @@ void STGrid::joinExhaustedCPU(
 			//}
 		}
 	}
-
 	cout << "totaltaskCPU size: "<<totaltaskCPU.size() << endl;
 	
 
@@ -168,6 +175,10 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
 	//set<size_t> P;
+
+
+	vector<size_t> taskSet1, taskSet2;
+	vector<trajPair> totaltaskCPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
 	for (size_t i = 0; i < sizeP; i++) {
 		taskSet1.push_back(i);
 	}
@@ -283,6 +294,9 @@ void STGrid::joinExhaustedGPU(
 ) {
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
+
+	vector<size_t> taskSet1, taskSet2;
+	
 	set<size_t> P;
 	for (size_t i = 0; i < sizeP; i++) {
 		taskSet1.push_back(i);
@@ -314,31 +328,59 @@ void STGrid::joinExhaustedGPU(
 	vector<STTrajectory> trajSetP, trajSetQ;
 	
 	for (size_t i = 0; i < taskSet1.size(); i += GPUOnceCnt) {
+		vector<size_t> tmptaskp;
+		vector<trajPair> tmptaskGPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
 		// Pbatch
 		for (size_t k = 0; k < ( i + GPUOnceCnt > taskSet1.size() ? taskSet1.size()-i : GPUOnceCnt); k++) {
 			trajSetP.push_back(this->dataPtr[i + k]);
+			tmptaskp.push_back(i + k);
 		}
 		for (size_t j = 0; j < taskSet2.size(); j += GPUOnceCnt) {
 			// Qbatch
+			vector<size_t> tmptaskq; // 注意作用域！！
 			for (size_t k = 0; k < (j + GPUOnceCnt > taskSet2.size() ? taskSet2.size() - j : GPUOnceCnt); k++) {
 				trajSetQ.push_back(this->dataPtr[j + k]);
+				tmptaskq.push_back(j + k);
 			}
+
+			// get trajpair(taskpair)
+			GetTaskPair(tmptaskp, tmptaskq, tmptaskGPU);
+
 			// P Q batch-join
-			map<trajPair, float> partialResult;
+			// get only the result!!
+			vector<float> partialResult;			
+			STSimilarityJoinCalcGPU(trajSetP, trajSetQ, partialResult);
 			
-			STSimilarityJoinCalcGPU(trajSetP, trajSetQ, result);
-			
+
 			// insert new result
+			for (size_t k = 0; k < partialResult.size(); k++) {
+				if (partialResult[k] > EPSILON) {
+					result[tmptaskGPU[k]] = partialResult[k];
+				}
+			}
+
+			/*
 			for (map<trajPair, float>::iterator it = partialResult.begin(); it != partialResult.end(); it++) {
 				//if ( (*it).second > EPSILON ) {
 				if (it->second > EPSILON) {
 					result.insert(*it);
 				}		
 			}
+			*/
 		}
 	
 	}
 	
 	cout << "finalresult size: " << result.size() << endl;
 
+}
+
+
+void STGrid::GetTaskPair(vector<size_t> &taskp, vector<size_t> &taskq, vector<trajPair> &resultpair) {
+	for (size_t i = 0; i < taskp.size(); i++) {
+		for (size_t j = 0; j < taskq.size(); j++) {
+			trajPair tmppair = trajPair(taskp[i],taskq[j]);
+			resultpair.push_back(tmppair);
+		}
+	}
 }

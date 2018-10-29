@@ -185,7 +185,7 @@ void* GPUMalloc(size_t byteNum) {
 
 void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	vector<STTrajectory> &trajSetQ,
-	map<trajPair, float> &result) {
+	vector<float> &result) {
 
 	CUDAwarmUp();
 	/*
@@ -235,10 +235,13 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	// process P
 	uint32_t latlonPId = 0, textPId = 0;
 	for (size_t i = 0; i < trajSetP.size(); i++) {
+		
+		// Í³¼Æ±í
 		for (size_t j = 0; j < dataSizeQ; j++) {
 			stattableCPU[i*dataSizeQ + j].latlonIdxP = (uint32_t)latlonPId;
 			stattableCPU[i*dataSizeQ + j].pointNumP = (uint32_t)trajSetP[i].traj_of_stpoint.size();
 		}
+
 		for (size_t j = 0; j < trajSetP[i].traj_of_stpoint.size(); j++) {
 			Latlon p;
 			p.lat = trajSetP[i].traj_of_stpoint[j].lat;
@@ -305,10 +308,12 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	uint32_t latlonQId = 0, textQId = 0;
 	for (size_t i = 0; i < trajSetQ.size(); i++) {
+
 		for (size_t j = 0; j < dataSizeP; j++) {
 			stattableCPU[j*dataSizeQ + i].latlonIdxQ = (uint32_t)latlonQId;
 			stattableCPU[j*dataSizeQ + i].pointNumQ = (uint32_t)trajSetQ[i].traj_of_stpoint.size();
 		}
+
 		for (size_t j = 0; j < trajSetQ[i].traj_of_stpoint.size(); j++) {
 			Latlon p;
 			p.lat = trajSetQ[i].traj_of_stpoint[j].lat;
@@ -386,7 +391,18 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	// running kernel
 	cudaDeviceSynchronize();
 
+	computeSimGPU << < dataSizeP*dataSizeQ, THREAD_NUM, 0, stream >> > (latDataPGPU, latDataQGPU, lonDataPGPU, lonDataQGPU,
+		textDataPIndexGPU, textDataQIndexGPU, textDataPValueGPU, textDataQValueGPU,
+		textIdxPGPU, textIdxQGPU, numWordPGPU, numWordQGPU,
+		stattableGPU, SimResultGPU
+		);
 
+	cudaDeviceSynchronize();
+
+	// rediculous
+	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
+		result.push_back(SimResult[i]);
+	}
 
 }
 
