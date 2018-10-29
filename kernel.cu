@@ -13,9 +13,19 @@ GPU function definition.
 All functions of GPU are defined here.
 */
 
-__device__ inline float SSimGPU(){
-
+__device__ inline float SSimGPU(float lat1, float lon1, float lat2, float lon2) {
+	//float Pi = 3.1415926;
+	//float R = 6371004;
+	float MLatA, MLatB, MLonA, MLonB;
+	MLatA = 90 - lat1;
+	MLatB = 90 - lat2;
+	MLonA = lon1;
+	MLonB = lon2;
+	float C = sin(MLatA)*sin(MLatB)*cos(MLonA - MLonB) + cos(MLatA)*cos(MLatB);
+	float Distance = 6371004 *acos(C)*3.1415926 / 180;
+	return (1 - Distance / MAX_DIST);
 }
+
 __device__ inline float TSimGPU(){
 
 }
@@ -73,18 +83,27 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 	maxSimColumn[tId] = 0;
 	__syncthreads();
 
+	float latP, latQ, lonP, lonQ;
+
 	for (size_t i = 0; i < pointNumP; i += THREADROW) {
-	
+		latP = latDataPGPU[pointIdP + i + tId%THREADROW];
+		lonP = lonDataPGPU[pointIdP + i + tId%THREADROW];
+		
 		for (size_t j = 0; j < pointNumQ; j += THREADCOLUMN) {
+
+			latQ = latDataQGPU[pointIdQ + j + tId / THREADROW];
+			lonQ = lonDataQGPU[pointIdQ + j + tId / THREADROW];
 
 			if ((i + tId % THREADROW < pointNumP) && (j + tId / THREADROW < pointNumQ)) { // bound condition
 				float tsim = 0;
-				float ssim = 0;
+				float ssim = SSimGPU(latQ, lonQ, latP, lonP);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
 			}
 			else {
 				tmpSim[tId] = -1;//技巧，省去下面的tID=0判断
 			}
+			
+			// block 同步
 			__syncthreads();
 		
 			/*
