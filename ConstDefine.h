@@ -20,7 +20,15 @@
 #include "WinTimer.h"
 #else
 #include <sys/time.h>
+#include <unistd.h>
 #endif
+
+#ifdef WIN32
+#define sleep(x) Sleep(x*1000)
+#else
+
+#endif
+
 
 // not recommended!!
 // self-definition util
@@ -67,7 +75,7 @@ public:
 	double iEnd;
 
 	// linux √Î
-	float cpuSecond() {
+	double cpuSecond() {
 		struct timeval tp;
 		gettimeofday(&tp, NULL);
 		return ((double)tp.tv_sec + (double)tp.tv_usec*1.0e-6);
@@ -81,7 +89,7 @@ public:
 	{
 		iEnd = cpuSecond();
 	}
-	inline float elapse()
+	inline double elapse()
 	{
 		return iEnd - iStart;
 	}
