@@ -395,7 +395,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	latDataQGPU = pnow;
 	pnow = (void*)((float*)pnow + latDataQCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &lonDataQCPU[0], sizeof(float)*lonDataQCPU.size(), cudaMemcpyHostToDevice, stream));
-	lonDataPGPU = pnow;
+	// wrong code!!!
+	//lonDataPGPU = pnow;
+	lonDataQGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataQCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQIndexCPU[0], sizeof(uint32_t)*textDataQIndexCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataPIndexGPU = pnow;
