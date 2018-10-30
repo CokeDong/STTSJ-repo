@@ -16,6 +16,12 @@
 #include <string>
 #include <cstdlib>
 
+#ifdef WIN32
+#include "WinTimer.h"
+#else
+#include <sys/time.h>
+#endif
+
 // not recommended!!
 // self-definition util
 // 易造成循环引用 不重要
@@ -28,9 +34,9 @@ using namespace std;
 #define MAX_CPU_THREAD 16384
 #define MAX_TRAJ 100
 
-#define MAX_DIST 300 // too large!!
+#define MAX_DIST 40076000 // too large!!
 #define ALPHA 0.5
-#define EPSILON 0.0001
+#define EPSILON 0.1
 
 #define GPUOnceCnt 128
 #define DUALGPU false
@@ -47,12 +53,11 @@ using namespace std;
 #define MAXTRAJLEN 256
 
 
+// not recommended??
+
 
 #ifdef WIN32
-#include "WinTimer.h"
 #else
-#include <sys/time.h>
-
 class MyTimer
 {
 public:

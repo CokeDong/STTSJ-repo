@@ -72,9 +72,14 @@ void STGrid::joinExhaustedCPUonethread(
 	}
 	//std::for_each(thread_STSim.begin(), thread_STSim.end(), std::mem_fn(&std::thread::join));
 
+
+	/*
 	for (size_t i = 0; i < 20; i++) {
 		cout << tmpresult[i] << endl;
 	}
+	*/
+
+
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
@@ -83,11 +88,13 @@ void STGrid::joinExhaustedCPUonethread(
 	}
 	delete[] tmpresult;
 
+	timer.stop();
+	printf("CPU tiime: %f s\n", timer.elapse());
+
 	cout << "finalresult size: " << result.size() << endl;
 
 	
-	timer.stop();
-	printf("CPU tiime: %f s\n", timer.elapse());
+
 }
 
 
