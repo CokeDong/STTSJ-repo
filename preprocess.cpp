@@ -224,6 +224,7 @@ void Preprocess::ReadPointDBKeyword(vector<STPoint> &pointdb, string fileName) {
 	}
 
 	string linestr;
+	int maxkeywordcnt = -1;
 	while (getline(fin, linestr)) {
 		//cout << "gettting here";
 		string s = linestr;
@@ -246,8 +247,13 @@ void Preprocess::ReadPointDBKeyword(vector<STPoint> &pointdb, string fileName) {
 			pointdb.at(indexofpointdb).keywords.push_back(ktuple);
 			//i++;
 		}
+		// vector.size() 的返回值类型是size_type(uint32_t) !!
+		if (maxkeywordcnt < (int)pointdb.at(indexofpointdb).keywords.size()) {
+			maxkeywordcnt = (int)pointdb.at(indexofpointdb).keywords.size();
+		}
 		//cout << pointdb.at(indexofpointdb).keywords.size()<<endl; // why??  because forgetting fin.close!!!否则无法继续读取
 	}
+	cout << "max keyword cnt= " << maxkeywordcnt << endl;
 	cout << "PointDBkeyword reading finished" << endl;
 	fin.close();
 }
@@ -288,7 +294,7 @@ void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName
 		
 		trajdb.push_back(trajtmp);
 	}
-	cout << "maxlen: " << maxlen << endl;
+	cout << "maxtrajetory len= " << maxlen << endl;
 	cout << "TrajDBpointsID reading finished" << endl;
 	fin.close();
 }

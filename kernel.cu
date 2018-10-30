@@ -26,8 +26,30 @@ __device__ inline float SSimGPU(float lat1, float lon1, float lat2, float lon2) 
 	return (1 - Distance / MAX_DIST);
 }
 
-__device__ inline float TSimGPU(){
+__device__ inline float TSimGPU(uint32_t* textDataIndexPi, uint32_t* textDataIndexQj, uint32_t* textDataValuePi, uint32_t* textDataValueQj,
+	uint32_t numWordP, uint32_t numWordQ){
 
+	// choice1: each time fetch
+	// choice2: reg. store!! register. booming ?  max: 1502 min : 0 not recommended!!!
+
+	// may cause divergency may optimization Qj.keywordcnt=0??
+	if (numWordP == 0 || numWordQ == 0) { return 0; }
+
+	float tsimresult = 0;
+//	if (numWordP > numWordQ) //each time fetch:  no need !! divergency cache的存在 不确定的顺序！！
+
+	// calc tsim value
+	for (size_t m = 0; m < numWordP; m++) {
+		uint32_t tmpipim = textDataIndexPi[m]; // 编译器优化应该会有cache!!
+		float tmpvpim = textDataValuePi[m];
+		for (size_t n = 0; n < numWordQ; n++) {
+			if (tmpipim == textDataIndexQj[n]) {
+				tsimresult += tmpvpim*textDataValueQj[n];
+				break;// 单个点不会出现重复的keyword whether 优化 不确定？？
+			}
+		}
+	}
+	return tsimresult;
 }
 
 __device__ void warpReduce(volatile float* sdata,int tid ){
@@ -39,37 +61,86 @@ __device__ void warpReduce(volatile float* sdata,int tid ){
 	sdata[tid] += sdata[tid + 1];
 }
 
-__global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDataPGPU,float* lonDataQGPU,
-	uint32_t* textDataPIndexGPU, uint32_t* textDataQIndexGPU, uint32_t* textDataPValueGPU, uint32_t* textDataQValueGPU,
-	uint32_t* textIdxPGPU, uint32_t* textIdxQGPU, uint32_t* numWordPGPU, uint32_t* numWordQGPU,
+__global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lonDataPGPU1,float* lonDataQGPU1,
+	uint32_t* textDataPIndexGPU1, uint32_t* textDataQIndexGPU1, uint32_t* textDataPValueGPU1, uint32_t* textDataQValueGPU1,
+	uint32_t* textIdxPGPU1, uint32_t* textIdxQGPU1, uint32_t* numWordPGPU1, uint32_t* numWordQGPU1,
 	StatInfoTable* stattableGPU,float* SimResultGPU
 	) {
 	int bId = blockIdx.x;
 	int tId = threadIdx.x;
 	
-	__shared__ StatInfoTable task;
-	__shared__ uint32_t pointIdP, pointNumP, pointIdQ, pointNumQ;
-
 	__shared__ float tmpSim[THREADNUM];
 
 	__shared__ float maxSimRow[MAXTRAJLEN];
 	__shared__ float maxSimColumn[MAXTRAJLEN];
 
-	__shared__ uint32_t tid_row;
-	__shared__ uint32_t tid_column;
+	//__shared__ uint32_t tid_row;
+	//__shared__ uint32_t tid_column;
+
+
+	__shared__ StatInfoTable task;
+	__shared__ uint32_t pointIdP, pointNumP, pointIdQ, pointNumQ;
+	// merely for P-Q exchanging
+	__shared__ float *latDataPGPU, *latDataQGPU, *lonDataPGPU, *lonDataQGPU;
+	__shared__ uint32_t *textDataPIndexGPU, *textDataQIndexGPU, *textDataPValueGPU,
+		*textDataQValueGPU, *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
 
 	//fetch task info
 	if (tId == 0) {
-		task = stattableGPU[bId];		
+		task = stattableGPU[bId];	
+
+		// for cache task！
 		pointIdP = task.latlonIdxP;
-		pointNumP = task.pointNumP;
 		pointIdQ = task.latlonIdxQ;
+		pointNumP = task.pointNumP;
 		pointNumQ = task.pointNumQ;
+		
+		if (pointNumP > pointNumQ) {
+			latDataPGPU = latDataPGPU1;
+			latDataQGPU = latDataQGPU1;
+			lonDataPGPU = lonDataPGPU1;
+			lonDataQGPU = lonDataQGPU1;
+			textDataPIndexGPU = textDataPIndexGPU1;
+			textDataQIndexGPU = textDataQIndexGPU1;
+			textDataPValueGPU = textDataPValueGPU1;
+			textDataQValueGPU = textDataQValueGPU1;
+			textIdxPGPU = textIdxPGPU1;
+			textIdxQGPU = textIdxQGPU1;
+			numWordPGPU = numWordPGPU1;
+			numWordQGPU = numWordQGPU1;
+			
+			pointIdP = task.latlonIdxP;
+			pointIdQ = task.latlonIdxQ;
+			pointNumP = task.pointNumP;
+			pointNumQ = task.pointNumQ;
+
+		}
+		else {
+			latDataQGPU = latDataPGPU1;
+			latDataPGPU = latDataQGPU1;
+			lonDataQGPU = lonDataPGPU1;
+			lonDataPGPU = lonDataQGPU1;
+			textDataQIndexGPU = textDataPIndexGPU1;
+			textDataPIndexGPU = textDataQIndexGPU1;
+			textDataQValueGPU = textDataPValueGPU1;
+			textDataPValueGPU = textDataQValueGPU1;
+			textIdxQGPU = textIdxPGPU1;
+			textIdxPGPU = textIdxQGPU1;
+			numWordQGPU = numWordPGPU1;
+			numWordPGPU = numWordQGPU1;
+		
+			pointIdQ = task.latlonIdxP;
+			pointIdP = task.latlonIdxQ;
+			pointNumQ = task.pointNumP;
+			pointNumP = task.pointNumQ;
+
+		}
 	}
 	__syncthreads();
 
 
-	// numP > numQ
+	
+	// 不妨设 numP > numQ
 
 	// initialize maxSimRow maxSimColumn
 	/*
@@ -84,12 +155,15 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 	__syncthreads();
 
 	float latP, latQ, lonP, lonQ;
+	uint32_t textIdP, textIdQ, numWordP, numWordQ;
 
 	for (size_t i = 0; i < pointNumP; i += THREADROW) {
 		int tmpflagi = i + tId % THREADROW;
 		if(tmpflagi < pointNumP){
 			latP = latDataPGPU[pointIdP + tmpflagi];
 			lonP = lonDataPGPU[pointIdP + tmpflagi];
+			textIdP = textIdxPGPU[pointIdP + tmpflagi];
+			numWordP = numWordPGPU[pointIdP + tmpflagi];
 			//printf("%f,%f \n", latP, lonP);
 		}
 
@@ -98,10 +172,20 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 			if (tmpflagj < pointNumQ) {
 				latQ = latDataQGPU[pointIdQ + tmpflagj];
 				lonQ = lonDataQGPU[pointIdQ + tmpflagj];
+				textIdQ = textIdxQGPU[pointIdQ + tmpflagj];
+				numWordQ = numWordQGPU[pointIdQ + tmpflagj];
 			}
 
 			if (tmpflagi && tmpflagj) { // bound condition
-				float tsim = 0;
+
+				//// not recommended! divergency!!
+				//float tsim = 0;
+				//if (numWordP > numWordQ) {		
+				//}
+				//else {
+				//}
+
+				float tsim = TSimGPU(&textDataPIndexGPU[textIdP], &textDataQIndexGPU[textIdQ], &textDataPValueGPU[textIdP], &textDataQValueGPU[textIdQ], numWordP, numWordQ);
 				float ssim = SSimGPU(latQ, lonQ, latP, lonP);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
 			}
@@ -112,7 +196,7 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 			// block 同步
 			__syncthreads();
 
-/*	
+
 			////
 			//// //优化
 			////if (tId == 0) {
@@ -155,17 +239,20 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 				maxSimColumn[j + tId / THREADROW] = (maxSimColumn[j + tId / THREADROW] > tmpmaxSim ? maxSimColumn[j + tId / THREADROW] : tmpmaxSim);
 			}
 			__syncthreads(); // still need!
-*/
+
 
 		}
 
 	}
 
 
-	/*
+	
 	// sum reduction
+
 //	for (size_t i = 0; i < ((MAXTRAJLEN - 1) / THREADNUM) + 1; i++) {
 
+	// 前提：
+	//  THREADNUM > MAX-MAXTRAJLEN
 	for (size_t activethread = THREADNUM / 2; activethread > 32; activethread >>= 1) {
 		if (tId < activethread) {
 			maxSimRow[tId] += maxSimRow[tId + activethread];
@@ -190,7 +277,7 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 	if (tId == 0) {
 		SimResultGPU[bId] = maxSimRow[0] / pointNumP + maxSimColumn[0] / pointNumQ;
 	}
-	*/
+	
 
 	//return;
 }
@@ -324,9 +411,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaMemcpyAsync(pnow, &lonDataPCPU[0], sizeof(float)*lonDataPCPU.size(), cudaMemcpyHostToDevice, stream));
 	lonDataPGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataPCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPIndexCPU[0], sizeof(uint32_t)*textDataPIndexCPU.size(), cudaMemcpyHostToDevice, stream));
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxPCPU[0], sizeof(uint32_t)*textIdxPCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataPIndexGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + textDataPIndexCPU.size());
+	pnow = (void*)((uint32_t*)pnow + textIdxPCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordPCPU[0], sizeof(uint32_t)*numWordPCPU.size(), cudaMemcpyHostToDevice, stream));
 	numWordPGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + numWordPCPU.size());
@@ -399,9 +486,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	//lonDataPGPU = pnow;
 	lonDataQGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataQCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQIndexCPU[0], sizeof(uint32_t)*textDataQIndexCPU.size(), cudaMemcpyHostToDevice, stream));
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxQCPU[0], sizeof(uint32_t)*textIdxQCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataQIndexGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + textDataQIndexCPU.size());
+	pnow = (void*)((uint32_t*)pnow + textIdxQCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordQCPU[0], sizeof(uint32_t)*numWordQCPU.size(), cudaMemcpyHostToDevice, stream));
 	numWordQGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + numWordQCPU.size());

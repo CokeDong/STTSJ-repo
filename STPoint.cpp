@@ -27,7 +27,7 @@ float STPoint::CalcPPSTSim(const STPoint &p) const{
 	
 	//textual
 	float tsim = 0;
-	/*
+	
 	for (size_t i = 0; i < this->keywords.size(); i++) {
 		for (size_t j = 0; j < p.keywords.size(); j++) {
 			if (this->keywords[i].keywordid == p.keywords[j].keywordid) {
@@ -36,7 +36,7 @@ float STPoint::CalcPPSTSim(const STPoint &p) const{
 			}
 		}
 	}
-	*/
+	
 	
 	return(ALPHA * ssim + (1- ALPHA) * tsim);
 }

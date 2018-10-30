@@ -351,6 +351,9 @@ void STGrid::joinExhaustedGPU(
 
 	cout << "totaltaskGPU size: " << totaltaskGPU.size() << endl;
 	*/
+
+	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+
 	vector<STTrajectory> trajSetP, trajSetQ;
 	
 	for (size_t i = 0; i < taskSet1.size(); i += GPUOnceCnt) {
