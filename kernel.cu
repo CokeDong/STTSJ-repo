@@ -42,7 +42,7 @@ __device__ inline float TSimGPU(int* textDataIndexPi, int* textDataIndexQj, floa
 
 	// calc tsim value
 	for (size_t m = 0; m < numWordP; m++) {
-		int tmpipim = textDataIndexPi[m]; // 编译器优化应该会有cache!!
+		int tmpipim = textDataIndexPi[m]; // 编译器优化应该会有cache!! 不引入也一样？
 		float tmpvpim = textDataValuePi[m];
 		for (size_t n = 0; n < numWordQ; n++) {
 			if (tmpipim == textDataIndexQj[n]) {
@@ -366,6 +366,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 			stattableCPU[i*dataSizeQ + j].pointNumP = (int)trajSetP[i].traj_of_stpoint.size();
 		}
 
+		int keywordcnt = 0;
 		for (size_t j = 0; j < trajSetP[i].traj_of_stpoint.size(); j++) {
 			Latlon p;
 			p.lat = trajSetP[i].traj_of_stpoint[j].lat;
@@ -380,6 +381,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 				textDataPIndexCPU.push_back(trajSetP[i].traj_of_stpoint[j].keywords.at(k).keywordid);
 				textDataPValueCPU.push_back(trajSetP[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
 				textPId++;
+				keywordcnt++;
 			}
 		}
 
@@ -395,7 +397,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 				latlonPId++;
 			}
 		}
-		remainder = 4 * textPId % 32;
+		// 逻辑错误！！
+		//remainder = 4 * textPId % 32;
+		remainder = 4 * keywordcnt % 32;
 		if (remainder) {
 			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
 				textDataPIndexCPU.push_back(-1);
@@ -438,6 +442,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 			stattableCPU[j*dataSizeQ + i].pointNumQ = (int)trajSetQ[i].traj_of_stpoint.size();
 		}
 
+		int keywordcnt = 0;
 		for (size_t j = 0; j < trajSetQ[i].traj_of_stpoint.size(); j++) {
 			Latlon p;
 			p.lat = trajSetQ[i].traj_of_stpoint[j].lat;
@@ -458,6 +463,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 				textDataQIndexCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordid);
 				textDataQValueCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
 				textQId++;
+				keywordcnt++;
 			}
 		}
 
@@ -473,7 +479,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 				latlonQId++;
 			}
 		}
-		remainder = 4 * textQId % 32;
+
+		// ATTENTION!!---> keywordcnt
+		remainder = 4 * keywordcnt % 32;
 		if (remainder) {
 			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
 				textDataQIndexCPU.push_back(-1);
