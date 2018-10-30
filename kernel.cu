@@ -90,7 +90,7 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 		if(tmpflagi < pointNumP){
 			latP = latDataPGPU[pointIdP + tmpflagi];
 			lonP = lonDataPGPU[pointIdP + tmpflagi];
-			printf("%f,%f \n", latP, lonP);
+			//printf("%f,%f \n", latP, lonP);
 		}
 
 		for (size_t j = 0; j < pointNumQ; j += THREADCOLUMN) {
@@ -192,7 +192,7 @@ __global__ void computeSimGPU(float* latDataPGPU,float* latDataQGPU,float* lonDa
 	}
 	*/
 
-	return;
+	//return;
 }
 
 
@@ -229,13 +229,14 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	// GPUmem-alloc
 	// 需要手动free!!
+	// CUDA_CALL
 	void* gpuAddrPSet = GPUMalloc((size_t)1000 * 1024 * 1024);
 	void* gpuAddrQSet = GPUMalloc((size_t)1500 * 1024 * 1024);
 
 	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
 
 	cudaStream_t stream;
-	cudaStreamCreate(&stream);
+	CUDA_CALL(cudaStreamCreate(&stream));
 	
 	
 
@@ -424,7 +425,10 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 
 	// running kernel
-	cudaDeviceSynchronize();
+
+	//CUDA_CALL(cudaDeviceSynchronize());
+
+	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(uint32_t*)textDataPIndexGPU, (uint32_t*)textDataQIndexGPU, (uint32_t*)textDataPValueGPU, (uint32_t*)textDataQValueGPU,
@@ -432,7 +436,10 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		(StatInfoTable*)stattableGPU, (float*)SimResultGPU
 		);
 
-	cudaDeviceSynchronize();
+	//CUDA_CALL(cudaDeviceSynchronize());
+
+	CUDA_CALL(cudaStreamSynchronize(stream));
+
 
 	// rediculous
 	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
