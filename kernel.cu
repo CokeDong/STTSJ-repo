@@ -26,7 +26,7 @@ __device__ inline float SSimGPU(float lat1, float lon1, float lat2, float lon2) 
 	return (1 - Distance / MAX_DIST);
 }
 
-__device__ inline float TSimGPU(uint32_t* textDataIndexPi, uint32_t* textDataIndexQj, uint32_t* textDataValuePi, uint32_t* textDataValueQj,
+__device__ inline float TSimGPU(uint32_t* textDataIndexPi, uint32_t* textDataIndexQj, float* textDataValuePi, float* textDataValueQj,
 	uint32_t numWordP, uint32_t numWordQ){
 
 	// choice1: each time fetch
@@ -62,7 +62,7 @@ __device__ void warpReduce(volatile float* sdata,int tid ){
 }
 
 __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lonDataPGPU1,float* lonDataQGPU1,
-	uint32_t* textDataPIndexGPU1, uint32_t* textDataQIndexGPU1, uint32_t* textDataPValueGPU1, uint32_t* textDataQValueGPU1,
+	uint32_t* textDataPIndexGPU1, uint32_t* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
 	uint32_t* textIdxPGPU1, uint32_t* textIdxQGPU1, uint32_t* numWordPGPU1, uint32_t* numWordQGPU1,
 	StatInfoTable* stattableGPU,float* SimResultGPU
 	) {
@@ -81,9 +81,9 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	__shared__ StatInfoTable task;
 	__shared__ uint32_t pointIdP, pointNumP, pointIdQ, pointNumQ;
 	// merely for P-Q exchanging
-	__shared__ float *latDataPGPU, *latDataQGPU, *lonDataPGPU, *lonDataQGPU;
-	__shared__ uint32_t *textDataPIndexGPU, *textDataQIndexGPU, *textDataPValueGPU,
-		*textDataQValueGPU, *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
+
+	__shared__ float *latDataPGPU, *latDataQGPU, *lonDataPGPU, *lonDataQGPU, *textDataPValueGPU, *textDataQValueGPU;
+	__shared__ uint32_t *textDataPIndexGPU, *textDataQIndexGPU, *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
 
 	//fetch task info
 	if (tId == 0) {
@@ -339,7 +339,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	//vector<uint32_t> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 	
 	vector<uint32_t> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
-	vector<uint32_t> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
 	vector<uint32_t> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
 	vector<uint32_t> numWordPCPU, numWordQCPU; // keyword num in each point
 
@@ -420,9 +420,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPIndexCPU[0], sizeof(uint32_t)*textDataPIndexCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataPIndexGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + textDataPIndexCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPValueCPU[0], sizeof(uint32_t)*textDataPValueCPU.size(), cudaMemcpyHostToDevice, stream));
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPValueCPU[0], sizeof(float)*textDataPValueCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataPValueGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + textDataPValueCPU.size());
+	pnow = (void*)((float*)pnow + textDataPValueCPU.size());
 
 
 
@@ -495,9 +495,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQIndexCPU[0], sizeof(uint32_t)*textDataQIndexCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataQIndexGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + textDataQIndexCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQValueCPU[0], sizeof(uint32_t)*textDataQValueCPU.size(), cudaMemcpyHostToDevice, stream));
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQValueCPU[0], sizeof(float)*textDataQValueCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataQValueGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + textDataQValueCPU.size());
+	pnow = (void*)((float*)pnow + textDataQValueCPU.size());
 
 	// stattable cpy: one block only once!!
 	CUDA_CALL(cudaMemcpyAsync(pnow, stattableCPU, sizeof(StatInfoTable)* dataSizeP * dataSizeQ, cudaMemcpyHostToDevice, stream));
@@ -520,7 +520,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-		(uint32_t*)textDataPIndexGPU, (uint32_t*)textDataQIndexGPU, (uint32_t*)textDataPValueGPU, (uint32_t*)textDataQValueGPU,
+		(uint32_t*)textDataPIndexGPU, (uint32_t*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(uint32_t*)textIdxPGPU, (uint32_t*)textIdxQGPU, (uint32_t*)numWordPGPU, (uint32_t*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)SimResultGPU
 		);

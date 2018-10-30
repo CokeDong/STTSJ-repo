@@ -100,7 +100,7 @@ public:
 
 
 typedef struct Keywordtuple {
-	int keywordid;
+	uint32_t keywordid;
 	float keywordvalue;
 }Keywordtuple;
 
