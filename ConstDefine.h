@@ -74,6 +74,7 @@ public:
 	double iStart;
 	double iEnd;
 
+	// 注意 double 类型 不然float会出错！！
 	// linux 秒
 	double cpuSecond() {
 		struct timeval tp;

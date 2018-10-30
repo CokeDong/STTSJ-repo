@@ -400,16 +400,16 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	lonDataQGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataQCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQIndexCPU[0], sizeof(uint32_t)*textDataQIndexCPU.size(), cudaMemcpyHostToDevice, stream));
-	textDataPIndexGPU = pnow;
+	textDataQIndexGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + textDataQIndexCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordQCPU[0], sizeof(uint32_t)*numWordQCPU.size(), cudaMemcpyHostToDevice, stream));
-	numWordPGPU = pnow;
+	numWordQGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + numWordQCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQIndexCPU[0], sizeof(uint32_t)*textDataQIndexCPU.size(), cudaMemcpyHostToDevice, stream));
-	textDataPIndexGPU = pnow;
+	textDataQIndexGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + textDataQIndexCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQValueCPU[0], sizeof(uint32_t)*textDataQValueCPU.size(), cudaMemcpyHostToDevice, stream));
-	textDataPValueGPU = pnow;
+	textDataQValueGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + textDataQValueCPU.size());
 
 	// stattable cpy: one block only once!!

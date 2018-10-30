@@ -60,7 +60,7 @@ int main() {
 
 	STGrid grid;
 	grid.init(trajDB); // clever£¡£¡
-	//grid.joinExhaustedCPUonethread(32, 32, result);
+	grid.joinExhaustedCPUonethread(32, 32, result);
 	//grid.joinExhaustedCPU(128,128,result);
 	
 	
