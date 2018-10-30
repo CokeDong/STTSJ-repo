@@ -412,7 +412,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	lonDataPGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataPCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxPCPU[0], sizeof(uint32_t)*textIdxPCPU.size(), cudaMemcpyHostToDevice, stream));
-	textDataPIndexGPU = pnow;
+	textIdxPGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + textIdxPCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordPCPU[0], sizeof(uint32_t)*numWordPCPU.size(), cudaMemcpyHostToDevice, stream));
 	numWordPGPU = pnow;
@@ -487,7 +487,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	lonDataQGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataQCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxQCPU[0], sizeof(uint32_t)*textIdxQCPU.size(), cudaMemcpyHostToDevice, stream));
-	textDataQIndexGPU = pnow;
+	textIdxQGPU = pnow;
 	pnow = (void*)((uint32_t*)pnow + textIdxQCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordQCPU[0], sizeof(uint32_t)*numWordQCPU.size(), cudaMemcpyHostToDevice, stream));
 	numWordQGPU = pnow;
