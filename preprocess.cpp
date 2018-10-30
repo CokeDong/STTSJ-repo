@@ -247,7 +247,7 @@ void Preprocess::ReadPointDBKeyword(vector<STPoint> &pointdb, string fileName) {
 			pointdb.at(indexofpointdb).keywords.push_back(ktuple);
 			//i++;
 		}
-		// vector.size() 的返回值类型是size_type(uint32_t) !!
+		// vector.size() 的返回值类型是size_type(int) !!
 		if (maxkeywordcnt < (int)pointdb.at(indexofpointdb).keywords.size()) {
 			maxkeywordcnt = (int)pointdb.at(indexofpointdb).keywords.size();
 		}

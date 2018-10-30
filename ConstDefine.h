@@ -100,14 +100,14 @@ public:
 
 
 typedef struct Keywordtuple {
-	uint32_t keywordid;
+	int keywordid;
 	float keywordvalue;
 }Keywordtuple;
 
 
 // only for invert-list
 typedef struct Pointtuple {
-	uint32_t pointid;
+	int pointid;
 	float keywordvalue;
 }Pointtuple;
 
@@ -124,11 +124,11 @@ typedef struct Latlon {
 // every task of GPU has a StatInfoTable
 // 16 bytes now
 typedef struct StatInfoTable {
-	uint32_t latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block)
-	uint32_t pointNumP, pointNumQ; // # of points in each traj
+	int latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block)
+	int pointNumP, pointNumQ; // # of points in each traj
 
-	//uint32_t textIdxP, textIdxQ; // starting position of text data for each task / block
-	//uint32_t textNumP, textNumQ; // total # word in each traj
+	//int textIdxP, textIdxQ; // starting position of text data for each task / block
+	//int textNumP, textNumQ; // total # word in each traj
 
 
 }StatInfoTable;
