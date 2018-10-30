@@ -60,13 +60,13 @@ int main() {
 
 	STGrid grid;
 	grid.init(trajDB); // clever£¡£¡
-	//grid.joinExhaustedCPUonethread(128, 128, result);
+	grid.joinExhaustedCPUonethread(32, 32, result);
 	//grid.joinExhaustedCPU(128,128,result);
 	
 	
 	//grid.joinExhaustedCPUconfigurablethread(128, 128, result, MAX_CPU_THREAD);
 	
-	grid.joinExhaustedGPU(32, 32, result);
+	//grid.joinExhaustedGPU(32, 32, result);
 
 	cout << "finished" << endl;
 	getchar();

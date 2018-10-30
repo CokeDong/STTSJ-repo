@@ -230,8 +230,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	// GPUmem-alloc
 	// 需要手动free!!
 	// CUDA_CALL
-	void* gpuAddrPSet = GPUMalloc((size_t)1000 * 1024 * 1024);
-	void* gpuAddrQSet = GPUMalloc((size_t)1500 * 1024 * 1024);
+	void* gpuAddrPSet = GPUMalloc((size_t)2000 * 1024 * 1024);
+	void* gpuAddrQSet = GPUMalloc((size_t)2000 * 1024 * 1024);
 
 	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
 
@@ -460,7 +460,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	// GPU stream management
 	CUDA_CALL(cudaStreamDestroy(stream));
 	CUDA_CALL(cudaDeviceReset());
-	return;
+
+	//return;
 }
 
 

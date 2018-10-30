@@ -253,7 +253,7 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	delete[] tmpresult;
 
 	timer.stop();
-	printf("CPU tiime: %f s\n", timer.elapse());
+	printf("CPU time: %f s\n", timer.elapse());
 
 	cout << "finalresult size: " << result.size() << endl;
 

@@ -58,14 +58,14 @@ class MyTimer
 public:
 	MyTimer() {
 	};
-	float iStart;
-	float iEnd;
+	double iStart;
+	double iEnd;
 
 	// linux √Î
 	float cpuSecond() {
 		struct timeval tp;
 		gettimeofday(&tp, NULL);
-		return ((float)tp.tv_sec + (float)tp.tv_usec*1.e-6);
+		return ((double)tp.tv_sec + (double)tp.tv_usec*1.0e-6);
 	}
 
 	inline void start()
