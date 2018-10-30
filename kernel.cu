@@ -26,12 +26,14 @@ __device__ inline float SSimGPU(float lat1, float lon1, float lat2, float lon2) 
 	return (1 - Distance / MAX_DIST);
 }
 
-__device__ inline float TSimGPU(uint32_t* textDataIndexPi, uint32_t* textDataIndexQj, float* textDataValuePi, float* textDataValueQj,
-	uint32_t numWordP, uint32_t numWordQ){
+__device__ inline float TSimGPU(int* textDataIndexPi, int* textDataIndexQj, float* textDataValuePi, float* textDataValueQj,
+	int numWordP, int numWordQ){
 
 	// choice1: each time fetch
 	// choice2: reg. store!! register. booming ?  max: 1502 min : 0 not recommended!!!
 
+
+	// uint32_t 和 int 比较出错？？ not known
 	// may cause divergency may optimization Qj.keywordcnt=0??
 	if (numWordP == 0 || numWordQ == 0) { return 0; }
 
@@ -40,7 +42,7 @@ __device__ inline float TSimGPU(uint32_t* textDataIndexPi, uint32_t* textDataInd
 
 	// calc tsim value
 	for (size_t m = 0; m < numWordP; m++) {
-		uint32_t tmpipim = textDataIndexPi[m]; // 编译器优化应该会有cache!!
+		int tmpipim = textDataIndexPi[m]; // 编译器优化应该会有cache!!
 		float tmpvpim = textDataValuePi[m];
 		for (size_t n = 0; n < numWordQ; n++) {
 			if (tmpipim == textDataIndexQj[n]) {
@@ -62,8 +64,8 @@ __device__ void warpReduce(volatile float* sdata,int tid ){
 }
 
 __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lonDataPGPU1,float* lonDataQGPU1,
-	uint32_t* textDataPIndexGPU1, uint32_t* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
-	uint32_t* textIdxPGPU1, uint32_t* textIdxQGPU1, uint32_t* numWordPGPU1, uint32_t* numWordQGPU1,
+	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
+	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
 	StatInfoTable* stattableGPU,float* SimResultGPU
 	) {
 	int bId = blockIdx.x;
@@ -74,16 +76,16 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	__shared__ float maxSimRow[MAXTRAJLEN];
 	__shared__ float maxSimColumn[MAXTRAJLEN];
 
-	//__shared__ uint32_t tid_row;
-	//__shared__ uint32_t tid_column;
+	//__shared__ int tid_row;
+	//__shared__ int tid_column;
 
 
 	__shared__ StatInfoTable task;
-	__shared__ uint32_t pointIdP, pointNumP, pointIdQ, pointNumQ;
+	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 	// merely for P-Q exchanging
 
 	__shared__ float *latDataPGPU, *latDataQGPU, *lonDataPGPU, *lonDataQGPU, *textDataPValueGPU, *textDataQValueGPU;
-	__shared__ uint32_t *textDataPIndexGPU, *textDataQIndexGPU, *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
+	__shared__ int *textDataPIndexGPU, *textDataQIndexGPU, *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
 
 	//fetch task info
 	if (tId == 0) {
@@ -155,7 +157,7 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	__syncthreads();
 
 	float latP, latQ, lonP, lonQ;
-	uint32_t textIdP, textIdQ, numWordP, numWordQ;
+	int textIdP, textIdQ, numWordP, numWordQ;
 
 	for (size_t i = 0; i < pointNumP; i += THREADROW) {
 		int tmpflagi = i + tId % THREADROW;
@@ -334,14 +336,14 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	vector<float> latDataPCPU, latDataQCPU; // lat array
 	vector<float> lonDataPCPU, lonDataQCPU; // lon array
 
-	//vector<uint32_t> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+	//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
 													// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
-	//vector<uint32_t> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+	//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 	
-	vector<uint32_t> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
 	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
-	vector<uint32_t> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
-	vector<uint32_t> numWordPCPU, numWordQCPU; // keyword num in each point
+	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
 	
 	// 需要手动free!!
@@ -355,13 +357,13 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	// P != Q
 	// process P
-	uint32_t latlonPId = 0, textPId = 0;
+	int latlonPId = 0, textPId = 0;
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		
 		// 统计表
 		for (size_t j = 0; j < dataSizeQ; j++) {
-			stattableCPU[i*dataSizeQ + j].latlonIdxP = (uint32_t)latlonPId;
-			stattableCPU[i*dataSizeQ + j].pointNumP = (uint32_t)trajSetP[i].traj_of_stpoint.size();
+			stattableCPU[i*dataSizeQ + j].latlonIdxP = (int)latlonPId;
+			stattableCPU[i*dataSizeQ + j].pointNumP = (int)trajSetP[i].traj_of_stpoint.size();
 		}
 
 		for (size_t j = 0; j < trajSetP[i].traj_of_stpoint.size(); j++) {
@@ -411,15 +413,15 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaMemcpyAsync(pnow, &lonDataPCPU[0], sizeof(float)*lonDataPCPU.size(), cudaMemcpyHostToDevice, stream));
 	lonDataPGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataPCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxPCPU[0], sizeof(uint32_t)*textIdxPCPU.size(), cudaMemcpyHostToDevice, stream));
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxPCPU[0], sizeof(int)*textIdxPCPU.size(), cudaMemcpyHostToDevice, stream));
 	textIdxPGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + textIdxPCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordPCPU[0], sizeof(uint32_t)*numWordPCPU.size(), cudaMemcpyHostToDevice, stream));
+	pnow = (void*)((int*)pnow + textIdxPCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordPCPU[0], sizeof(int)*numWordPCPU.size(), cudaMemcpyHostToDevice, stream));
 	numWordPGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + numWordPCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPIndexCPU[0], sizeof(uint32_t)*textDataPIndexCPU.size(), cudaMemcpyHostToDevice, stream));
+	pnow = (void*)((int*)pnow + numWordPCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPIndexCPU[0], sizeof(int)*textDataPIndexCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataPIndexGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + textDataPIndexCPU.size());
+	pnow = (void*)((int*)pnow + textDataPIndexCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPValueCPU[0], sizeof(float)*textDataPValueCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataPValueGPU = pnow;
 	pnow = (void*)((float*)pnow + textDataPValueCPU.size());
@@ -428,12 +430,12 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	// process Q
 
-	uint32_t latlonQId = 0, textQId = 0;
+	int latlonQId = 0, textQId = 0;
 	for (size_t i = 0; i < trajSetQ.size(); i++) {
 
 		for (size_t j = 0; j < dataSizeP; j++) {
-			stattableCPU[j*dataSizeQ + i].latlonIdxQ = (uint32_t)latlonQId;
-			stattableCPU[j*dataSizeQ + i].pointNumQ = (uint32_t)trajSetQ[i].traj_of_stpoint.size();
+			stattableCPU[j*dataSizeQ + i].latlonIdxQ = (int)latlonQId;
+			stattableCPU[j*dataSizeQ + i].pointNumQ = (int)trajSetQ[i].traj_of_stpoint.size();
 		}
 
 		for (size_t j = 0; j < trajSetQ[i].traj_of_stpoint.size(); j++) {
@@ -451,6 +453,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 				//textDataPIndexCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordid);
 				//textDataPValueCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
+				
 				// tiny bug!! mem error!!
 				textDataQIndexCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordid);
 				textDataQValueCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
@@ -490,15 +493,15 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	//lonDataPGPU = pnow;
 	lonDataQGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataQCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxQCPU[0], sizeof(uint32_t)*textIdxQCPU.size(), cudaMemcpyHostToDevice, stream));
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxQCPU[0], sizeof(int)*textIdxQCPU.size(), cudaMemcpyHostToDevice, stream));
 	textIdxQGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + textIdxQCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordQCPU[0], sizeof(uint32_t)*numWordQCPU.size(), cudaMemcpyHostToDevice, stream));
+	pnow = (void*)((int*)pnow + textIdxQCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordQCPU[0], sizeof(int)*numWordQCPU.size(), cudaMemcpyHostToDevice, stream));
 	numWordQGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + numWordQCPU.size());
-	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQIndexCPU[0], sizeof(uint32_t)*textDataQIndexCPU.size(), cudaMemcpyHostToDevice, stream));
+	pnow = (void*)((int*)pnow + numWordQCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQIndexCPU[0], sizeof(int)*textDataQIndexCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataQIndexGPU = pnow;
-	pnow = (void*)((uint32_t*)pnow + textDataQIndexCPU.size());
+	pnow = (void*)((int*)pnow + textDataQIndexCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQValueCPU[0], sizeof(float)*textDataQValueCPU.size(), cudaMemcpyHostToDevice, stream));
 	textDataQValueGPU = pnow;
 	pnow = (void*)((float*)pnow + textDataQValueCPU.size());
@@ -524,8 +527,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-		(uint32_t*)textDataPIndexGPU, (uint32_t*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-		(uint32_t*)textIdxPGPU, (uint32_t*)textIdxQGPU, (uint32_t*)numWordPGPU, (uint32_t*)numWordQGPU,
+		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)SimResultGPU
 		);
 
