@@ -7,7 +7,7 @@ void split(string s, string delim, vector<string>* ret)
 {
 	size_t last = 0;
 	size_t index = s.find_first_of(delim, last); // find is ok 2
-	while (index != string::npos) // not not success   string::npos is a big num
+	while (index != string::npos) // not not success   string::npos is -1 actually
 	{
 		string stmp = s.substr(last, index - last);
 		if (stmp.length() != 0) ret->push_back(stmp); // vector²»¿ÉÒÔpush_back NULL×Ö·û

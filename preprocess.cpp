@@ -240,6 +240,8 @@ void Preprocess::ReadPointDBKeyword(vector<STPoint> &pointdb, string fileName) {
 		//	i++;
 		//}
 		//cout << ssplit.size() << endl;
+
+		// debug: 逻辑错误 行位 \t\n  -1 \n 占一位所以减一 否则vector越界
 		for (int i = 1; i < ssplit.size() - 1; i+=2) { //  GAP = 2 ！！！ BUG here: -1 \n 占一位所以减一 否则vector越界
 			Keywordtuple ktuple;
 			ktuple.keywordid = atoi(ssplit.at(i).c_str());
@@ -280,7 +282,9 @@ void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName
 		int trajid = atoi(ssplit.at(1).c_str());
 		trajtmp.sttraj_id = trajid;// trajdict is ok 2
 		//int indexofpointdb = atoi(ssplit.at(0).c_str());
-		for (int i = 2; i < ssplit.size(); i++) {
+		 
+		// debug: 逻辑错误 split自定义函数考虑不完全 末尾有 dot 需要 -1 行尾有 \t\n!!!
+		for (int i = 2; i < ssplit.size()-1; i++) { // BUG here: -1 \n 占一位所以减一 否则vector越界
 			int pointID = atoi(ssplit.at(i).c_str());
 			trajtmp.traj_of_stpoint_id.push_back(pointID);
 			

@@ -51,9 +51,11 @@ int main() {
 	// slow time-consuming for large # of points and traj
 	// 引用传递 比指针传递 更简单
 
+	// 已验证 无问题！！
 	pp.ReadPointDBLL(pointDB, "./NY/VenuesExtc.txt");
 	pp.ReadPointDBKeyword(pointDB, "./NY/tfidf.txt");
 	pp.ReadTrajDBPointID(trajDB, "./NY/TrajExtc.txt", pointDB);
+
 	pp.ReadTrajDBPoint(trajDB, pointDB);
 
 	map<trajPair, float> result;
@@ -66,7 +68,7 @@ int main() {
 	
 	//grid.joinExhaustedCPUconfigurablethread(128, 128, result, MAX_CPU_THREAD);
 	
-	grid.joinExhaustedGPU(128, 128, result);
+	grid.joinExhaustedGPU(16, 16, result);
 
 
 	//sleep(10);

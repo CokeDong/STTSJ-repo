@@ -29,12 +29,19 @@ __device__ inline float SSimGPU(float lat1, float lon1, float lat2, float lon2) 
 __device__ inline float TSimGPU(int* textDataIndexPi, int* textDataIndexQj, float* textDataValuePi, float* textDataValueQj,
 	int numWordP, int numWordQ){
 
+
+	// 单个thread：读取不平衡！！
+	// 内存读取不符合常规操作，无法合并，同时每个thread取的个数互不相同
+
+
 	// choice1: each time fetch
 	// choice2: reg. store!! register. booming ?  max: 1502 min : 0 not recommended!!!
 
 
-	// uint32_t 和 int 比较出错？？ not known
+	// Q: uint32_t 和 int 比较出错？？ ：注意size()返回值是uint32_t即可 粗暴全部换成int!!!
+
 	// may cause divergency may optimization Qj.keywordcnt=0??
+	// i think is okay!!
 	if (numWordP == 0 || numWordQ == 0) { return 0; }
 
 	float tsimresult = 0;
@@ -47,7 +54,7 @@ __device__ inline float TSimGPU(int* textDataIndexPi, int* textDataIndexQj, floa
 		for (size_t n = 0; n < numWordQ; n++) {
 			if (tmpipim == textDataIndexQj[n]) {
 				tsimresult += tmpvpim*textDataValueQj[n];
-				break;// 单个点不会出现重复的keyword whether 优化 不确定？？
+				break;// 单个点不会出现重复的keyword whether 优化 不确定？？ GPU可以识别break continue 不过就是指令而已
 			}
 		}
 	}
@@ -142,6 +149,9 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 
 
 	
+
+
+
 	// 不妨设 numP > numQ
 
 	// initialize maxSimRow maxSimColumn
@@ -152,8 +162,28 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	}
 	*/
 
-	maxSimRow[tId] = 0;
-	maxSimColumn[tId] = 0;
+
+
+	// STEP-0: GET the text-sim matrix(global memory)
+
+
+
+
+
+
+
+
+
+
+	// STEP-1: GET the  final sim result: SimResultGPU
+
+
+	// only correct when THREADNUM > MAXTRAJLEN;
+	// initilize shared memory
+	if (tId < MAXTRAJLEN) {
+		maxSimRow[tId] = 0;
+		maxSimColumn[tId] = 0;
+	}
 	__syncthreads();
 
 	float latP, latQ, lonP, lonQ;
@@ -178,7 +208,11 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 				numWordQ = numWordQGPU[pointIdQ + tmpflagj];
 			}
 
-			if (tmpflagi && tmpflagj) { // bound condition
+			tmpSim[tId] = -1;//技巧，省去下面的tID=0判断
+
+			// debug:  边界条件错误！！ 逻辑错误 太慢！！ nearly 2 days
+			// if (tmpflagi && pointNumQ)
+			if ((tmpflagi< pointNumP) && (tmpflagj< pointNumQ)) { // bound condition
 
 				//// not recommended! divergency!!
 				//float tsim = 0;
@@ -188,14 +222,21 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 				//}
 
 				float tsim = TSimGPU(&textDataPIndexGPU[textIdP], &textDataQIndexGPU[textIdQ], &textDataPValueGPU[textIdP], &textDataQValueGPU[textIdQ], numWordP, numWordQ);
+				
+				// fetch from global memory!!
+				// warp 合并
+				float tsim = 0;
+
+				
 				float ssim = SSimGPU(latQ, lonQ, latP, lonP);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
 			}
-			else {
-				tmpSim[tId] = -1;//技巧，省去下面的tID=0判断
-			}
+//			else {
+//				
+//			}
 			
 			// block 同步
+			// 很有必要
 			__syncthreads();
 
 
@@ -397,7 +438,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 				latlonPId++;
 			}
 		}
-		// 逻辑错误！！
+		// debug: 逻辑错误！！ --> 自定义补齐 padding
 		//remainder = 4 * textPId % 32;
 		remainder = 4 * keywordcnt % 32;
 		if (remainder) {
@@ -497,7 +538,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	latDataQGPU = pnow;
 	pnow = (void*)((float*)pnow + latDataQCPU.size());
 	CUDA_CALL(cudaMemcpyAsync(pnow, &lonDataQCPU[0], sizeof(float)*lonDataQCPU.size(), cudaMemcpyHostToDevice, stream));
-	// wrong code!!!
+	// debug: wrong code!!! 符号错误造成逻辑错误 cpy原因
 	//lonDataPGPU = pnow;
 	lonDataQGPU = pnow;
 	pnow = (void*)((float*)pnow + lonDataQCPU.size());
