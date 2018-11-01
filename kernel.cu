@@ -148,10 +148,6 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	__syncthreads();
 
 
-	
-
-
-
 	// 不妨设 numP > numQ
 
 	// initialize maxSimRow maxSimColumn
@@ -161,8 +157,6 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 		maxSimColumn[tId + i*THREADNUM] = 0;
 	}
 	*/
-
-
 
 	// STEP-0: GET the text-sim matrix(global memory)
 
@@ -318,13 +312,14 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 		SimResultGPU[bId] = maxSimRow[0] / pointNumP + maxSimColumn[0] / pointNumQ;
 	}
 	
-
-	//return;
 }
 
 
 
 
+
+// this is double-time-consuming ABORTED!! WARP consider not the most important, still have effect!! 
+// heavy task: TSim calculation!
 __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float* lonDataPGPU, float* lonDataQGPU,
 	int* textDataPIndexGPU, int* textDataQIndexGPU, float* textDataPValueGPU, float* textDataQValueGPU,
 	int* textIdxPGPU, int* textIdxQGPU, int* numWordPGPU, int* numWordQGPU,
@@ -342,11 +337,6 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 	__shared__ StatInfoTable task;
 	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 
-
-
-
-
-	// merely for P-Q exchanging
 	if (tId == 0) {
 		task = stattableGPU[bId];
 
@@ -359,38 +349,6 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 	__syncthreads();
 
 
-
-
-
-
-	// 不妨设 numP > numQ
-
-	// initialize maxSimRow maxSimColumn
-	/*
-	for (size_t i = 0; i < ((MAXTRAJLEN - 1) / THREADNUM) + 1; i++) {
-	maxSimRow[tId + i*THREADNUM] = 0;
-	maxSimColumn[tId + i*THREADNUM] = 0;
-	}
-	*/
-
-
-
-	// STEP-0: GET the text-sim matrix(global memory)
-
-
-
-
-
-
-
-
-
-
-	// STEP-1: GET the  final sim result: SimResultGPU
-
-
-	// only correct when THREADNUM > MAXTRAJLEN;
-	// initilize shared memory
 	if (tId < MAXTRAJLEN) {
 		maxSim[tId] = 0;
 	}
@@ -420,16 +378,7 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 
 			tmpSim[tId] = -1;//技巧，省去下面的tID=0判断
 
-							 // debug:  边界条件错误！！ 逻辑错误 太慢！！ nearly 2 days
-							 // if (tmpflagi && pointNumQ)
 			if ((tmpflagi< pointNumP) && (tmpflagj< pointNumQ)) { // bound condition
-
-																  //// not recommended! divergency!!
-																  //float tsim = 0;
-																  //if (numWordP > numWordQ) {		
-																  //}
-																  //else {
-																  //}
 
 				float tsim = TSimGPU(&textDataPIndexGPU[textIdP], &textDataQIndexGPU[textIdQ], &textDataPValueGPU[textIdP], &textDataQValueGPU[textIdQ], numWordP, numWordQ);
 
@@ -438,32 +387,11 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
 			}
-			//			else {
-			//				
-			//			}
 
-			// block 同步
-			// 很有必要
-			// 防止tmpSim没有计算完
 			__syncthreads();
 
 
-			////
-			//// //优化
-			////if (tId == 0) {
-			////	tid_row = i + THREADROW > pointNumP ? pointNumP - i : THREADROW;
-			////	tid_column = j + THREADCOLUMN > pointNumP ? pointNumQ - j : THREADCOLUMN;
-			////}
-			////__syncthreads();
-			////
 
-
-			// ************--shared_mem process--************
-
-			// naive process 
-
-			// get tmp-row-max: full warp active
-			//tmpmaxsimRow[tId % THREADROW];
 			float tmpmaxSim = -1;
 			if (tId / THREADROW == 0) {
 				for (size_t k = 0; k < THREADCOLUMN; k++) {
@@ -478,25 +406,6 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 			__syncthreads(); // still need!
 
 
-							 // get tmp-column-max: 1/32 warp active
-
-							 //tmpmaxsimColumn[tId / THREADROW];
-			
-			/*
-			tmpmaxSim = -1;
-			if (tId%THREADROW == 0) {
-				for (size_t k = 0; k < THREADROW; k++) {
-					if (tmpSim[k + tId] > tmpmaxSim) {
-						tmpmaxSim = tmpSim[k + tId];
-					}
-				}
-				maxSimColumn[j + tId / THREADROW] = (maxSimColumn[j + tId / THREADROW] > tmpmaxSim ? maxSimColumn[j + tId / THREADROW] : tmpmaxSim);
-			}
-
-			// 不可去掉 等待防止 tmpSim 被写入
-			__syncthreads(); // still need!
-			*/
-
 		}
 
 	}
@@ -506,11 +415,6 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 	// sum reduction
 
 	
-
-	// for (size_t i = 0; i < ((MAXTRAJLEN - 1) / THREADNUM) + 1; i++) {
-	// 前提：
-	// THREADNUM > MAX-MAXTRAJLEN
-	// 省去 for 循环！
 	for (size_t activethread = THREADNUM / 2; activethread > 32; activethread >>= 1) {
 		if (tId < activethread) {
 			maxSim[tId] += maxSim[tId + activethread];
@@ -521,7 +425,6 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 	maxSim1 = maxSim[0];
 	__syncthreads();
 
-	//	}
 
 	for (size_t i = 0; i < pointNumQ; i += THREADROW) {
 		int tmpflagi = i + tId / 8;
@@ -544,16 +447,7 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 
 			tmpSim[tId] = -1;//技巧，省去下面的tID=0判断
 
-								// debug:  边界条件错误！！ 逻辑错误 太慢！！ nearly 2 days
-								// if (tmpflagi && pointNumQ)
 			if ((tmpflagi< pointNumQ) && (tmpflagj< pointNumP)) { // bound condition
-
-																	//// not recommended! divergency!!
-																	//float tsim = 0;
-																	//if (numWordP > numWordQ) {		
-																	//}
-																	//else {
-																	//}
 
 				float tsim = TSimGPU(&textDataQIndexGPU[textIdP], &textDataPIndexGPU[textIdQ], &textDataQValueGPU[textIdP], &textDataPValueGPU[textIdQ], numWordQ, numWordP);
 
@@ -562,32 +456,9 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 				float ssim = SSimGPU(latQ, lonQ, latP, lonP);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
 			}
-			//			else {
-			//				
-			//			}
 
-			// block 同步
-			// 很有必要
-			// 防止tmpSim没有计算完
 			__syncthreads();
 
-
-			////
-			//// //优化
-			////if (tId == 0) {
-			////	tid_row = i + THREADROW > pointNumP ? pointNumP - i : THREADROW;
-			////	tid_column = j + THREADCOLUMN > pointNumP ? pointNumQ - j : THREADCOLUMN;
-			////}
-			////__syncthreads();
-			////
-
-
-			// ************--shared_mem process--************
-
-			// naive process 
-
-			// get tmp-row-max: full warp active
-			//tmpmaxsimRow[tId % THREADROW];
 			float tmpmaxSim = -1;
 			if (tId / THREADROW == 0) {
 				for (size_t k = 0; k < THREADCOLUMN; k++) {
@@ -598,28 +469,8 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 				maxSim[i + tId] = (maxSim[i + tId] > tmpmaxSim ? maxSim[i + tId] : tmpmaxSim);
 			}
 
-			// tmpSim 可能会产生 warp 间 bank conflict，更加关注warp 内 bank conflict,故可以去掉
 			__syncthreads(); // still need!
 
-
-								// get tmp-column-max: 1/32 warp active
-
-								//tmpmaxsimColumn[tId / THREADROW];
-
-								/*
-								tmpmaxSim = -1;
-								if (tId%THREADROW == 0) {
-								for (size_t k = 0; k < THREADROW; k++) {
-								if (tmpSim[k + tId] > tmpmaxSim) {
-								tmpmaxSim = tmpSim[k + tId];
-								}
-								}
-								maxSimColumn[j + tId / THREADROW] = (maxSimColumn[j + tId / THREADROW] > tmpmaxSim ? maxSimColumn[j + tId / THREADROW] : tmpmaxSim);
-								}
-
-								// 不可去掉 等待防止 tmpSim 被写入
-								__syncthreads(); // still need!
-								*/
 
 		}
 
@@ -629,12 +480,6 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 
 	// sum reduction
 
-
-
-	// for (size_t i = 0; i < ((MAXTRAJLEN - 1) / THREADNUM) + 1; i++) {
-	// 前提：
-	// THREADNUM > MAX-MAXTRAJLEN
-	// 省去 for 循环！
 	for (size_t activethread = THREADNUM / 2; activethread > 32; activethread >>= 1) {
 		if (tId < activethread) {
 			maxSim[tId] += maxSim[tId + activethread];
@@ -645,27 +490,10 @@ __global__ void computeSimGPUZhang(float* latDataPGPU, float* latDataQGPU, float
 	__syncthreads();
 
 
-
-
-
-
-/*
-	for (size_t activethread = THREADNUM / 2; activethread > 32; activethread >>= 1) {
-		if (tId < activethread) {
-			maxSimColumn[tId] += maxSimColumn[tId + activethread];
-			__syncthreads();
-		}
-	}
-
-	if (tId < 32) warpReduce(maxSimColumn, tId);
-*/
-
 	if (tId == 0) {
 		SimResultGPU[bId] = maxSim1 / pointNumP + maxSim[0] / pointNumQ;
 	}
 
-
-	//return;
 }
 
 /*

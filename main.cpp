@@ -61,17 +61,17 @@ int main() {
 	map<trajPair, float> result;
 	
 	// 频繁调参使用变量！！
-	int SIZE = 16;
+	int SIZE = 32;
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
-	//grid.joinExhaustedCPUonethread(SIZE, SIZE, result);
+	grid.joinExhaustedCPUonethread(SIZE, SIZE, result);
 	//grid.joinExhaustedCPU(SIZE,SIZE,result);
 	
 	
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, result, MAX_CPU_THREAD);
 	
-	grid.joinExhaustedGPU(SIZE, SIZE, result);
+	//grid.joinExhaustedGPU(SIZE, SIZE, result);
 
 
 	//sleep(10);
