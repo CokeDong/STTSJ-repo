@@ -36,7 +36,10 @@ float STPoint::CalcPPSTSim(const STPoint &p) const{
 			}
 		}
 	}
-	
+
+#ifdef DIS_SIM_RESULT	
 	printf(" ssim= %.5f, tsim= %.5f \n", ssim, tsim);
+#endif
+
 	return(ALPHA * ssim + (1- ALPHA) * tsim);
 }

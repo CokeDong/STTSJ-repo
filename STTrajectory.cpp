@@ -37,7 +37,9 @@ float STTrajectory::CalcTTSTSim(const STTrajectory &stt) const {
 		stsim21 += tmpmax;
 	}
 	stsim21 /= stt.traj_length;
+#ifdef DIS_SIM_RESULT
 	printf("\n**** sim12= %.5f, sim21=%.5f *****\n\n\n", stsim12, stsim21);
+#endif
 	//cout << stsim12 << '\t' << stsim21 << '\n';
 	return(stsim12 + stsim21);
 }

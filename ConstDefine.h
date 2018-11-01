@@ -39,12 +39,14 @@
 
 using namespace std;
 
+//#define DIS_SIM_RESULT
+
 #define MAX_CPU_THREAD 16384
 #define MAX_TRAJ 100
 
-#define MAX_DIST 40076000 // too large!!
+#define MAX_DIST 300000 // okay
 #define ALPHA 0.5
-#define EPSILON 0.1
+#define EPSILON 0.45
 
 #define GPUOnceCnt 128
 #define DUALGPU false
