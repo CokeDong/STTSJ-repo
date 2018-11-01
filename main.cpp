@@ -59,22 +59,25 @@ int main() {
 	pp.ReadTrajDBPoint(trajDB, pointDB);
 
 	map<trajPair, float> result;
+	
+	// 频繁调参使用变量！！
+	int SIZE = 16;
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
-	//grid.joinExhaustedCPUonethread(32, 32, result);
-	//grid.joinExhaustedCPU(128,128,result);
+	//grid.joinExhaustedCPUonethread(SIZE, SIZE, result);
+	//grid.joinExhaustedCPU(SIZE,SIZE,result);
 	
 	
-	//grid.joinExhaustedCPUconfigurablethread(128, 128, result, MAX_CPU_THREAD);
+	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, result, MAX_CPU_THREAD);
 	
-	grid.joinExhaustedGPU(16, 16, result);
+	grid.joinExhaustedGPU(SIZE, SIZE, result);
 
 
 	//sleep(10);
 
 	cout << "finished" << endl;
-	getchar();
-	getchar();
+//	getchar();
+//	getchar();
 	return 0;
 }
