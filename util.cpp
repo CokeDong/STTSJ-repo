@@ -78,7 +78,7 @@ void split3(string s, string delim, vector<string>* ret)
 float calculateDistance(float LatA, float LonA, float LatB, float LonB)
 {
 	float Pi = 3.1415926;
-	float R = 6371004;
+	float R = 6371004; // 单位是米
 	float MLatA, MLatB, MLonA, MLonB;
 	MLatA = 90 - LatA;
 	MLatB = 90 - LatB;

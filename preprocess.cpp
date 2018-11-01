@@ -198,6 +198,7 @@ void Preprocess::ReadPointDBLL(vector<STPoint> &pointdb, string fileName) {
 		exit(1);
 	}
 	string linestr;
+	float latmax=-180, lonmax=-360, latmin=180, lonmin=360;
 	while (getline(fin,linestr)) {
 		string s = linestr;
 		vector<string> ssplit;
@@ -206,9 +207,15 @@ void Preprocess::ReadPointDBLL(vector<STPoint> &pointdb, string fileName) {
 		STPoint stptmp;
 		stptmp.stpoint_id = atoi(ssplit.at(1).c_str()); // venuesdict is okay 2
 		stptmp.lat = atof(ssplit.at(2).c_str());
-		stptmp.lon = atof(ssplit.at(3).c_str());	
+		stptmp.lon = atof(ssplit.at(3).c_str());
+		if (stptmp.lat > latmax) latmax = stptmp.lat;
+		if (stptmp.lon > lonmax) lonmax = stptmp.lon;
+		if (stptmp.lat < latmin) latmin = stptmp.lat;
+		if (stptmp.lon < lonmin) latmax = stptmp.lon;
 		pointdb.push_back(stptmp); // È·¶¨OK
 	}
+	
+	cout << "maxdistance = " << calculateDistance(latmax, lonmax, latmin, lonmin) << endl;
 	cout << "PointDBLL reading finished" << endl;
 	fin.close();
 }
