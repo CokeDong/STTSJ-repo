@@ -78,6 +78,7 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	int bId = blockIdx.x;
 	int tId = threadIdx.x;
 	
+	// 1-D 没采用2-D 可自定义存储方式
 	__shared__ float tmpSim[THREADNUM];
 
 	__shared__ float maxSimRow[MAXTRAJLEN];
@@ -164,11 +165,6 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 
 
 
-
-
-
-
-
 	// STEP-1: GET the  final sim result: SimResultGPU
 
 
@@ -183,7 +179,11 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	float latP, latQ, lonP, lonQ;
 	int textIdP, textIdQ, numWordP, numWordQ;
 
+	
+	// doesnot matter !!
 	for (size_t i = 0; i < pointNumP; i += THREADROW) {
+		// simply because of THREADROW = 32, THREADROW = 8, 32 > 8
+		// here 列方式
 		int tmpflagi = i + tId % THREADROW;
 		if(tmpflagi < pointNumP){
 			latP = latDataPGPU[pointIdP + tmpflagi];
@@ -285,9 +285,11 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 
 //	for (size_t i = 0; i < ((MAXTRAJLEN - 1) / THREADNUM) + 1; i++) {
 
+	// 潜在debug: 
 	// 前提：
 	//  THREADNUM > MAX-MAXTRAJLEN
-	for (size_t activethread = THREADNUM / 2; activethread > 32; activethread >>= 1) {
+	//for (size_t activethread = THREADNUM / 2; activethread > 32; activethread >>= 1) {
+	for (size_t activethread = MAXTRAJLEN / 2; activethread > 32; activethread >>= 1) {
 		if (tId < activethread) {
 			maxSimRow[tId] += maxSimRow[tId + activethread];
 			__syncthreads();
@@ -298,7 +300,8 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 
 //	}
 
-	for (size_t activethread = THREADNUM / 2; activethread > 32; activethread >>= 1) {
+	//for (size_t activethread = THREADNUM / 2; activethread > 32; activethread >>= 1) {
+	for (size_t activethread = MAXTRAJLEN / 2; activethread > 32; activethread >>= 1) {
 		if (tId < activethread) {
 			maxSimColumn[tId] += maxSimColumn[tId + activethread];
 			__syncthreads();
@@ -529,8 +532,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	// GPUmem-alloc
 	// 需要手动free!!
 	// CUDA_CALL
-	void* gpuAddrPSet = GPUMalloc((size_t)2000 * 1024 * 1024);
-	void* gpuAddrQSet = GPUMalloc((size_t)2000 * 1024 * 1024);
+	void* gpuAddrPSet = GPUMalloc((size_t)200 * 1024 * 1024);
+	void* gpuAddrQSet = GPUMalloc((size_t)400 * 1024 * 1024); // need more space for stats info.
 
 	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
 
@@ -562,6 +565,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
 	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
+	// for status info.
+	vector<int> keycntTrajP, keycntTrajQ;
+	//vector<int> pointcntTrajP, pointcntTrajQ;
 	
 	// 需要手动free!!
 	StatInfoTable* stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
@@ -571,6 +577,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	void *textDataPIndexGPU, *textDataQIndexGPU, *textDataPValueGPU, *textDataQValueGPU;
 	void *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
 	void *stattableGPU;
+
+	void *keypmqnMatrixGPU, *keypmqMatrixGPU, *keypqMatrixGPU;
 
 	// P != Q
 	// process P
@@ -615,15 +623,19 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 			}
 		}
 		// debug: 逻辑错误！！ --> 自定义补齐 padding
-		//remainder = 4 * textPId % 32;
+		//remainder = 4 * textPId % 32; -> 32个
 		remainder = 4 * keywordcnt % 32;
 		if (remainder) {
 			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
 				textDataPIndexCPU.push_back(-1);
 				textDataPValueCPU.push_back(-1);
 				textPId++;
+				keywordcnt++;
 			}
 		}
+
+		keycntTrajP.push_back(keywordcnt);
+		//pointcntTrajP.push_back()
 	}
 
 	CUDA_CALL(cudaEventRecord(memcpy_to_start, stream));
@@ -705,9 +717,16 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 				textDataQIndexCPU.push_back(-1);
 				textDataQValueCPU.push_back(-1);
 				textQId++;
+				keywordcnt++;
 			}
 		}
+
+		// status info. here
+		keycntTrajQ.push_back(keywordcnt);
+	
 	}
+
+
 
 	timer.stop();
 	printf("CPU  processing time: %f s\n", timer.elapse());
@@ -735,12 +754,31 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	textDataQValueGPU = pnow;
 	pnow = (void*)((float*)pnow + textDataQValueCPU.size());
 
+
+
+	int pmqnid = 0, pmqid = 0, pqid = 0;
+	for (size_t i = 0; i < trajSetP.size(); i++) {
+		for (size_t j = 0; j < trajSetQ.size(); j++) {
+			stattableCPU[i*dataSizeQ + j].keywordpmqnMatrixId = pmqnid;
+			pmqnid += keycntTrajP[i] * keycntTrajQ[j];
+			stattableCPU[i*dataSizeQ + j].keywordpmqMatrixId = pmqid;
+			pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
+			stattableCPU[i*dataSizeQ + j].keywordpqMatrixId = pqid;
+			pqid += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
+		}
+	}
+
 	// stattable cpy: one block only once!!
 	CUDA_CALL(cudaMemcpyAsync(pnow, stattableCPU, sizeof(StatInfoTable)* dataSizeP * dataSizeQ, cudaMemcpyHostToDevice, stream));
 	//CUDA_CALL(cudaMemcpyAsync(pnow, &stattableCPU[0], sizeof(StatInfoTable)*stattableCPU.size(), cudaMemcpyHostToDevice, stream));
 	stattableGPU = pnow;
 	pnow = (void*)((StatInfoTable*)pnow + dataSizeP * dataSizeQ);
-
+	keypmqnMatrixGPU = (float*)pnow;
+	pnow = (void*)((float*)pnow + pmqnid);
+	keypmqMatrixGPU = (float*)pnow;
+	pnow = (void*)((float*)pnow + pmqnid);
+	keypqMatrixGPU = (float*)pnow;
+	pnow = (void*)((float*)pnow + pmqnid);
 	
 	// zero-copy 内存 
 	// 需要手动free!!

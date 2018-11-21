@@ -29,6 +29,9 @@
 
 #endif
 
+#ifdef WIN32
+#define DIS_RESULT
+#endif
 
 // not recommended!!
 // self-definition util
@@ -44,23 +47,30 @@ using namespace std;
 #define MAX_CPU_THREAD 16384
 #define MAX_TRAJ 100
 
+// 这几个宏定义相关
 #define MAX_DIST 300000 // okay
 #define ALPHA 0.5
 #define EPSILON 0.45
 
+
 #define GPUOnceCnt 128
 #define DUALGPU false
 
-#define THREADNUM 256
+
+// 这几个宏定义相关：THREADNUM = THREADROW * THREADCOLUMN
 
 #define THREADROW 32
 #define THREADCOLUMN 8
+#define THREADNUM (THREADROW*THREADCOLUMN)
 
 // NY: 200
 // LA:
 // TWITTER:
 // predefined !!!
+// 数据集相关 < THREADNUM
 #define MAXTRAJLEN 256
+
+
 
 
 // not recommended??
@@ -126,11 +136,13 @@ typedef struct Latlon {
 // every task of GPU has a StatInfoTable
 // 16 bytes now
 typedef struct StatInfoTable {
-	int latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block)
+	int latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block) in GPU
 	int pointNumP, pointNumQ; // # of points in each traj
 
 	//int textIdxP, textIdxQ; // starting position of text data for each task / block
 	//int textNumP, textNumQ; // total # word in each traj
+
+	int keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block
 
 
 }StatInfoTable;
