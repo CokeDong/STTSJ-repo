@@ -91,7 +91,7 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	__shared__ StatInfoTable task;
 	__shared__ int pointIdP, pointNumP, keycntP, pointIdQ, pointNumQ, keycntQ;
 
-	__shared__ int pmqnid, pmqid, pqid;
+	__shared__ size_t pmqnid, pmqid, pqid;
 	__shared__ int textPid, textQid;
 
 
@@ -200,6 +200,7 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 				qnvalue = textDataQValueGPU[textQid + tmpflagj];
 			}		
 			// in such loop, can only index in this way!!
+			// int -> size_t 兼容
 			keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = 0;
 			if ((tmpflagi < keycntP) && (tmpflagj < keycntQ) && (pmindex== qnindex)) {
 				keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = pmvalue*qnvalue;
@@ -981,7 +982,7 @@ All functions of CPU are defined here.
 
 void CUDAwarmUp() {
 	CUDA_CALL(cudaSetDeviceFlags(cudaDeviceMapHost));
-	CUDA_CALL(cudaSetDevice(0)); // GPU-0
+	CUDA_CALL(cudaSetDevice(1)); // GPU-0
 	if(DUALGPU) CUDA_CALL(cudaSetDevice(1)); // GPU-1
 }
 
@@ -1238,7 +1239,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 
 	
-	int pmqnid = 0, pmqid = 0, pqid = 0;
+	size_t pmqnid = 0, pmqid = 0, pqid = 0;
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
 
@@ -1275,8 +1276,10 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	pnow = (void*)((float*)pnow + pmqid);
 	keypqMatrixGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + pqid);
-	
 
+	// debug: big int -> size_t
+	printf("***** size_t ***** %zu %zu %zu\n", pmqnid, pmqid, pqid);
+	printf("****** total status size ******%f GB\n", (pmqnid + pmqid + pqid)*4.0 / 1024 / 1024 / 1024);
 	
 	// zero-copy 内存 
 	// 需要手动free!!

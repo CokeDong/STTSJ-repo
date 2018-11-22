@@ -50,7 +50,7 @@ using namespace std;
 // 这几个宏定义相关
 #define MAX_DIST 300000 // okay
 #define ALPHA 0.5
-#define EPSILON 0.45
+#define EPSILON 0.85
 
 
 #define GPUOnceCnt 128
@@ -152,7 +152,7 @@ typedef struct StatInfoTable {
 	//int textNumP, textNumQ; // total # word in each traj
 	
 	int textIdxP, textIdxQ; // starting position of text data for each task / block
-	int keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block
+	size_t keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block
 	int keycntP, keycntQ; // # of total keywords in each traj
 	
 	//int padding;?
