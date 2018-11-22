@@ -243,7 +243,7 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 			}
 		}
 	}
-
+	__syncthreads();
 
 	// pq
 	height = pointNumQ, width = pointNumP;
@@ -280,8 +280,8 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 	__syncthreads();
 
 
-	float latP, latQ, lonP, lonQ;
-	int textIdP, textIdQ, numWordP, numWordQ;
+	
+	
 
 	height = pointNumP, width = pointNumQ;
 	// doesnot matter !!
@@ -289,8 +289,10 @@ __global__ void computeSimGPU(float* latDataPGPU1,float* latDataQGPU1,float* lon
 		// simply because of THREADROW = 32, THREADROW = 8, 32 > 8
 		// here 列方式
 		// not real 128 -> 32倍近似？？
-		// but there is cache ??
+		// but there is cache ??	
 		int tmpflagi = i + tId % THREADROW;
+		float latP, latQ, lonP, lonQ;
+		int textIdP, textIdQ, numWordP, numWordQ;
 		if(tmpflagi < pointNumP){
 			latP = latDataPGPU[pointIdP + tmpflagi];
 			lonP = lonDataPGPU[pointIdP + tmpflagi];
@@ -640,8 +642,7 @@ __global__ void computeSimGPU2(float* latDataPGPU1, float* latDataQGPU1, float* 
 	__syncthreads();
 
 
-	float latP, latQ, lonP, lonQ;
-	int textIdP, textIdQ, numWordP, numWordQ;
+
 
 	height = pointNumP, width = pointNumQ;
 	// doesnot matter !!
@@ -651,6 +652,9 @@ __global__ void computeSimGPU2(float* latDataPGPU1, float* latDataQGPU1, float* 
 		// not real 128 -> 32倍近似？？
 		// but there is cache ??
 		int tmpflagi = i + tId % THREADROW;
+
+		float latP, latQ, lonP, lonQ;
+		int textIdP, textIdQ, numWordP, numWordQ;
 		if (tmpflagi < pointNumP) {
 			latP = latDataPGPU[pointIdP + tmpflagi];
 			lonP = lonDataPGPU[pointIdP + tmpflagi];
