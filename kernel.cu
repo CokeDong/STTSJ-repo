@@ -1213,9 +1213,6 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 
 
-	timer.stop();
-	printf("CPU  processing time: %f s\n", timer.elapse());
-
 	// Copy data of Q to GPU
 	pnow = gpuAddrQSet;
 	CUDA_CALL(cudaMemcpyAsync(pnow, &latDataQCPU[0], sizeof(float)*latDataQCPU.size(), cudaMemcpyHostToDevice, stream));
@@ -1275,9 +1272,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	keypmqnMatrixGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + pmqnid);
 	keypmqMatrixGPU = (float*)pnow;
-	pnow = (void*)((float*)pnow + pmqnid);
+	pnow = (void*)((float*)pnow + pmqid);
 	keypqMatrixGPU = (float*)pnow;
-	pnow = (void*)((float*)pnow + pmqnid);
+	pnow = (void*)((float*)pnow + pqid);
 	
 
 	
@@ -1287,7 +1284,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
 	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
 
-
+	timer.stop();
+	printf("CPU  processing time: %f s\n", timer.elapse());
 
 	// running kernel
 	//CUDA_CALL(cudaDeviceSynchronize());
@@ -1295,7 +1293,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 
 	CUDA_CALL(cudaEventRecord(kernel_start, stream));
-	computeSimGPU2 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
@@ -1325,6 +1323,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaFreeHost(SimResult));
 	CUDA_CALL(cudaFree(gpuAddrPSet));
 	CUDA_CALL(cudaFree(gpuAddrQSet));
+	CUDA_CALL(cudaFree(gpuAddrStat));
 
 	// GPU stream management
 	CUDA_CALL(cudaEventDestroy(memcpy_to_start));
