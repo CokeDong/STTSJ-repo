@@ -14,7 +14,6 @@ using namespace std;
 
 
 // global really good ?? why global? not global 跨文件使用 poor coding ? how to improve really have meaning ?
-
 // global is a poor choice!!
 
 //// vector push_back 全部比较慢
@@ -66,7 +65,7 @@ int main() {
 	STGrid grid;
 	grid.init(trajDB); // clever！！
 	//grid.joinExhaustedCPUonethread(SIZE, SIZE, result);
-	//grid.joinExhaustedCPU(SIZE,SIZE,result);
+	grid.joinExhaustedCPU(SIZE,SIZE,result);
 	
 	
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, result, MAX_CPU_THREAD);
