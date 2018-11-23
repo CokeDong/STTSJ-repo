@@ -453,15 +453,15 @@ void STGrid::joinExhaustedGPUV2(
 		vector<trajPair> tmptaskGPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
 									 // Pbatch
 		for (size_t k = 0; k < (i + GPUOnceCnt > taskSet1.size() ? taskSet1.size() - i : GPUOnceCnt); k++) {
-			trajSetP.push_back(this->dataPtr[i + k]);
-			tmptaskp.push_back(i + k);
+			trajSetP.push_back(this->dataPtr[taskSet1[i + k]]);
+			tmptaskp.push_back(taskSet1[i + k]);
 		}
 		for (size_t j = 0; j < taskSet2.size(); j += GPUOnceCnt) {
 			// Qbatch
 			vector<size_t> tmptaskq; // 注意作用域！！
 			for (size_t k = 0; k < (j + GPUOnceCnt > taskSet2.size() ? taskSet2.size() - j : GPUOnceCnt); k++) {
-				trajSetQ.push_back(this->dataPtr[j + k]);
-				tmptaskq.push_back(j + k);
+				trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
+				tmptaskq.push_back(taskSet2[j + k]);
 			}
 
 			// get trajpair(taskpair)

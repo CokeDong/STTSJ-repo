@@ -1017,7 +1017,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	// here only for quick occupying GPU 
 	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
 	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024); 
-	void* gpuAddrStat = GPUMalloc((size_t)10 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrStat = GPUMalloc((size_t)2 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
@@ -1365,7 +1365,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	// here only for quick occupying GPU 
 	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
 	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrStat = GPUMalloc((size_t)10 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrStat = GPUMalloc((size_t)2 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 																	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
