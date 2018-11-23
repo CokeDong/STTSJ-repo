@@ -105,6 +105,16 @@ public:
 		//vector<STTrajectory> &Q
 	);
 
+	void joinExhaustedGPUV2(
+		//float epsilon,
+		//float alpha,
+		int sizeP,
+		int sizeQ,
+		map<trajPair, float>& result
+		//vector<STTrajectory> &P,
+		//vector<STTrajectory> &Q
+	);
+
 	void GetTaskPair(vector<size_t> &taskp, vector<size_t> &taskq, vector<trajPair> &resultpair);
 
 protected:

@@ -18,3 +18,7 @@ void* GPUMalloc(size_t byteNum);
 void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	vector<STTrajectory> &trajSetQ,
 	vector<float> &result);
+
+void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
+	vector<STTrajectory> &trajSetQ,
+	vector<float> &result);

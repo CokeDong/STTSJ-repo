@@ -56,6 +56,8 @@ using namespace std;
 #define GPUOnceCnt 128
 #define DUALGPU false
 
+#define SIZE_DATA 16
+
 
 // 这几个宏定义相关：THREADNUM = THREADROW * THREADCOLUMN
 

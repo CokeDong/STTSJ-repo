@@ -26,6 +26,7 @@ void split(string s, string delim, vector<string>* ret)
 	//}
 }
 
+
 void split2(string s, string delim, vector<string>* ret)
 {
 	size_t last = 0;
@@ -96,5 +97,18 @@ void GetTF(vector<string>* keywords, vector<string>* corpus) {
 	//cout << stopwords.size();
 
 	/************ utilizing python for TF-IDF as well as InvertedIndex, no need for repeated wheel-creating ***********/
+
+}
+
+
+void GetSample(vector<size_t> &taskSet1, vector<size_t> &taskSet2, int sizeP, int sizeQ) {
+
+	for (size_t i = 0; i < sizeP; i++) {
+		taskSet1.push_back(rand() % 500);
+	}
+	//set<size_t> Q;
+	for (size_t j = 0; j < sizeQ; j++) {
+		taskSet2.push_back(rand() % 1000);
+	}
 
 }

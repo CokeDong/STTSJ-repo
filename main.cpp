@@ -60,18 +60,24 @@ int main() {
 	map<trajPair, float> result;
 	
 	// 频繁调参使用变量！！
-	int SIZE = 16;
+	int SIZE = SIZE_DATA;
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
-	//grid.joinExhaustedCPUonethread(SIZE, SIZE, result);
+
+	// printf("***** 1-cpu *****\n");
+	// grid.joinExhaustedCPUonethread(SIZE, SIZE, result);
+
+	printf("***** mul-cpu *****\n");
 	grid.joinExhaustedCPU(SIZE,SIZE,result);
-	
 	
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, result, MAX_CPU_THREAD);
 	
+	printf("***** 1-gpu coarse *****\n");
 	grid.joinExhaustedGPU(SIZE, SIZE, result);
 
+	printf("***** 1-gpu fine *****\n");
+	grid.joinExhaustedGPUV2(SIZE, SIZE, result);
 
 	//sleep(10);
 
