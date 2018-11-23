@@ -4,9 +4,7 @@
 
 
 void STGrid::init(const vector<STTrajectory> &dptr) {
-
 	dataPtr = dptr; // 常量引用传递
-
 }
 
 
@@ -74,10 +72,14 @@ void STGrid::joinExhaustedCPUonethread(
 	*/
 
 
+	vector<trajPair> resultpair;
+	vector<float> resultvalue;
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
-			result[totaltaskCPU[i]] = tmpresult[i];
+			//result[totaltaskCPU[i]] = tmpresult[i];
+			resultpair.push_back(totaltaskCPU[i]);
+			resultvalue.push_back(tmpresult[i]);
 		}
 	}
 	delete[] tmpresult;
@@ -85,7 +87,7 @@ void STGrid::joinExhaustedCPUonethread(
 	timer.stop();
 	printf("CPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << result.size() << endl;
+	cout << "finalresult size: " << resultpair.size() << endl;
 
 	
 
@@ -150,10 +152,14 @@ void STGrid::joinExhaustedCPU(
 	}
 	*/
 
+	vector<trajPair> resultpair;
+	vector<float> resultvalue;
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
-			result[totaltaskCPU[i]] = tmpresult[i];
+			//result[totaltaskCPU[i]] = tmpresult[i];
+			resultpair.push_back(totaltaskCPU[i]);
+			resultvalue.push_back(tmpresult[i]);
 		}
 	}
 	delete[] tmpresult;
@@ -161,7 +167,7 @@ void STGrid::joinExhaustedCPU(
 	timer.stop();
 	printf("CPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << result.size() << endl;
+	cout << "finalresult size: " << resultpair.size() << endl;
 	
 
 
@@ -186,6 +192,8 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	vector<size_t> taskSet1, taskSet2;
 	vector<trajPair> totaltaskCPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
 	GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+
+
 
 
 	// filtering 
@@ -232,11 +240,15 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	cout << tmpresult[i] << endl;
 	}
 	*/
-
+	
+	vector<trajPair> resultpair;
+	vector<float> resultvalue;
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
-			result[totaltaskCPU[i]] = tmpresult[i];
+			//result[totaltaskCPU[i]] = tmpresult[i];
+			resultpair.push_back(totaltaskCPU[i]);
+			resultvalue.push_back(tmpresult[i]);
 		}
 	}
 	delete[] tmpresult;
@@ -244,7 +256,7 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	timer.stop();
 	printf("CPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << result.size() << endl;
+	cout << "finalresult size: " << resultpair.size() << endl;
 
 
 
@@ -330,21 +342,27 @@ void STGrid::joinExhaustedGPU(
 	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
 
 	vector<STTrajectory> trajSetP, trajSetQ;
-	
+
+	vector<trajPair> resultpair;
+	vector<float> resultvalue;
+
 	for (size_t i = 0; i < taskSet1.size(); i += GPUOnceCnt) {
+
 		vector<size_t> tmptaskp;
 		vector<trajPair> tmptaskGPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
 		// Pbatch
 		for (size_t k = 0; k < ( i + GPUOnceCnt > taskSet1.size() ? taskSet1.size()-i : GPUOnceCnt); k++) {
-			trajSetP.push_back(this->dataPtr[i + k]);
-			tmptaskp.push_back(i + k);
+			// debug: tiny bug here, wrong index
+			//trajSetP.push_back(this->dataPtr[i + k]);
+			trajSetP.push_back(this->dataPtr[taskSet1[i + k]]);
+			tmptaskp.push_back(taskSet1[i + k]);
 		}
 		for (size_t j = 0; j < taskSet2.size(); j += GPUOnceCnt) {
 			// Qbatch
 			vector<size_t> tmptaskq; // 注意作用域！！
 			for (size_t k = 0; k < (j + GPUOnceCnt > taskSet2.size() ? taskSet2.size() - j : GPUOnceCnt); k++) {
-				trajSetQ.push_back(this->dataPtr[j + k]);
-				tmptaskq.push_back(j + k);
+				trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
+				tmptaskq.push_back(taskSet2[j + k]);
 			}
 
 			// get trajpair(taskpair)
@@ -359,18 +377,20 @@ void STGrid::joinExhaustedGPU(
 			// insert new result
 			for (size_t k = 0; k < partialResult.size(); k++) {
 				if (partialResult[k] > EPSILON) {
-					result[tmptaskGPU[k]] = partialResult[k];
+					//result[tmptaskGPU[k]] = partialResult[k];
+					resultpair.push_back(tmptaskGPU[k]);
+					resultvalue.push_back(partialResult[k]);
 				}
 			}
 
-			/*
-			for (map<trajPair, float>::iterator it = partialResult.begin(); it != partialResult.end(); it++) {
-				//if ( (*it).second > EPSILON ) {
-				if (it->second > EPSILON) {
-					result.insert(*it);
-				}		
-			}
-			*/
+			
+			//for (map<trajPair, float>::iterator it = partialResult.begin(); it != partialResult.end(); it++) {
+			//	//if ( (*it).second > EPSILON ) {
+			//	if (it->second > EPSILON) {
+			//		result.insert(*it);
+			//	}		
+			//}
+			
 		}
 	
 	}
@@ -378,7 +398,7 @@ void STGrid::joinExhaustedGPU(
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << result.size() << endl;
+	cout << "finalresult size: " << resultpair.size() << endl;
 
 }
 
@@ -425,6 +445,8 @@ void STGrid::joinExhaustedGPUV2(
 	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
 
 	vector<STTrajectory> trajSetP, trajSetQ;
+	vector<trajPair> resultpair;
+	vector<float> resultvalue;
 
 	for (size_t i = 0; i < taskSet1.size(); i += GPUOnceCnt) {
 		vector<size_t> tmptaskp;
@@ -454,7 +476,9 @@ void STGrid::joinExhaustedGPUV2(
 			// insert new result
 			for (size_t k = 0; k < partialResult.size(); k++) {
 				if (partialResult[k] > EPSILON) {
-					result[tmptaskGPU[k]] = partialResult[k];
+					//result[tmptaskGPU[k]] = partialResult[k];
+					resultpair.push_back(tmptaskGPU[k]);
+					resultvalue.push_back(partialResult[k]);
 				}
 			}
 
@@ -473,7 +497,7 @@ void STGrid::joinExhaustedGPUV2(
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << result.size() << endl;
+	cout << "finalresult size: " << resultpair.size() << endl;
 
 }
 
