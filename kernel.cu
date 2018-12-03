@@ -4,7 +4,7 @@
 #include "device_launch_parameters.h"
 #include "ConstDefine.h"
 #include "gpukernel.h"
-
+//#include "util.h"
 
 #define CUDA_CALL(x) { const cudaError_t a = (x); if (a!= cudaSuccess) { printf("\nCUDA Error: %s(err_num=%d)\n", cudaGetErrorString(a), a); cudaDeviceReset(); assert(0);}}
 
@@ -90,10 +90,11 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 
 
 	__shared__ StatInfoTable task;
-	__shared__ int pointIdP, pointNumP, keycntP, pointIdQ, pointNumQ, keycntQ;
+	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 
-	__shared__ int pmqnid, pmqid, pqid;
-	__shared__ int textPid, textQid;
+
+	//__shared__ int pmqnid, pmqid, pqid;
+	//__shared__ int keycntP, keycntQ, textPid, textQid;
 
 
 	// seems not important!
@@ -103,6 +104,40 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 	__shared__ int *textDataPIndexGPU, *textDataQIndexGPU, *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
 
 	//fetch task info
+	if (tId == 0) {
+		task = stattableGPU[bId];
+
+		latDataPGPU = latDataPGPU1;
+		latDataQGPU = latDataQGPU1;
+		lonDataPGPU = lonDataPGPU1;
+		lonDataQGPU = lonDataQGPU1;
+		textDataPIndexGPU = textDataPIndexGPU1;
+		textDataQIndexGPU = textDataQIndexGPU1;
+		textDataPValueGPU = textDataPValueGPU1;
+		textDataQValueGPU = textDataQValueGPU1;
+		textIdxPGPU = textIdxPGPU1;
+		textIdxQGPU = textIdxQGPU1;
+		numWordPGPU = numWordPGPU1;
+		numWordQGPU = numWordQGPU1;
+
+
+		pointIdP = task.latlonIdxP;
+		pointIdQ = task.latlonIdxQ;
+		pointNumP = task.pointNumP;
+		pointNumQ = task.pointNumQ;
+
+		//// not used in kernel-V1
+		//pmqnid = task.keywordpmqMatrixId;
+		//pmqid = task.keywordpmqnMatrixId;
+		//pqid = task.keywordpqMatrixId;
+
+		//keycntP = task.keycntP;
+		//keycntQ = task.keycntQ;
+		//textPid = task.textIdxP;
+		//textQid = task.textIdxQ;
+	}
+
+	/*
 	if (tId == 0) {
 		task = stattableGPU[bId];
 
@@ -168,6 +203,8 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 			textPid = task.textIdxQ;
 		}
 	}
+	*/
+
 	__syncthreads();
 
 
@@ -276,7 +313,7 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 
 
 	// STEP-1: GET the  final sim result: SimResultGPU
-
+	// 潜在debug:
 	// only correct when THREADNUM > MAXTRAJLEN;
 	// initilize shared memory
 	if (tId < MAXTRAJLEN) {
@@ -320,7 +357,7 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 
 							 // debug:  边界条件错误！！ 逻辑错误 太慢！！ nearly 2 days
 							 // if (tmpflagi && pointNumQ)
-			if ((tmpflagi< pointNumP) && (tmpflagj< pointNumQ)) { // bound condition
+			if ((tmpflagi < pointNumP) && (tmpflagj < pointNumQ)) { // bound condition
 
 																  //// not recommended! divergency!!
 																  //float tsim = 0;
@@ -395,10 +432,8 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 	}
 
 
-
 	// sum reduction
 
-	//	for (size_t i = 0; i < ((MAXTRAJLEN - 1) / THREADNUM) + 1; i++) {
 
 	// 潜在debug: 
 	// 前提：
@@ -424,7 +459,7 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 	}
 
 	if (tId < 32) warpReduce(maxSimColumn, tId);
-
+    //}
 
 	if (tId == 0) {
 		SimResultGPU[bId] = maxSimRow[0] / pointNumP + maxSimColumn[0] / pointNumQ;
@@ -570,7 +605,7 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 			// in such loop, can only index in this way!!
 			// int -> size_t 兼容
 			keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = 0;
-			if ((tmpflagi < keycntP) && (tmpflagj < keycntQ) && (pmindex== qnindex)) {
+			if ((tmpflagi < keycntP) && (tmpflagj < keycntQ) && (pmindex == qnindex)) {
 				keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = pmvalue*qnvalue;
 			}
 		}
@@ -661,12 +696,12 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 		// but there is cache ??	
 		int tmpflagi = i + tId % THREADROW;
 		float latP, latQ, lonP, lonQ;
-		int textIdP, textIdQ, numWordP, numWordQ;
+		//int textIdP, textIdQ, numWordP, numWordQ;
 		if(tmpflagi < pointNumP){
 			latP = latDataPGPU[pointIdP + tmpflagi];
 			lonP = lonDataPGPU[pointIdP + tmpflagi];
-			textIdP = textIdxPGPU[pointIdP + tmpflagi];
-			numWordP = numWordPGPU[pointIdP + tmpflagi];
+			//textIdP = textIdxPGPU[pointIdP + tmpflagi];
+			//numWordP = numWordPGPU[pointIdP + tmpflagi];
 			//printf("%f,%f \n", latP, lonP);
 		}
 
@@ -675,8 +710,8 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 			if (tmpflagj < pointNumQ) {
 				latQ = latDataQGPU[pointIdQ + tmpflagj];
 				lonQ = lonDataQGPU[pointIdQ + tmpflagj];
-				textIdQ = textIdxQGPU[pointIdQ + tmpflagj];
-				numWordQ = numWordQGPU[pointIdQ + tmpflagj];
+				//textIdQ = textIdxQGPU[pointIdQ + tmpflagj];
+				//numWordQ = numWordQGPU[pointIdQ + tmpflagj];
 			}
 
 			tmpSim[tId] = -1;//技巧，省去下面的tID=0判断
@@ -1021,7 +1056,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	// here only for quick occupying GPU 
 	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
 	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024); 
-	void* gpuAddrStat = GPUMalloc((size_t)2 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrStat = GPUMalloc((size_t)10 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
@@ -1288,8 +1323,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	// debug: big int -> size_t
 	printf("***** size_t ***** %zu %zu %zu\n", pmqnid, pmqid, pqid);
-	printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
-	printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
+	//printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
+	//printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
 	printf("***** total status size *****%f GB\n", (pmqnid + pmqid + pqid)*4.0 / 1024 / 1024 / 1024);
 	
 	// zero-copy 内存 
@@ -1370,7 +1405,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	// here only for quick occupying GPU 
 	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
 	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrStat = GPUMalloc((size_t)2 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrStat = GPUMalloc((size_t)10 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 																	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
@@ -1473,7 +1508,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 			}
 		}
 
-		keycntTrajP.push_back(keywordcnt);
+		keycntTrajP.push_back(keywordcnt);// keycnt including padding 
 		for (size_t j = 0; j < dataSizeQ; j++) {
 			stattableCPU[i*dataSizeQ + j].textIdxP = keywordcnt;
 		}
@@ -1636,9 +1671,10 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	pnow = (void*)((float*)pnow + pqid);
 
 	// debug: big int -> size_t
+	//OutGPUMemNeeded(pmqnid, pmqid,pqid);
 	printf("***** size_t ***** %zu %zu %zu\n", pmqnid, pmqid, pqid);
-	printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
-	printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
+	//printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
+	//printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
 	printf("***** total status size *****%f GB\n", (pmqnid + pmqid + pqid)*4.0 / 1024 / 1024 / 1024);
 
 	// zero-copy 内存 

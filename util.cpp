@@ -104,13 +104,12 @@ void GetTF(vector<string>* keywords, vector<string>* corpus) {
 void GetSample(vector<size_t> &taskSet1, vector<size_t> &taskSet2, int sizeP, int sizeQ) {
 
 	for (size_t i = 0; i < sizeP; i++) {
-		taskSet1.push_back(i); // 4
+		taskSet1.push_back(2); // 4
 	}
 	//set<size_t> Q;
 	for (size_t j = 0; j < sizeQ; j++) {
-		taskSet2.push_back(j); // 4
+		taskSet2.push_back(2); // 4
 	}
 
 }
-
 

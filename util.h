@@ -25,3 +25,4 @@ void split3(string s, string delim, vector<string>* ret);
 
 void GetSample(vector<size_t> &taskSet1, vector<size_t> &taskSet2, int sizeP, int sizeQ);
 
+//void OutGPUMemNeeded(size_t pmqnid, size_t pmqid, size_t pqid);

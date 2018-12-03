@@ -64,7 +64,7 @@ int main() {
 	vector<float> resultvalue;
 
 	// 频繁调参使用变量！！
-	int SIZE = SIZE_DATA;
+	int SIZE = 16;
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
@@ -83,12 +83,15 @@ int main() {
 	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
 	
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD);
+
 	
 	printf("***** 1-gpu coarse *****\n");
 	vector<trajPair> resultpaircoarsegpu;
 	vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
 	CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
+	
+
 
 	printf("***** 1-gpu fine *****\n");
 	vector<trajPair> resultpairfinegpu;
@@ -111,7 +114,7 @@ int main() {
 
 void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<trajPair> pairgpu, vector<float> valuegpu) {
 	
-	// fully output
+	// fully output: #define EPSILON -1
 
 	for (size_t i = 0; i < paircpu.size(); i++) {
 		if (i < pairgpu.size()) {

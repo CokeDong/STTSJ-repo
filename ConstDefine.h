@@ -50,7 +50,7 @@ using namespace std;
 // 这几个宏定义相关
 #define MAX_DIST 300000 // okay
 #define ALPHA 0.5
-#define EPSILON 0.85
+#define EPSILON -1
 
 
 #define GPUOnceCnt 128
@@ -64,21 +64,19 @@ using namespace std;
 // 处理 P Q num不平衡 not smart 16*16 is okay, only bound exsists imbalance!! 
 // seems no impartant!
 #define THREADROW 32
-#define THREADCOLUMN 8
+#define THREADCOLUMN 32
 
 // 转置需要方阵
-#define THREADROW2 16
-#define THREADCOLUMN2 16 // maybe better!!
+#define THREADROW2 32
+#define THREADCOLUMN2 32 // maybe better!!
 
-#define THREADNUM 256 // = (THREADROW*THREADCOLUMN)
-
-
+#define THREADNUM 1024 // = (THREADROW*THREADCOLUMN)
 
 // NY: 200
 // LA:
 // TWITTER:
 // predefined !!!
-// 数据集相关 < THREADNUM
+// 数据集相关 must < THREADNUM, kernel is correct
 #define MAXTRAJLEN 256
 
 
@@ -153,6 +151,7 @@ typedef struct StatInfoTable {
 	
 	//int textNumP, textNumQ; // total # word in each traj
 	
+	// only used in kernel-V2
 	int textIdxP, textIdxQ; // starting position of text data for each task / block
 	size_t keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block
 	int keycntP, keycntQ; // # of total keywords in each traj
