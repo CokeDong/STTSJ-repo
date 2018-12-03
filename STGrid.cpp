@@ -13,7 +13,8 @@ void STGrid::joinExhaustedCPUonethread(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, float>& result) {
+	vector<trajPair> resultpair,
+	vector<float> resultvalue) {
 
 
 	MyTimer timer;
@@ -72,8 +73,9 @@ void STGrid::joinExhaustedCPUonethread(
 	*/
 
 
-	vector<trajPair> resultpair;
-	vector<float> resultvalue;
+	//vector<trajPair> resultpair;
+	//vector<float> resultvalue;
+
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
@@ -100,7 +102,8 @@ void STGrid::joinExhaustedCPU(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, float>& result) {
+	vector<trajPair> resultpair,
+	vector<float> resultvalue) {
 	
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
@@ -152,8 +155,9 @@ void STGrid::joinExhaustedCPU(
 	}
 	*/
 
-	vector<trajPair> resultpair;
-	vector<float> resultvalue;
+	//vector<trajPair> resultpair;
+	//vector<float> resultvalue;
+
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
@@ -180,7 +184,8 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, float>& result,
+	vector<trajPair> resultpair,
+	vector<float> resultvalue,
 	int threadnum) {
 
 	// only one TrajDB - selfjoin
@@ -241,8 +246,9 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	}
 	*/
 	
-	vector<trajPair> resultpair;
-	vector<float> resultvalue;
+	//vector<trajPair> resultpair;
+	//vector<float> resultvalue;
+
 	// get final results
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 		if (tmpresult[i] > EPSILON) {
@@ -269,7 +275,8 @@ void STGrid::STSimilarityJoinCalcCPU(
 	//float alpha,
 	const STTrajectory &T1,
 	const STTrajectory &T2,
-	map<trajPair, float>& result
+	vector<trajPair> resultpair,
+	vector<float> resultvalue
 ) {
 	// aborted
 	
@@ -306,7 +313,8 @@ void STGrid::joinExhaustedGPU(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, float>& result
+	vector<trajPair> resultpair,
+	vector<float> resultvalue
 	//vector<STTrajectory> &P,
 	//vector<STTrajectory> &Q
 ) {
@@ -343,8 +351,9 @@ void STGrid::joinExhaustedGPU(
 
 	vector<STTrajectory> trajSetP, trajSetQ;
 
-	vector<trajPair> resultpair;
-	vector<float> resultvalue;
+	// have changed dic to vector
+	//vector<trajPair> resultpair;
+	//vector<float> resultvalue;
 
 	for (size_t i = 0; i < taskSet1.size(); i += GPUOnceCnt) {
 
@@ -409,7 +418,8 @@ void STGrid::joinExhaustedGPUV2(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	map<trajPair, float>& result
+	vector<trajPair> resultpair,
+	vector<float> resultvalue
 	//vector<STTrajectory> &P,
 	//vector<STTrajectory> &Q
 ) {
@@ -445,8 +455,9 @@ void STGrid::joinExhaustedGPUV2(
 	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
 
 	vector<STTrajectory> trajSetP, trajSetQ;
-	vector<trajPair> resultpair;
-	vector<float> resultvalue;
+
+	//vector<trajPair> resultpair;
+	//vector<float> resultvalue;
 
 	for (size_t i = 0; i < taskSet1.size(); i += GPUOnceCnt) {
 		vector<size_t> tmptaskp;

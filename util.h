@@ -24,3 +24,4 @@ void split2(string s, string delim, vector<string>* ret);
 void split3(string s, string delim, vector<string>* ret);
 
 void GetSample(vector<size_t> &taskSet1, vector<size_t> &taskSet2, int sizeP, int sizeQ);
+

@@ -44,7 +44,10 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, float>& result
+		//map<trajPair, float>& result
+		vector<trajPair> resultpair,
+		vector<float> resultvalue
+
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);
@@ -56,7 +59,10 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, float>& result
+		//map<trajPair, float>& result
+		vector<trajPair> resultpair,
+		vector<float> resultvalue
+
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);
@@ -67,7 +73,10 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, float>& result,
+		//map<trajPair, float>& result
+		vector<trajPair> resultpair,
+		vector<float> resultvalue,
+
 		int threadnum
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
@@ -78,7 +87,9 @@ public:
 		//float alpha,
 		const STTrajectory &T1,
 		const STTrajectory &T2,
-		map<trajPair, float>& result
+		//map<trajPair, float>& result
+		vector<trajPair> resultpair,
+		vector<float> resultvalue
 	);
 
 	// const ¶àÏß³Ì¿¼ÂÇ
@@ -100,7 +111,10 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, float>& result
+		//map<trajPair, float>& result
+		vector<trajPair> resultpair,
+		vector<float> resultvalue
+
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);
@@ -110,7 +124,9 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		map<trajPair, float>& result
+		//map<trajPair, float>& result
+		vector<trajPair> resultpair,
+		vector<float> resultvalue
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);

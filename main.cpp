@@ -24,6 +24,8 @@ using namespace std;
 //// for filtering 
 //vector<STInvertedList> invertedlist;
 
+void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<trajPair> pairgpu, vector<float> valuegpu);
+
 int main() {
 
 	cout << "hello world" << endl;
@@ -57,27 +59,37 @@ int main() {
 
 	pp.ReadTrajDBPoint(trajDB, pointDB);
 
-	map<trajPair, float> result;
-	
+	//map<trajPair, float> result;
+	vector<trajPair> resultpair;
+	vector<float> resultvalue;
+
 	// 频繁调参使用变量！！
-	int SIZE = SIZE_DATA;
+	int SIZE = 16;
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
 
+	vector<trajPair> resultpaircpu;
+	vector<float> resultvaluecpu;
+
+	vector<trajPair> resultpairgpu;
+	vector<float> resultvaluegpu;
 	// printf("***** 1-cpu *****\n");
-	// grid.joinExhaustedCPUonethread(SIZE, SIZE, result);
+	//grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 
 	printf("***** mul-cpu *****\n");
-	grid.joinExhaustedCPU(SIZE,SIZE,result);
+	grid.joinExhaustedCPU(SIZE,SIZE, resultpaircpu, resultvaluecpu);
 	
-	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, result, MAX_CPU_THREAD);
+	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD);
 	
 	printf("***** 1-gpu coarse *****\n");
-	grid.joinExhaustedGPU(SIZE, SIZE, result);
+	grid.joinExhaustedGPU(SIZE, SIZE, resultpairgpu, resultvaluegpu);
+	CheckSimResult(resultpaircpu, resultvaluecpu, resultpairgpu, resultvaluegpu);
 
 	printf("***** 1-gpu fine *****\n");
-	grid.joinExhaustedGPUV2(SIZE, SIZE, result);
+	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairgpu, resultvaluegpu);
+	CheckSimResult(resultpaircpu, resultvaluecpu, resultpairgpu, resultvaluegpu);
+	
 
 	//sleep(10);
 
@@ -88,4 +100,17 @@ int main() {
 	getchar();
 #endif
 	return 0;
+}
+
+
+void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<trajPair> pairgpu, vector<float> valuegpu) {
+	
+	// check pair
+	for (size_t i = 0; i < paircpu.size(); i++) {
+		if (paircpu[i] != pairgpu[i]) printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n",i, paircpu[i].first,paircpu[i].second, valuecpu[i], pairgpu[i].first, pairgpu[i].second, valuegpu[i]);
+	}
+
+	// check value
+	// maybe not meaningful
+
 }
