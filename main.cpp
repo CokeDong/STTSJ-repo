@@ -110,18 +110,32 @@ int main() {
 
 
 void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<trajPair> pairgpu, vector<float> valuegpu) {
-	int falsecnt = 0;
-	// check pair
+	// fully output
 	for (size_t i = 0; i < paircpu.size(); i++) {
-			
-			if (paircpu[i] != pairgpu[i]) {
-				printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n", i, paircpu[i].first, paircpu[i].second, valuecpu[i], pairgpu[i].first, pairgpu[i].second, valuegpu[i]);
-				falsecnt++;
-			}
+		if (i < pairgpu.size()) {
+			printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n", i, paircpu[i].first, paircpu[i].second, valuecpu[i], pairgpu[i].first, pairgpu[i].second, valuegpu[i]);
 		}
+		else {
+			printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n", i, paircpu[i].first, paircpu[i].second, valuecpu[i], 0, 0, 0);
+		}
+	}
+	if (paircpu.size() < pairgpu.size()) {
+		for (size_t i = paircpu.size(); i < pairgpu.size(); i++) {
+			printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n", i, 0, 0, 0, pairgpu[i].first, pairgpu[i].second, valuegpu[i]);
+		}
+	}
+	
 
-	// check value
-	// maybe not meaningful
+	//int falsecnt = 0;
+	//// check pair
+	//for (size_t i = 0; i < paircpu.size(); i++) {
+	//		if (i < pairgpu.size()) {
+	//			if (paircpu[i] != pairgpu[i]) {
+	//				printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n", i, paircpu[i].first, paircpu[i].second, valuecpu[i], pairgpu[i].first, pairgpu[i].second, valuegpu[i]);
+	//				falsecnt++;
+	//			}
+	//		}
+	//	}
+	//if (!falsecnt) printf("True!\n");
 
-	if (!falsecnt) printf("True!\n");
 }

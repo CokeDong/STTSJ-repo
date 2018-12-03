@@ -471,6 +471,8 @@ void STGrid::joinExhaustedGPUV2(
 			// Qbatch
 			vector<size_t> tmptaskq; // ×¢Òâ×÷ÓÃÓò£¡£¡
 			for (size_t k = 0; k < (j + GPUOnceCnt > taskSet2.size() ? taskSet2.size() - j : GPUOnceCnt); k++) {
+				//debug: a tiny error
+				//trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
 				trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
 				tmptaskq.push_back(taskSet2[j + k]);
 			}

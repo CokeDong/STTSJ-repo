@@ -1309,9 +1309,10 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 		);
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-	//CUDA_CALL(cudaDeviceSynchronize());
+
 
 	CUDA_CALL(cudaStreamSynchronize(stream));
+	//CUDA_CALL(cudaDeviceSynchronize());
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
@@ -1657,9 +1658,10 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 		);
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-	//CUDA_CALL(cudaDeviceSynchronize());
+	
 
 	CUDA_CALL(cudaStreamSynchronize(stream));
+	//CUDA_CALL(cudaDeviceSynchronize());
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
