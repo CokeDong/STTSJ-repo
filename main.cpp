@@ -64,7 +64,7 @@ int main() {
 	vector<float> resultvalue;
 
 	// 频繁调参使用变量！！
-	int SIZE = 16;
+	int SIZE = SIZE_DATA;
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
@@ -104,13 +104,17 @@ int main() {
 
 
 void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<trajPair> pairgpu, vector<float> valuegpu) {
-	
+	int falsecnt = 0;
 	// check pair
 	for (size_t i = 0; i < paircpu.size(); i++) {
-		if (paircpu[i] != pairgpu[i]) printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n",i, paircpu[i].first,paircpu[i].second, valuecpu[i], pairgpu[i].first, pairgpu[i].second, valuegpu[i]);
-	}
+			if (paircpu[i] != pairgpu[i]) {
+				printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n", i, paircpu[i].first, paircpu[i].second, valuecpu[i], pairgpu[i].first, pairgpu[i].second, valuegpu[i]);
+				falsecnt++;
+			}
+		}
 
 	// check value
 	// maybe not meaningful
 
+	if (!falsecnt) printf("True!");
 }
