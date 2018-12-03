@@ -45,8 +45,8 @@ public:
 		int sizeP,
 		int sizeQ,
 		//map<trajPair, float>& result
-		vector<trajPair> resultpair,
-		vector<float> resultvalue
+		vector<trajPair>& resultpair,
+		vector<float>& resultvalue
 
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
@@ -60,8 +60,8 @@ public:
 		int sizeP,
 		int sizeQ,
 		//map<trajPair, float>& result
-		vector<trajPair> resultpair,
-		vector<float> resultvalue
+		vector<trajPair>& resultpair,
+		vector<float>& resultvalue
 
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
@@ -74,8 +74,8 @@ public:
 		int sizeP,
 		int sizeQ,
 		//map<trajPair, float>& result
-		vector<trajPair> resultpair,
-		vector<float> resultvalue,
+		vector<trajPair>& resultpair,
+		vector<float>& resultvalue,
 
 		int threadnum
 		//vector<STTrajectory> &P,
@@ -88,8 +88,8 @@ public:
 		const STTrajectory &T1,
 		const STTrajectory &T2,
 		//map<trajPair, float>& result
-		vector<trajPair> resultpair,
-		vector<float> resultvalue
+		vector<trajPair>& resultpair,
+		vector<float>& resultvalue
 	);
 
 	// const ¶àÏß³Ì¿¼ÂÇ
@@ -112,8 +112,8 @@ public:
 		int sizeP,
 		int sizeQ,
 		//map<trajPair, float>& result
-		vector<trajPair> resultpair,
-		vector<float> resultvalue
+		vector<trajPair>& resultpair,
+		vector<float>& resultvalue
 
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
@@ -125,8 +125,8 @@ public:
 		int sizeP,
 		int sizeQ,
 		//map<trajPair, float>& result
-		vector<trajPair> resultpair,
-		vector<float> resultvalue
+		vector<trajPair>& resultpair,
+		vector<float>& resultvalue
 		//vector<STTrajectory> &P,
 		//vector<STTrajectory> &Q
 	);

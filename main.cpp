@@ -107,6 +107,7 @@ void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<tra
 	int falsecnt = 0;
 	// check pair
 	for (size_t i = 0; i < paircpu.size(); i++) {
+			
 			if (paircpu[i] != pairgpu[i]) {
 				printf("False %zu\n(%zu,%zu):%.5f\n(%zu,%zu):%.5f\n\n", i, paircpu[i].first, paircpu[i].second, valuecpu[i], pairgpu[i].first, pairgpu[i].second, valuegpu[i]);
 				falsecnt++;
@@ -116,5 +117,5 @@ void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<tra
 	// check value
 	// maybe not meaningful
 
-	if (!falsecnt) printf("True!");
+	if (!falsecnt) printf("True!\n");
 }

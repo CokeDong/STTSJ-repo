@@ -13,8 +13,8 @@ void STGrid::joinExhaustedCPUonethread(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	vector<trajPair> resultpair,
-	vector<float> resultvalue) {
+	vector<trajPair>& resultpair,
+	vector<float>& resultvalue) {
 
 
 	MyTimer timer;
@@ -102,8 +102,8 @@ void STGrid::joinExhaustedCPU(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	vector<trajPair> resultpair,
-	vector<float> resultvalue) {
+	vector<trajPair>& resultpair,
+	vector<float>& resultvalue) {
 	
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
@@ -184,8 +184,8 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	vector<trajPair> resultpair,
-	vector<float> resultvalue,
+	vector<trajPair>& resultpair,
+	vector<float>& resultvalue,
 	int threadnum) {
 
 	// only one TrajDB - selfjoin
@@ -275,8 +275,8 @@ void STGrid::STSimilarityJoinCalcCPU(
 	//float alpha,
 	const STTrajectory &T1,
 	const STTrajectory &T2,
-	vector<trajPair> resultpair,
-	vector<float> resultvalue
+	vector<trajPair>& resultpair,
+	vector<float>& resultvalue
 ) {
 	// aborted
 	
@@ -313,8 +313,8 @@ void STGrid::joinExhaustedGPU(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	vector<trajPair> resultpair,
-	vector<float> resultvalue
+	vector<trajPair>& resultpair,
+	vector<float>& resultvalue
 	//vector<STTrajectory> &P,
 	//vector<STTrajectory> &Q
 ) {
@@ -418,8 +418,8 @@ void STGrid::joinExhaustedGPUV2(
 	//float alpha,
 	int sizeP,
 	int sizeQ,
-	vector<trajPair> resultpair,
-	vector<float> resultvalue
+	vector<trajPair>& resultpair,
+	vector<float>& resultvalue
 	//vector<STTrajectory> &P,
 	//vector<STTrajectory> &Q
 ) {
