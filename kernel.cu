@@ -488,10 +488,11 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 
 
 	__shared__ StatInfoTable task;
-	__shared__ int pointIdP, pointNumP, keycntP, pointIdQ, pointNumQ, keycntQ;
+	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 
-	__shared__ size_t pmqnid, pmqid, pqid;
-	__shared__ int textPid, textQid;
+
+	__shared__ int pmqnid, pmqid, pqid;
+	__shared__ int keycntP, keycntQ, textPid, textQid;
 
 
 	// seems not important!
@@ -499,7 +500,41 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 	// merely for P-Q exchanging
 	__shared__ float *latDataPGPU, *latDataQGPU, *lonDataPGPU, *lonDataQGPU, *textDataPValueGPU, *textDataQValueGPU;
 	__shared__ int *textDataPIndexGPU, *textDataQIndexGPU, *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
+	
+	//fetch task info
+	if (tId == 0) {
+		task = stattableGPU[bId];
 
+		latDataPGPU = latDataPGPU1;
+		latDataQGPU = latDataQGPU1;
+		lonDataPGPU = lonDataPGPU1;
+		lonDataQGPU = lonDataQGPU1;
+		textDataPIndexGPU = textDataPIndexGPU1;
+		textDataQIndexGPU = textDataQIndexGPU1;
+		textDataPValueGPU = textDataPValueGPU1;
+		textDataQValueGPU = textDataQValueGPU1;
+		textIdxPGPU = textIdxPGPU1;
+		textIdxQGPU = textIdxQGPU1;
+		numWordPGPU = numWordPGPU1;
+		numWordQGPU = numWordQGPU1;
+
+
+		pointIdP = task.latlonIdxP;
+		pointIdQ = task.latlonIdxQ;
+		pointNumP = task.pointNumP;
+		pointNumQ = task.pointNumQ;
+
+		pmqnid = task.keywordpmqMatrixId;
+		pmqid = task.keywordpmqnMatrixId;
+		pqid = task.keywordpqMatrixId;
+
+		keycntP = task.keycntP;
+		keycntQ = task.keycntQ;
+		textPid = task.textIdxP;
+		textQid = task.textIdxQ;
+	}
+
+	/*
 	//fetch task info
 	if (tId == 0) {
 		task = stattableGPU[bId];
@@ -566,6 +601,9 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 			textPid = task.textIdxQ;
 		}
 	}
+	*/
+
+
 	__syncthreads();
 
 
@@ -583,6 +621,7 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 	__shared__ int height, width;
 	
 	// pmqn
+	// keycntP including all the padding 
 	height = keycntP, width = keycntQ;
 	for (size_t i = 0; i < keycntP; i += THREADROW) {
 		int tmpflagi = i + tId % THREADROW;
@@ -592,6 +631,7 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 		float pmvalue;
 		if (tmpflagi < keycntP) {
 			pmindex = textDataPIndexGPU[textPid + tmpflagi];
+			//if (pmindex == -1) continue;
 			pmvalue = textDataPValueGPU[textPid + tmpflagi];
 		}
 		for (size_t j = 0; j < keycntQ; j+=THREADCOLUMN) {
@@ -600,16 +640,23 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 			float qnvalue;
 			if (tmpflagj < keycntQ) {
 				qnindex = textDataQIndexGPU[textQid + tmpflagj];
+				//if (qnindex == -1) continue;
 				qnvalue = textDataQValueGPU[textQid + tmpflagj];
 			}		
 			// in such loop, can only index in this way!!
 			// int -> size_t 兼容
 			keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = 0;
-			if ((tmpflagi < keycntP) && (tmpflagj < keycntQ) && (pmindex == qnindex)) {
+			// debug: excluding padding here!
+			if ((pmindex != -1) && (qnindex != -1) &&(tmpflagi < keycntP) && (tmpflagj < keycntQ) && (pmindex == qnindex)) {
 				keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = pmvalue*qnvalue;
 			}
+
+			// block同步！ maybe not necessary because no shared memory here, is register reused? 决定是否需要同步
+			//__syncthreads();
 		}
 	}
+
+	
 	__syncthreads();
 
 
@@ -645,9 +692,12 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 			if ((tmpflagi2 < keycntP) && (tmpflagj2 < pointNumQ)) { // thread filtering
 				keypmqGPU[pmqid + tmpflagi2*width + tmpflagj2] = tmppmq[tId / THREADROW2][tId % THREADROW2];
 			}
+
+			//__syncthreads();
 		}
 	}
 	__syncthreads();
+
 
 	// pq
 	height = pointNumQ, width = pointNumP;
@@ -670,8 +720,13 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 			if ((tmpflagi2 < pointNumQ) && (tmpflagj2 < pointNumP)) {
 				keypqGPU[pqid + tmpflagi2*width + tmpflagj2] = tmppmq[tId / THREADROW2][tId % THREADROW2];
 			}
+
+			//__syncthreads();
 		}
 	}
+
+	__syncthreads();
+
 
 	// STEP-1: GET the  final sim result: SimResultGPU
 
@@ -1508,7 +1563,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 			}
 		}
 
-		keycntTrajP.push_back(keywordcnt);// keycnt including padding 
+		keycntTrajP.push_back(keywordcnt);// keycnt including padding , if want not including padding, to do
 		for (size_t j = 0; j < dataSizeQ; j++) {
 			stattableCPU[i*dataSizeQ + j].textIdxP = keywordcnt;
 		}
@@ -1639,14 +1694,19 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 			stattableCPU[i*dataSizeQ + j].keywordpmqnMatrixId = pmqnid;
 			pmqnid += keycntTrajP[i] * keycntTrajQ[j];
 
-			// not symmetric Matrix processing
+			// not symmetric Matrix processing  -> aborted first programming! to be easier
 			stattableCPU[i*dataSizeQ + j].keywordpmqMatrixId = pmqid;
-			if (stattableCPU[i*dataSizeQ + j].pointNumP > stattableCPU[i*dataSizeQ + j].pointNumQ) {
-				pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
-			}
-			else {
-				pmqid += stattableCPU[i*dataSizeQ + j].pointNumP*keycntTrajQ[j];
-			}
+			pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
+
+			///*
+			// maybe this is not wrong, but may cause high coupling with kernel!
+			//if (stattableCPU[i*dataSizeQ + j].pointNumP > stattableCPU[i*dataSizeQ + j].pointNumQ) {
+			//	pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
+			//}
+			//else {
+			//	pmqid += stattableCPU[i*dataSizeQ + j].pointNumP*keycntTrajQ[j];
+			//}
+			//*/
 
 			stattableCPU[i*dataSizeQ + j].keywordpqMatrixId = pqid;
 			pqid += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;

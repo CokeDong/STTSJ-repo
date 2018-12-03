@@ -154,8 +154,10 @@ typedef struct StatInfoTable {
 	// only used in kernel-V2
 	int textIdxP, textIdxQ; // starting position of text data for each task / block
 	size_t keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block
-	int keycntP, keycntQ; // # of total keywords in each traj
+	int keycntP, keycntQ; // # of total keywords in each traj, including padding
 	
 	//int padding;?
+	int keycntPnoPadding, keycntQnoPadding;
+	
 
 }StatInfoTable;
