@@ -69,26 +69,32 @@ int main() {
 	STGrid grid;
 	grid.init(trajDB); // clever£¡£¡
 
-	vector<trajPair> resultpaircpu;
-	vector<float> resultvaluecpu;
+	//vector<trajPair> resultpaircpu;
+	//vector<float> resultvaluecpu;
+	//vector<trajPair> resultpairgpu;
+	//vector<float> resultvaluegpu;
 
-	vector<trajPair> resultpairgpu;
-	vector<float> resultvaluegpu;
 	// printf("***** 1-cpu *****\n");
 	//grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 
 	printf("***** mul-cpu *****\n");
-	grid.joinExhaustedCPU(SIZE,SIZE, resultpaircpu, resultvaluecpu);
+	vector<trajPair> resultpairmcpu;
+	vector<float> resultvaluemcpu;
+	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
 	
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD);
 	
 	printf("***** 1-gpu coarse *****\n");
-	grid.joinExhaustedGPU(SIZE, SIZE, resultpairgpu, resultvaluegpu);
-	CheckSimResult(resultpaircpu, resultvaluecpu, resultpairgpu, resultvaluegpu);
+	vector<trajPair> resultpaircoarsegpu;
+	vector<float> resultvaluecoarsegpu;
+	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
+	CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 
 	printf("***** 1-gpu fine *****\n");
-	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairgpu, resultvaluegpu);
-	CheckSimResult(resultpaircpu, resultvaluecpu, resultpairgpu, resultvaluegpu);
+	vector<trajPair> resultpairfinegpu;
+	vector<float> resultvaluefinegpu;
+	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
+	CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
 
 	//sleep(10);
