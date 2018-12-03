@@ -553,7 +553,7 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 		int tmpflagi = i + tId % THREADROW;
 		//debug: float -> int 精度问题 数据类型定义出错
 		// int pmindex,pmvalue;
-		int pmindex,
+		int pmindex;
 		float pmvalue;
 		if (tmpflagi < keycntP) {
 			pmindex = textDataPIndexGPU[textPid + tmpflagi];
@@ -561,7 +561,7 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 		}
 		for (size_t j = 0; j < keycntQ; j+=THREADCOLUMN) {
 			int tmpflagj = j + tId / THREADROW;
-			int qnindex,
+			int qnindex;
 			float qnvalue;
 			if (tmpflagj < keycntQ) {
 				qnindex = textDataQIndexGPU[textQid + tmpflagj];
