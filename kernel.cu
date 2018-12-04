@@ -678,13 +678,10 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 				textidq = textIdxQGPU[pointIdQ + tmpflagj];
 				for (size_t k = 0; k < pointnumq; k++) {
 					// just (textidq + k) needs some effort
-					//printf("pmq-> blockId:%d threadId:%d value:%0.5f\n ", bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
-				
-					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi];
-					
-					//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
+					//printf("pmq-> blockId:%d threadId:%d value:%0.5f\n ", bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);		
+					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi];	
 				}
-				
+				//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 			}
 
 			__syncthreads();
@@ -705,7 +702,7 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 }
 
 
-__global__ void computeTSimpqEmpty(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
+__global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
 	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
 	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
 	StatInfoTable* stattableGPU, float* keypmqnGPU, float* keypmqGPU, float* keypqGPU, float* SimResultGPU
@@ -808,7 +805,7 @@ __global__ void computeTSimpqEmpty(float* latDataPGPU1, float* latDataQGPU1, flo
 }
 
 
-__global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
+__global__ void computeTSimpqEmpty(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
 	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
 	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
 	StatInfoTable* stattableGPU, float* keypmqnGPU, float* keypmqGPU, float* keypqGPU, float* SimResultGPU
@@ -2235,11 +2232,12 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 		);
-	CUDA_CALL(cudaStreamSynchronize(stream));
-
-
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+
+
 	//CUDA_CALL(cudaDeviceSynchronize());
+
+	CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
@@ -2258,6 +2256,10 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	free(stattableCPU);
 
 	// free GPU memory
+	// debug: cudaFree doesn't erase anything!! it simply returns memory to a pool to be re-allocated
+	// cudaMalloc doesn't guarantee the value of memory that has been allocated (to 0)
+	// You need to Initialize memory (both global and shared) that your program uses, in order to have consistent results!!
+	// The same is true for malloc and free, by the way
 	CUDA_CALL(cudaFreeHost(SimResult));
 	CUDA_CALL(cudaFree(gpuAddrPSet));
 	CUDA_CALL(cudaFree(gpuAddrQSet));
