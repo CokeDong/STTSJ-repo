@@ -93,7 +93,7 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 
 
-	//__shared__ int pmqnid, pmqid, pqid;
+	//__shared__ size_t pmqnid, pmqid, pqid;
 	//__shared__ int keycntP, keycntQ, textPid, textQid;
 
 
@@ -488,8 +488,9 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 	__shared__ StatInfoTable task;
 	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 
-
-	__shared__ int pmqnid, pmqid, pqid;
+	//debug: 数据类型 big int !! -> int , size_t
+	//__shared__ int pmqnid, pmqid, pqid;
+	__shared__ size_t pmqnid, pmqid, pqid;
 	__shared__ int keycntP, keycntQ, textPid, textQid;
 
 
@@ -566,7 +567,7 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 			// debug: excluding padding here!
 			if ((pmindex != -1) && (qnindex != -1) && (tmpflagi < keycntP) && (tmpflagj < keycntQ) && (pmindex == qnindex)) {
 				keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = pmvalue*qnvalue;
-				//printf("pmqn-> blockId:%d threadId:%d value:%.5f\n", bId, tId, pmvalue*qnvalue);
+				//printf("pmqn-> blockId:%d threadId:%d startpos:%d index:%zu value:%.5f\n", bId, tId, pmqnid, pmqnid + tmpflagj*height + tmpflagi, pmvalue*qnvalue);
 			}
 
 			// block同步！ maybe not necessary because no shared memory here, is register reused? 决定是否需要同步
@@ -598,8 +599,8 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 	__shared__ StatInfoTable task;
 	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 
-
-	__shared__ int pmqnid, pmqid, pqid;
+	
+	__shared__ size_t pmqnid, pmqid, pqid;
 	__shared__ int keycntP, keycntQ, textPid, textQid;
 
 
@@ -668,9 +669,10 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 				textidq = textIdxQGPU[pointIdQ + tmpflagj];
 				for (size_t k = 0; k < pointnumq; k++) {
 					// just (textidq + k) needs some effort
+					//printf("pmq-> blockId:%d threadId:%d value:%0.5f\n ", bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
 					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi];
 				}
-				//printf("pmq-> blockId:%d threadId:%d value:%.5f\n", bId, tId, tmppmq[tId % THREADROW2][tId / THREADROW2]);
+				//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 			}
 
 			__syncthreads();
@@ -710,7 +712,7 @@ __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* l
 	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 
 
-	__shared__ int pmqnid, pmqid, pqid;
+	__shared__ size_t pmqnid, pmqid, pqid;
 	__shared__ int keycntP, keycntQ, textPid, textQid;
 
 
@@ -810,7 +812,7 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
 
 
-	__shared__ int pmqnid, pmqid, pqid;
+	__shared__ size_t pmqnid, pmqid, pqid;
 	__shared__ int keycntP, keycntQ, textPid, textQid;
 
 
