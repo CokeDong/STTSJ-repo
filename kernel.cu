@@ -127,8 +127,8 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 		pointNumQ = task.pointNumQ;
 
 		//// not used in kernel-V1
-		//pmqnid = task.keywordpmqMatrixId;
-		//pmqid = task.keywordpmqnMatrixId;
+		//pmqnid = task.keywordpmqnMatrixId;
+		//pmqid = task.keywordpmqMatrixId;
 		//pqid = task.keywordpqMatrixId;
 
 		//keycntP = task.keycntP;
@@ -152,8 +152,8 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 		textQid = task.textIdxQ;
 
 		// task.others have been processed in Host
-		pmqnid = task.keywordpmqMatrixId;
-		pmqid = task.keywordpmqnMatrixId;
+		pmqnid = task.keywordpmqnMatrixId;
+		pmqid = task.keywordpmqMatrixId;
 		pqid = task.keywordpqMatrixId;
 
 		if (pointNumP > pointNumQ) {
@@ -523,8 +523,11 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 		pointNumP = task.pointNumP;
 		pointNumQ = task.pointNumQ;
 
-		pmqnid = task.keywordpmqMatrixId;
-		pmqid = task.keywordpmqnMatrixId;
+		// debug: wrong silly code mistake!
+		//pmqnid = task.keywordpmqMatrixId;
+		//pmqid = task.keywordpmqnMatrixId;
+		pmqnid = task.keywordpmqnMatrixId;
+		pmqid = task.keywordpmqMatrixId;
 		pqid = task.keywordpqMatrixId;
 
 		keycntP = task.keycntP;
@@ -633,8 +636,11 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 		pointNumP = task.pointNumP;
 		pointNumQ = task.pointNumQ;
 
-		pmqnid = task.keywordpmqMatrixId;
-		pmqid = task.keywordpmqnMatrixId;
+		// debug: wrong silly code mistake!
+		//pmqnid = task.keywordpmqMatrixId;
+		//pmqid = task.keywordpmqnMatrixId;
+		pmqnid = task.keywordpmqnMatrixId;
+		pmqid = task.keywordpmqMatrixId;
 		pqid = task.keywordpqMatrixId;
 
 		keycntP = task.keycntP;
@@ -745,8 +751,11 @@ __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* l
 		pointNumP = task.pointNumP;
 		pointNumQ = task.pointNumQ;
 
-		pmqnid = task.keywordpmqMatrixId;
-		pmqid = task.keywordpmqnMatrixId;
+		// debug: wrong silly code mistake!
+		//pmqnid = task.keywordpmqMatrixId;
+		//pmqid = task.keywordpmqnMatrixId;
+		pmqnid = task.keywordpmqnMatrixId;
+		pmqid = task.keywordpmqMatrixId;
 		pqid = task.keywordpqMatrixId;
 
 		keycntP = task.keycntP;
@@ -845,8 +854,11 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 		pointNumP = task.pointNumP;
 		pointNumQ = task.pointNumQ;
 
-		pmqnid = task.keywordpmqMatrixId;
-		pmqid = task.keywordpmqnMatrixId;
+		// debug: wrong silly code mistake!
+		//pmqnid = task.keywordpmqMatrixId;
+		//pmqid = task.keywordpmqnMatrixId;
+		pmqnid = task.keywordpmqnMatrixId;
+		pmqid = task.keywordpmqMatrixId;
 		pqid = task.keywordpqMatrixId;
 
 		keycntP = task.keycntP;
@@ -2082,6 +2094,8 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 
 	CUDA_CALL(cudaEventRecord(kernel_start, stream));
 
+
+	// no need, because different block have no overlap between global memory! for keypmqnMatrixGPU keypmqMatrixGPU keypqMatrixGPU
 	computeTSimpmqn << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
