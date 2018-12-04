@@ -678,10 +678,13 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 					//printf("pmq-> blockId:%d threadId:%d value:%0.5f\n ", bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
 					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi];
 				}
-				//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
+				
 			}
 
 			__syncthreads();
+			// this is a propriate place
+			//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
+
 
 			// bounding problem! 
 			if ((tmpflagi2 < keycntP) && (tmpflagj2 < pointNumQ)) { // thread filtering
