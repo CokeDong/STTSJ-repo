@@ -566,7 +566,20 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 			}
 			// in such loop, can only index in this way!!
 			// int -> size_t 兼容
-			keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = 0;
+
+			// debug: initialize:overlap among blocks
+			//keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = 0;
+			if ((tmpflagi < keycntP) && (tmpflagj < keycntQ)) { // avoid overlapping of keypmqnGPU among blocks !!
+				keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = 0;
+				// debug: excluding padding here!
+				if ((pmindex != -1) && (qnindex != -1) && (pmindex == qnindex)) {
+					keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = pmvalue*qnvalue;	
+					//printf("pmqn-> blockId:%d threadId:%d startpos:%d index:%zu value:%.5f\n", bId, tId, pmqnid, pmqnid + tmpflagj*height + tmpflagi, pmvalue*qnvalue);
+					//printf("pmqn-> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, pmvalue*qnvalue);
+				}
+			}
+
+			/*
 			// debug: excluding padding here!
 			if ((pmindex != -1) && (qnindex != -1) && (tmpflagi < keycntP) && (tmpflagj < keycntQ) && (pmindex == qnindex)) {
 				keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = pmvalue*qnvalue;
@@ -575,9 +588,11 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 				//printf("pmqn-> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, pmvalue*qnvalue);
 			
 			}
+			*/
 
-			// block同步！ maybe not necessary because no shared memory here, is register reused? 决定是否需要同步
+			// block同步！ maybe not necessary because no overlap of memory(shared memory) here, is register reused? 决定是否需要同步
 			__syncthreads();
+
 		}
 	}
 
@@ -671,6 +686,8 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 
 			// similar to transpose
 			// tmppmq[tId / THREADCOLUMN2][tId % THREADCOLUMN2] = 0; // 行方式
+
+			// initialization of shared mem: tmppmq, must be here, or we have uninitialized tmppmq
 			tmppmq[tId % THREADROW2][tId / THREADROW2] = 0; // 列方式
 			if ((tmpflagi < keycntP) && (tmpflagj < pointNumQ)) { // thread filtering
 				int pointnumq, textidq;
@@ -678,14 +695,20 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 				textidq = textIdxQGPU[pointIdQ + tmpflagj];
 				for (size_t k = 0; k < pointnumq; k++) {
 					// just (textidq + k) needs some effort
-					//printf("pmq-> blockId:%d threadId:%d value:%0.5f\n ", bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);		
+
+					//if (bId == 255){  
+					//	printf("************ special pmq-> k%d blockId:%d threadId:%d value:%0.5f\n", k, bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
+					//}
+
 					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi];	
 				}
 				//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 			}
 
+			// this is necessary
 			__syncthreads();
-			// this is not propriate place
+			
+			// this is not a propriate place for printf as no thread filtering
 			//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 
 
