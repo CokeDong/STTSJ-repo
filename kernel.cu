@@ -550,33 +550,51 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 		// int pmindex,pmvalue;
 		int pmindex;
 		float pmvalue;
-		if (tmpflagi < keycntP) {
-			pmindex = textDataPIndexGPU[textPid + tmpflagi];
-			//if (pmindex == -1) continue;
-			pmvalue = textDataPValueGPU[textPid + tmpflagi];
-		}
+
+		//if (tmpflagi < keycntP) {
+		//	pmindex = textDataPIndexGPU[textPid + tmpflagi];
+		//	//if (pmindex == -1) continue;
+		//	pmvalue = textDataPValueGPU[textPid + tmpflagi];
+		//}
+
 		for (size_t j = 0; j < keycntQ; j += THREADCOLUMN) {
 			int tmpflagj = j + tId / THREADROW;
 			int qnindex;
 			float qnvalue;
-			if (tmpflagj < keycntQ) {
-				qnindex = textDataQIndexGPU[textQid + tmpflagj];
-				//if (qnindex == -1) continue;
-				qnvalue = textDataQValueGPU[textQid + tmpflagj];
-			}
+
+			//if (tmpflagj < keycntQ) {
+			//	qnindex = textDataQIndexGPU[textQid + tmpflagj];
+			//	//if (qnindex == -1) continue;
+			//	qnvalue = textDataQValueGPU[textQid + tmpflagj];
+			//}
+
 			// in such loop, can only index in this way!!
 			// int -> size_t 兼容
 
 			// debug: initialize:overlap among blocks
 			//keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = 0;
+
 			if ((tmpflagi < keycntP) && (tmpflagj < keycntQ)) { // avoid overlapping of keypmqnGPU among blocks !!
+				
+
+				pmindex = textDataPIndexGPU[textPid + tmpflagi];
+				//if (pmindex == -1) continue;
+				pmvalue = textDataPValueGPU[textPid + tmpflagi];
+
+				
+				qnindex = textDataQIndexGPU[textQid + tmpflagj];
+				//if (qnindex == -1) continue;
+				qnvalue = textDataQValueGPU[textQid + tmpflagj];
+
+
 				keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = 0;
 				// debug: excluding padding here!
 				if ((pmindex != -1) && (qnindex != -1) && (pmindex == qnindex)) {
 					keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = pmvalue*qnvalue;	
 					//printf("pmqn-> blockId:%d threadId:%d startpos:%d index:%zu value:%.5f\n", bId, tId, pmqnid, pmqnid + tmpflagj*height + tmpflagi, pmvalue*qnvalue);
-					//printf("pmqn-> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, pmvalue*qnvalue);
+					printf("pmqn s1 -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, pmvalue*qnvalue);
 				}
+				printf("pmqn confirm -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi]);
 			}
 
 			/*
@@ -668,8 +686,27 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 	}
 	__syncthreads();
 
+
 	// STEP-0: GET the text-sim matrix(global memory)
 	__shared__ int height, width;
+
+
+
+	// check pmqnMatrix
+	height = keycntP, width = keycntQ;
+	for (size_t i = 0; i < keycntP; i += THREADROW) {
+		int tmpflagi = i + tId % THREADROW;
+		for (size_t j = 0; j < keycntQ; j += THREADCOLUMN) {
+			int tmpflagj = j + tId / THREADROW;
+			if ((tmpflagi < keycntP) && (tmpflagj < keycntQ)) {
+				printf("pmqn check -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi]);
+			}
+		}
+	}
+
+
+
+
 
 	// pmq
 	// 16*16 方阵加速 -> 转置(~3x)
@@ -690,24 +727,30 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 			// initialization of shared mem: tmppmq, must be here, or we have uninitialized tmppmq
 			tmppmq[tId % THREADROW2][tId / THREADROW2] = 0; // 列方式
 			if ((tmpflagi < keycntP) && (tmpflagj < pointNumQ)) { // thread filtering
-				int pointnumq, textidq;
-				pointnumq = numWordQGPU[pointIdQ + tmpflagj];
+				int keywordnumq, textidq;
+				keywordnumq = numWordQGPU[pointIdQ + tmpflagj];
 				textidq = textIdxQGPU[pointIdQ + tmpflagj];
-				for (size_t k = 0; k < pointnumq; k++) {
+				for (size_t k = 0; k < keywordnumq; k++) {
 					// just (textidq + k) needs some effort
 
-					//if (bId == 255){  
-					//	printf("************ special pmq-> k%d blockId:%d threadId:%d value:%0.5f\n", k, bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
+					//if (bId == 60){  
+					//	printf("************ special pmq-> k:%d blockId:%d threadId:%d value:%0.5f\n", k, bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
 					//}
 
 					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi];	
+				
+					//if (bId == 60){  
+					//	printf("************ special pmq-> k:%d blockId:%d threadId:%d value:%0.5f\n", k, bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
+					//}				
+				
 				}
-				//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
+				printf("pmq s1 -> blockId:%d threadId:%d keywordnumq:%d textidq:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, keywordnumq, textidq, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 			}
 
-			// this is necessary
+			// this is necessary !
 			__syncthreads();
 			
+
 			// this is not a propriate place for printf as no thread filtering
 			//printf("pmq-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 
@@ -715,7 +758,7 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 			// bounding problem! 
 			if ((tmpflagi2 < keycntP) && (tmpflagj2 < pointNumQ)) { // thread filtering
 				keypmqGPU[pmqid + tmpflagi2*width + tmpflagj2] = tmppmq[tId / THREADROW2][tId % THREADROW2];
-				//printf("pmqs2-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId / THREADROW2, tId % THREADROW2, tmppmq[tId / THREADROW2][tId % THREADROW2]);
+				printf("pmq s2-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId / THREADROW2, tId % THREADROW2, tmppmq[tId / THREADROW2][tId % THREADROW2]);
 			}
 
 			__syncthreads();
@@ -725,6 +768,7 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 }
 
 
+// waiting for debug
 __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
 	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
 	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
@@ -812,7 +856,9 @@ __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* l
 				pointnump = numWordPGPU[pointIdP + tmpflagj];
 				textidp = textIdxPGPU[pointIdP + tmpflagj];
 				for (size_t k = 0; k < pointnump; k++) {
-					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqGPU[pqid + (textidp + k)*height + tmpflagi];
+					//debug here: wrong index
+					//tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqGPU[pqid + (textidp + k)*height + tmpflagi];
+					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqGPU[pmqid + (textidp + k)*height + tmpflagi];
 					//printf("pq-> blockId:%d threadId:%d value:%.5f\n", bId, tId, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 				}
 			}
@@ -2236,6 +2282,9 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	// debug: 非默认stream, this is necessary!
 	CUDA_CALL(cudaStreamSynchronize(stream));
 
+
+	/*
+
 	computeTSimpmq << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
@@ -2243,6 +2292,9 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		);
 	CUDA_CALL(cudaStreamSynchronize(stream));
 
+
+
+	
 	computeTSimpqEmpty << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
@@ -2250,17 +2302,20 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		);
 	CUDA_CALL(cudaStreamSynchronize(stream));
 
+
 	computeSimGPUV2 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 		);
+	*/
+
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
-
 	//CUDA_CALL(cudaDeviceSynchronize());
-
 	CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good
+
+
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));

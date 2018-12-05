@@ -63,14 +63,14 @@ using namespace std;
 
 // 处理 P Q num不平衡 not smart 16*16 is okay, only bound exsists imbalance!! 
 // seems no impartant!
-#define THREADROW 32
-#define THREADCOLUMN 32
+#define THREADROW 16
+#define THREADCOLUMN 16
 
 // 转置需要方阵
-#define THREADROW2 32
-#define THREADCOLUMN2 32 // maybe better!!
+#define THREADROW2 16
+#define THREADCOLUMN2 16 // maybe better!!
 
-#define THREADNUM 1024 // = (THREADROW*THREADCOLUMN)
+#define THREADNUM 256 // = (THREADROW*THREADCOLUMN)
 
 // NY: 200
 // LA:
