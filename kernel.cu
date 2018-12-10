@@ -526,6 +526,7 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 		// debug: wrong silly code mistake!
 		//pmqnid = task.keywordpmqMatrixId;
 		//pmqid = task.keywordpmqnMatrixId;
+
 		pmqnid = task.keywordpmqnMatrixId;
 		pmqid = task.keywordpmqMatrixId;
 		pqid = task.keywordpqMatrixId;
@@ -592,9 +593,9 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 				if ((pmindex != -1) && (qnindex != -1) && (pmindex == qnindex)) {
 					keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi] = pmvalue*qnvalue;	
 					//printf("pmqn-> blockId:%d threadId:%d startpos:%d index:%zu value:%.5f\n", bId, tId, pmqnid, pmqnid + tmpflagj*height + tmpflagi, pmvalue*qnvalue);
-					printf("pmqn s1 -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, pmvalue*qnvalue);
+					//printf("pmqn s1 -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, pmvalue*qnvalue);
 				}
-				printf("pmqn confirm -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi]);
+				//printf("pmqn confirm -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi]);
 			}
 
 			/*
@@ -608,7 +609,7 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 			}
 			*/
 
-			// block同步！ maybe not necessary because no overlap of memory(shared memory) here, is register reused? 决定是否需要同步
+			// block同步！ maybe not necessary because no overlap of memory write and read here, is register reused? 决定是否需要同步
 			__syncthreads();
 
 		}
@@ -693,16 +694,16 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 
 
 	// check pmqnMatrix
-	height = keycntP, width = keycntQ;
-	for (size_t i = 0; i < keycntP; i += THREADROW) {
-		int tmpflagi = i + tId % THREADROW;
-		for (size_t j = 0; j < keycntQ; j += THREADCOLUMN) {
-			int tmpflagj = j + tId / THREADROW;
-			if ((tmpflagi < keycntP) && (tmpflagj < keycntQ)) {
-				printf("pmqn check -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi]);
-			}
-		}
-	}
+	//height = keycntP, width = keycntQ;
+	//for (size_t i = 0; i < keycntP; i += THREADROW) {
+	//	int tmpflagi = i + tId % THREADROW;
+	//	for (size_t j = 0; j < keycntQ; j += THREADCOLUMN) {
+	//		int tmpflagj = j + tId / THREADROW;
+	//		if ((tmpflagi < keycntP) && (tmpflagj < keycntQ)) {
+	//			printf("pmqn check -> blockId:%d threadId:%d startpos:%d value:%.5f\n", bId, tId, pmqnid, keypmqnGPU[pmqnid + tmpflagj*height + tmpflagi]);
+	//		}
+	//	}
+	//}
 
 
 
@@ -728,26 +729,28 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 			tmppmq[tId % THREADROW2][tId / THREADROW2] = 0; // 列方式
 			if ((tmpflagi < keycntP) && (tmpflagj < pointNumQ)) { // thread filtering
 				int keywordnumq, textidq;
-				keywordnumq = numWordQGPU[pointIdQ + tmpflagj];
-				textidq = textIdxQGPU[pointIdQ + tmpflagj];
+				keywordnumq = numWordQGPU[pointIdQ + tmpflagj]; // this is real # of keyword for each point without padding!
+				textidq = textIdxQGPU[pointIdQ + tmpflagj]; // this is the keyword starting id for each point after padding, be careful!
 				for (size_t k = 0; k < keywordnumq; k++) {
 					// just (textidq + k) needs some effort
 
 					//if (bId == 60){  
 					//	printf("************ special pmq-> k:%d blockId:%d threadId:%d value:%0.5f\n", k, bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
 					//}
-
-					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi];	
+					
+					// debug: fecthing wrong keypmqnGPU here! data structure!
+					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq - textQid + k)*height + tmpflagi];
+					//tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi];	
 				
 					//if (bId == 60){  
 					//	printf("************ special pmq-> k:%d blockId:%d threadId:%d value:%0.5f\n", k, bId, tId, keypmqnGPU[pmqnid + (textidq + k)*height + tmpflagi]);
 					//}				
 				
 				}
-				printf("pmq s1 -> blockId:%d threadId:%d keywordnumq:%d textidq:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, keywordnumq, textidq, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
+				//printf("pmq s1 -> blockId:%d threadId:%d keywordnumq:%d textidq:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, keywordnumq, textidq, tId%THREADROW2, tId / THREADROW2, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 			}
 
-			// this is necessary !
+			// this is necessary ! because of tmppmq;
 			__syncthreads();
 			
 
@@ -758,17 +761,19 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 			// bounding problem! 
 			if ((tmpflagi2 < keycntP) && (tmpflagj2 < pointNumQ)) { // thread filtering
 				keypmqGPU[pmqid + tmpflagi2*width + tmpflagj2] = tmppmq[tId / THREADROW2][tId % THREADROW2];
-				printf("pmq s2-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId / THREADROW2, tId % THREADROW2, tmppmq[tId / THREADROW2][tId % THREADROW2]);
+				//printf("pmq s2-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId / THREADROW2, tId % THREADROW2, tmppmq[tId / THREADROW2][tId % THREADROW2]);
 			}
 
+			// this is necessary ! because of tmppmq;
 			__syncthreads();
+
 		}
 	}
 
 }
 
 
-// waiting for debug
+
 __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
 	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
 	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
@@ -840,17 +845,18 @@ __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* l
 	// STEP-0: GET the text-sim matrix(global memory)
 	__shared__ int height, width;
 	
-	__shared__ float tmppmq[THREADROW2][THREADCOLUMN2];
+	
+	__shared__ float tmppq[THREADROW2][THREADCOLUMN2];
 	
 	// pq
 	height = pointNumQ, width = pointNumP;
 	for (size_t i = 0; i < pointNumQ; i += THREADROW2) {
-		int tmpflagi = i + tId%THREADROW2;
+		int tmpflagi = i + tId % THREADROW2;
 		int tmpflagi2 = i + tId / THREADROW2;
 		for (size_t j = 0; j < pointNumP; j += THREADCOLUMN2) {
 			int tmpflagj = j + tId / THREADROW2;
 			int tmpflagj2 = j + tId % THREADROW2;
-			tmppmq[tId % THREADROW2][tId / THREADROW2] = 0;
+			tmppq[tId % THREADROW2][tId / THREADROW2] = 0;
 			if ((tmpflagi < pointNumQ) && (tmpflagj < pointNumP)) {
 				int pointnump, textidp;
 				pointnump = numWordPGPU[pointIdP + tmpflagj];
@@ -858,120 +864,18 @@ __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* l
 				for (size_t k = 0; k < pointnump; k++) {
 					//debug here: wrong index
 					//tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqGPU[pqid + (textidp + k)*height + tmpflagi];
-					tmppmq[tId % THREADROW2][tId / THREADROW2] += keypmqGPU[pmqid + (textidp + k)*height + tmpflagi];
+					// debug: similar wrong index! as pmq
+					tmppq[tId % THREADROW2][tId / THREADROW2] += keypmqGPU[pmqid + (textidp - textPid + k)*height + tmpflagi];
 					//printf("pq-> blockId:%d threadId:%d value:%.5f\n", bId, tId, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 				}
 			}
 			__syncthreads();
 			if ((tmpflagi2 < pointNumQ) && (tmpflagj2 < pointNumP)) {
-				keypqGPU[pqid + tmpflagi2*width + tmpflagj2] = tmppmq[tId / THREADROW2][tId % THREADROW2];
+				keypqGPU[pqid + tmpflagi2*width + tmpflagj2] = tmppq[tId / THREADROW2][tId % THREADROW2];
 				//printf("pq-> blockId:%d threadId:%d value:%.5f\n", bId, tId, tmppmq[tId / THREADROW2][tId % THREADROW2]);
 			}
-
 			__syncthreads();
-		}
-	}
-}
 
-
-__global__ void computeTSimpqEmpty(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
-	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
-	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
-	StatInfoTable* stattableGPU, float* keypmqnGPU, float* keypmqGPU, float* keypqGPU, float* SimResultGPU
-) {
-	int bId = blockIdx.x;
-	int tId = threadIdx.x;
-
-	// 1-D 没采用2-D 可自定义存储方式
-	__shared__ float tmpSim[THREADNUM];
-
-	__shared__ float maxSimRow[MAXTRAJLEN];
-	__shared__ float maxSimColumn[MAXTRAJLEN];
-
-	//__shared__ int tid_row;
-	//__shared__ int tid_column;
-
-
-	__shared__ StatInfoTable task;
-	__shared__ int pointIdP, pointNumP, pointIdQ, pointNumQ;
-
-
-	__shared__ size_t pmqnid, pmqid, pqid;
-	__shared__ int keycntP, keycntQ, textPid, textQid;
-
-
-	// seems not important!
-
-	// merely for P-Q exchanging
-	__shared__ float *latDataPGPU, *latDataQGPU, *lonDataPGPU, *lonDataQGPU, *textDataPValueGPU, *textDataQValueGPU;
-	__shared__ int *textDataPIndexGPU, *textDataQIndexGPU, *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
-
-	//fetch task info
-	if (tId == 0) {
-		task = stattableGPU[bId];
-
-		latDataPGPU = latDataPGPU1;
-		latDataQGPU = latDataQGPU1;
-		lonDataPGPU = lonDataPGPU1;
-		lonDataQGPU = lonDataQGPU1;
-		textDataPIndexGPU = textDataPIndexGPU1;
-		textDataQIndexGPU = textDataQIndexGPU1;
-		textDataPValueGPU = textDataPValueGPU1;
-		textDataQValueGPU = textDataQValueGPU1;
-		textIdxPGPU = textIdxPGPU1;
-		textIdxQGPU = textIdxQGPU1;
-		numWordPGPU = numWordPGPU1;
-		numWordQGPU = numWordQGPU1;
-
-
-		pointIdP = task.latlonIdxP;
-		pointIdQ = task.latlonIdxQ;
-		pointNumP = task.pointNumP;
-		pointNumQ = task.pointNumQ;
-
-		// debug: wrong silly code mistake!
-		//pmqnid = task.keywordpmqMatrixId;
-		//pmqid = task.keywordpmqnMatrixId;
-		pmqnid = task.keywordpmqnMatrixId;
-		pmqid = task.keywordpmqMatrixId;
-		pqid = task.keywordpqMatrixId;
-
-		keycntP = task.keycntP;
-		keycntQ = task.keycntQ;
-		textPid = task.textIdxP;
-		textQid = task.textIdxQ;
-	}
-	__syncthreads();
-	// STEP-0: GET the text-sim matrix(global memory)
-	__shared__ int height, width;
-
-	__shared__ float tmppmq[THREADROW2][THREADCOLUMN2];
-
-	// pq
-	height = pointNumQ, width = pointNumP;
-	for (size_t i = 0; i < pointNumQ; i += THREADROW2) {
-		int tmpflagi = i + tId%THREADROW2;
-		int tmpflagi2 = i + tId / THREADROW2;
-		for (size_t j = 0; j < pointNumP; j += THREADCOLUMN2) {
-			int tmpflagj = j + tId / THREADROW2;
-			int tmpflagj2 = j + tId % THREADROW2;
-			tmppmq[tId % THREADROW2][tId / THREADROW2] = 0;
-			if ((tmpflagi < pointNumQ) && (tmpflagj < pointNumP)) {
-				int pointnump, textidp;
-				pointnump = numWordPGPU[pointIdP + tmpflagj];
-				textidp = textIdxPGPU[pointIdP + tmpflagj];
-				for (size_t k = 0; k < pointnump; k++) {
-					tmppmq[tId % THREADROW2][tId / THREADROW2] += 0;// keypmqGPU[pqid + (textidp + k)*height + tmpflagi];
-					//printf("pq-> blockId:%d threadId:%d value:%.5f\n", bId, tId, tmppmq[tId % THREADROW2][tId / THREADROW2]);
-				}
-			}
-			__syncthreads();
-			if ((tmpflagi2 < pointNumQ) && (tmpflagj2 < pointNumP)) {
-				keypqGPU[pqid + tmpflagi2*width + tmpflagj2] = 0;// tmppmq[tId / THREADROW2][tId % THREADROW2];
-				//printf("pq-> blockId:%d threadId:%d value:%.5f\n", bId, tId, tmppmq[tId / THREADROW2][tId % THREADROW2]);
-			}
-
-			__syncthreads();
 		}
 	}
 }
@@ -1306,7 +1210,7 @@ __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* l
 				// way1: fool
 				//tsim = TSimGPU(&textDataPIndexGPU[textIdP], &textDataQIndexGPU[textIdQ], &textDataPValueGPU[textIdP], &textDataQValueGPU[textIdQ], numWordP, numWordQ);
 				
-				// way2: store way -> fetch way	 fetch from global memory!! 
+				// way2: store way 决定-> fetch way	是否合并访问 fetch from global memory!! 
 				tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
 			
 
@@ -2249,14 +2153,17 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 			stattableCPU[i*dataSizeQ + j].keywordpmqnMatrixId = pmqnid;
 			pmqnid += keycntTrajP[i] * keycntTrajQ[j];
 
-			// not symmetric Matrix processing
 			stattableCPU[i*dataSizeQ + j].keywordpmqMatrixId = pmqid;
-			if(stattableCPU[i*dataSizeQ + j].pointNumP > stattableCPU[i*dataSizeQ + j].pointNumQ){
-				pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
-			}
-			else {
-				pmqid += stattableCPU[i*dataSizeQ + j].pointNumP*keycntTrajQ[j];
-			}
+			pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
+
+			//// not symmetric Matrix processing
+			//stattableCPU[i*dataSizeQ + j].keywordpmqMatrixId = pmqid;
+			//if(stattableCPU[i*dataSizeQ + j].pointNumP > stattableCPU[i*dataSizeQ + j].pointNumQ){
+			//	pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
+			//}
+			//else {
+			//	pmqid += stattableCPU[i*dataSizeQ + j].pointNumP*keycntTrajQ[j];
+			//}
 			
 			stattableCPU[i*dataSizeQ + j].keywordpqMatrixId = pqid;
 			pqid += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
@@ -2682,11 +2589,10 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 		);
-	// debug: 非默认stream, this is necessary!
+
+	// debug: 非默认stream, this is necessary ? or not at all?
 	CUDA_CALL(cudaStreamSynchronize(stream));
 
-
-	
 
 	computeTSimpmq << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
@@ -2696,9 +2602,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaStreamSynchronize(stream));
 
 
-
-	
-	computeTSimpqEmpty << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+	computeTSimpq << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU

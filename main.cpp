@@ -99,7 +99,7 @@ int main() {
 	vector<trajPair> resultpairfinegpu;
 	vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
-	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
+	CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
 
 
