@@ -1602,7 +1602,7 @@ All functions of CPU are defined here.
 */
 
 void CUDAwarmUp() {
-	CUDA_CALL(cudaSetDeviceFlags(cudaDeviceMapHost));
+	CUDA_CALL(cudaSetDeviceFlags(cudaDeviceMapHost)); // zero-copy mem
 	CUDA_CALL(cudaSetDevice(0)); // GPU-0
 	if(DUALGPU) CUDA_CALL(cudaSetDevice(1)); // GPU-1
 }
@@ -1618,12 +1618,12 @@ void* GPUMalloc(size_t byteNum) {
 void STSimPQCommonCPUPreProcess(void* latDataPGPU, void* latDataQGPU, void* lonDataPGPU, void* lonDataQGPU,
 	void* textDataPIndexGPU, void* textDataQIndexGPU, void* textDataPValueGPU, void* textDataQValueGPU,
 	void* textIdxPGPU, void* textIdxQGPU, void* numWordPGPU, void* numWordQGPU,
-	void* stattableGPU, void* keypmqnMatrixGPU, void* keypmqMatrixGPU, void* keypqMatrixGPU, void* SimResultGPU,
-	StatInfoTable* stattableCPU, void* gpuAddrPSet, void* gpuAddrQSet, void* gpuAddrStat, float *SimResult,
-	cudaEvent_t* memcpy_to_start, cudaEvent_t* kernel_start, cudaEvent_t* kernel_stop,
+	void* stattableGPU, void* keypmqnMatrixGPU, void* keypmqMatrixGPU, void* keypqMatrixGPU, //float* SimResultGPU,
+	StatInfoTable* stattableCPU, void* gpuAddrPSet, void* gpuAddrQSet, void* gpuAddrStat, //float *SimResult,
+	//cudaEvent_t* memcpy_to_start, cudaEvent_t* kernel_start, cudaEvent_t* kernel_stop,
 	vector<STTrajectory> &trajSetP,
 	vector<STTrajectory> &trajSetQ,
-	cudaStream_t* stream,
+	cudaStream_t* stream, // can or not?
 	MyTimer* timer
 ) {
 	CUDAwarmUp();
@@ -1649,9 +1649,9 @@ void STSimPQCommonCPUPreProcess(void* latDataPGPU, void* latDataQGPU, void* lonD
 
 	//cudaEvent_t memcpy_to_start, kernel_start, kernel_stop;
 
-	CUDA_CALL(cudaEventCreate(memcpy_to_start));
-	CUDA_CALL(cudaEventCreate(kernel_start));
-	CUDA_CALL(cudaEventCreate(kernel_stop));
+	//CUDA_CALL(cudaEventCreate(memcpy_to_start));
+	//CUDA_CALL(cudaEventCreate(kernel_start));
+	//CUDA_CALL(cudaEventCreate(kernel_stop));
 
 	//cudaStream_t stream;
 	CUDA_CALL(cudaStreamCreate(stream));
@@ -1751,7 +1751,7 @@ void STSimPQCommonCPUPreProcess(void* latDataPGPU, void* latDataQGPU, void* lonD
 
 	}
 
-	CUDA_CALL(cudaEventRecord((*memcpy_to_start), (*stream)));
+	//CUDA_CALL(cudaEventRecord((*memcpy_to_start), (*stream)));
 
 	// Copy data of P to GPU
 	void *pnow = gpuAddrPSet;
@@ -1919,12 +1919,14 @@ void STSimPQCommonCPUPreProcess(void* latDataPGPU, void* latDataQGPU, void* lonD
 	//printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
 	printf("***** total status size *****%f GB\n", (pmqnid + pmqid + pqid)*4.0 / 1024 / 1024 / 1024);
 
+	
 	// zero-copy 内存 
 	// 需要手动free!!
 
-	//float *SimResult, *SimResultGPU;
-	CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
-	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
+	// cannot be here, or SEG ERROR
+	////float *SimResult, *SimResultGPU;
+	//CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
+	//CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
 
 	(*timer).stop();
 	printf("CPU  processing time: %f s\n", (*timer).elapse());
@@ -1944,7 +1946,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	vector<float> &result) {
 
 	void* gpuAddrPSet, *gpuAddrQSet, *gpuAddrStat;
-	cudaEvent_t memcpy_to_start, kernel_start, kernel_stop;
+	//cudaEvent_t memcpy_to_start, kernel_start, kernel_stop;
 	cudaStream_t stream;
 	MyTimer *timer;
 	StatInfoTable* stattableCPU;
@@ -1957,22 +1959,32 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	void *keypmqnMatrixGPU, *keypmqMatrixGPU, *keypqMatrixGPU;
 
 	float *SimResult;
-	void *SimResultGPU;
+	float *SimResultGPU;
+
 
 	// CPU processing
 	STSimPQCommonCPUPreProcess(latDataPGPU, latDataQGPU, lonDataPGPU, lonDataQGPU,
 		textDataPIndexGPU, textDataQIndexGPU, textDataPValueGPU, textDataQValueGPU,
 		textIdxPGPU, textIdxQGPU, numWordPGPU, numWordQGPU,
-		stattableGPU, keypmqnMatrixGPU, keypmqMatrixGPU, keypqMatrixGPU, SimResultGPU,
-		stattableCPU, gpuAddrPSet, gpuAddrQSet, gpuAddrStat, SimResult,
-		&memcpy_to_start, &kernel_start, &kernel_stop,
+		stattableGPU, keypmqnMatrixGPU, keypmqMatrixGPU, keypqMatrixGPU, //SimResultGPU,
+		stattableCPU, gpuAddrPSet, gpuAddrQSet, gpuAddrStat, //SimResult,
+		//&memcpy_to_start, &kernel_start, &kernel_stop,
 		trajSetP,
 		trajSetQ,
 		&stream,
 		timer);
 
-	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
+	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
+	//cudaEvent_t memcpy_to_start, kernel_start, kernel_stop;
+	//CUDA_CALL(cudaEventCreate(&memcpy_to_start));
+	//CUDA_CALL(cudaEventCreate(&kernel_start));
+	//CUDA_CALL(cudaEventCreate(&kernel_stop));
+
+
+	//float *SimResult, *SimResultGPU;
+	CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
+	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
 
 	/*
 	CUDAwarmUp();
@@ -2280,32 +2292,33 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 
 	// running kernel
+	
 	//CUDA_CALL(cudaDeviceSynchronize());
+	
 	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 
 
-	CUDA_CALL(cudaEventRecord(kernel_start, stream));
+	//CUDA_CALL(cudaEventRecord(kernel_start, stream));
 	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 		);
-	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+	//CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
 
 	CUDA_CALL(cudaStreamSynchronize(stream));
 	//CUDA_CALL(cudaDeviceSynchronize());
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
-	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
-	CUDA_CALL(cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop));
+	//CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
+	//CUDA_CALL(cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop));
 
-	printf("memcpy time: %.5f s\n", memcpy_time / 1000.0);
-	printf("kernel time: %.5f s\n", kernel_time / 1000.0);
+	//printf("memcpy time: %.5f s\n", memcpy_time / 1000.0);
+	//printf("kernel time: %.5f s\n", kernel_time / 1000.0);
 
 	// rediculous
-	
 	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
 		result.push_back(SimResult[i]);
 	}
@@ -2321,9 +2334,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaFree(gpuAddrStat));
 
 	// GPU stream management
-	CUDA_CALL(cudaEventDestroy(memcpy_to_start));
-	CUDA_CALL(cudaEventDestroy(kernel_start));
-	CUDA_CALL(cudaEventDestroy(kernel_stop));
+	//CUDA_CALL(cudaEventDestroy(memcpy_to_start));
+	//CUDA_CALL(cudaEventDestroy(kernel_start));
+    //CUDA_CALL(cudaEventDestroy(kernel_stop));
 	CUDA_CALL(cudaStreamDestroy(stream));
 	CUDA_CALL(cudaDeviceReset());
 
