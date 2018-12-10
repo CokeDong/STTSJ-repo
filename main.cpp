@@ -94,13 +94,13 @@ int main() {
 	CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	
 
-	/*
+	
 	printf("***** 1-gpu fine *****\n");
 	vector<trajPair> resultpairfinegpu;
 	vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
-	*/
+	
 
 
 	//sleep(10);

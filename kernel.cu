@@ -2155,6 +2155,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		for (size_t j = 0; j < dataSizeP; j++) {
 			stattableCPU[j*dataSizeQ + i].latlonIdxQ = (int)latlonQId;
 			stattableCPU[j*dataSizeQ + i].pointNumQ = (int)trajSetQ[i].traj_of_stpoint.size();
+
+			stattableCPU[j*dataSizeQ + i].textIdxQ = textQId;
 		}
 
 		int keywordcnt = 0;
@@ -2208,9 +2210,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 		// status info. here
 		keycntTrajQ.push_back(keywordcnt);
-		for (size_t j = 0; j < dataSizeP; j++) {
-			stattableCPU[j*dataSizeQ + i].textIdxQ = keywordcnt;
-		}
+		//for (size_t j = 0; j < dataSizeP; j++) {
+		//	stattableCPU[j*dataSizeQ + i].textIdxQ = keywordcnt;
+		//}
 	}
 
 
@@ -2428,6 +2430,8 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		for (size_t j = 0; j < dataSizeQ; j++) {
 			stattableCPU[i*dataSizeQ + j].latlonIdxP = (int)latlonPId;
 			stattableCPU[i*dataSizeQ + j].pointNumP = (int)trajSetP[i].traj_of_stpoint.size();
+
+			stattableCPU[i*dataSizeQ + j].textIdxP = textPId;
 		}
 
 		int keywordcnt = 0;
@@ -2474,9 +2478,10 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		}
 
 		keycntTrajP.push_back(keywordcnt);// keycnt including padding , if want not including padding, to do
-		for (size_t j = 0; j < dataSizeQ; j++) {
-			stattableCPU[i*dataSizeQ + j].textIdxP = keywordcnt;
-		}
+		
+		//for (size_t j = 0; j < dataSizeQ; j++) {
+		//	stattableCPU[i*dataSizeQ + j].textIdxP = keywordcnt;
+		//}
 
 		//pointcntTrajP.push_back()
 	}
@@ -2512,6 +2517,8 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		for (size_t j = 0; j < dataSizeP; j++) {
 			stattableCPU[j*dataSizeQ + i].latlonIdxQ = (int)latlonQId; 
 			stattableCPU[j*dataSizeQ + i].pointNumQ = (int)trajSetQ[i].traj_of_stpoint.size();
+
+			stattableCPU[j*dataSizeQ + i].textIdxQ = textQId;
 		}
 
 		int keywordcnt = 0;
@@ -2567,10 +2574,12 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 
 		// status info. here
 		keycntTrajQ.push_back(keywordcnt);
-		for (size_t j = 0; j < dataSizeP; j++) {
-			// debug: this is wrong data structure!
-			stattableCPU[j*dataSizeQ + i].textIdxQ = keywordcnt;
-		}
+
+
+		//for (size_t j = 0; j < dataSizeP; j++) {
+		//	// debug: this is wrong data structure!
+		//	stattableCPU[j*dataSizeQ + i].textIdxQ = keywordcnt;
+		//}
 	}
 
 
@@ -2677,7 +2686,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaStreamSynchronize(stream));
 
 
-	/*
+	
 
 	computeTSimpmq << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
@@ -2702,7 +2711,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 		);
-	*/
+
 
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
