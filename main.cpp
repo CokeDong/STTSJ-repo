@@ -91,7 +91,7 @@ int main() {
 	vector<trajPair> resultpaircoarsegpu;
 	vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
-	CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
+	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	
 
 	
@@ -99,9 +99,13 @@ int main() {
 	vector<trajPair> resultpairfinegpu;
 	vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
-	CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
+	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
-
+	printf("***** 1-gpu V2p1 fine *****\n");
+	vector<trajPair> resultpairfinegpu;
+	vector<float> resultvaluefinegpu;
+	grid.joinExhaustedGPUV2p1(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
+	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 
 	//sleep(10);
 
