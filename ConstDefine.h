@@ -50,7 +50,7 @@ using namespace std;
 // 这几个宏定义相关
 #define MAX_DIST 300000 // okay
 #define ALPHA 0.5
-#define EPSILON -1
+#define EPSILON 0.85
 
 
 #define GPUOnceCnt 128
@@ -145,16 +145,16 @@ typedef struct Latlon {
 // every task of GPU has a StatInfoTable
 // 16 bytes now
 typedef struct StatInfoTable {
-	int latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block) in GPU
+	int latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block) in GPU, accumulated
 	int pointNumP, pointNumQ; // # of points in each traj
 
 	
 	//int textNumP, textNumQ; // total # word in each traj
 	
 	// only used in kernel-V2
-	int textIdxP, textIdxQ; // starting position of text data for each task / block
-	size_t keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block
-	int keycntP, keycntQ; // # of total keywords in each traj, including padding
+	int textIdxP, textIdxQ; // starting position of text data for each task / block, accumulated
+	size_t keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block, accumulated
+	int keycntP, keycntQ; // # of total keywords in each traj, including padding, not-accumulated
 	
 	//int padding;?
 	int keycntPnoPadding, keycntQnoPadding;

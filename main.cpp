@@ -77,30 +77,31 @@ int main() {
 	// printf("***** 1-cpu *****\n");
 	//grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 
-	/*
+	
 	printf("***** mul-cpu *****\n");
 	vector<trajPair> resultpairmcpu;
 	vector<float> resultvaluemcpu;
 	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
-	*/
+	
 
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD);
 
-	/*
+	
 	printf("***** 1-gpu coarse *****\n");
 	vector<trajPair> resultpaircoarsegpu;
 	vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
 	CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
-	*/
+	
 
-
+	/*
 	printf("***** 1-gpu fine *****\n");
 	vector<trajPair> resultpairfinegpu;
 	vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
-	
+	*/
+
 
 	//sleep(10);
 
