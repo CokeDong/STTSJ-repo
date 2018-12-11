@@ -25,4 +25,11 @@ void split3(string s, string delim, vector<string>* ret);
 
 void GetSample(vector<size_t> &taskSet1, vector<size_t> &taskSet2, int sizeP, int sizeQ);
 
+template<class T>
+int getlength(T& arr)
+{
+	return sizeof(arr) / sizeof(arr[0]);
+}
+
+
 //void OutGPUMemNeeded(size_t pmqnid, size_t pmqid, size_t pqid);

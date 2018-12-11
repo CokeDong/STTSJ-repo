@@ -19,6 +19,10 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	vector<STTrajectory> &trajSetQ,
 	vector<float> &result);
 
+void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
+	vector<STTrajectory> &trajSetQ,
+	float *result);
+
 void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	vector<STTrajectory> &trajSetQ,
 	vector<float> &result);

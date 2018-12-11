@@ -64,29 +64,30 @@ int main() {
 	vector<float> resultvalue;
 
 	// 频繁调参使用变量！！
-	int SIZE = 32; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 64; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
 
-
+	/*
 	printf("***** 1-cpu *****\n");
 	vector<trajPair> resultpaircpu;
 	vector<float> resultvaluecpu;
 	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 
 
-	/*
+	
 	printf("***** mul-cpu full *****\n");
 	vector<trajPair> resultpairmcpu;
 	vector<float> resultvaluemcpu;
 	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
-	*/
+
 
 	//printf("***** cpu  %d *****\n" , MAX_CPU_THREAD);
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD); // not that accurate!!
 	
-	
+	*/
+
 	printf("***** 1-gpu coarse *****\n");
 	vector<trajPair> resultpaircoarsegpu;
 	vector<float> resultvaluecoarsegpu;
@@ -94,7 +95,16 @@ int main() {
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	
 
-	
+
+	printf("***** 1-gpu coarse No Zero Copy*****\n");
+	vector<trajPair> resultpaircoarsegpunzc;
+	vector<float> resultvaluecoarsegpunzc;
+	grid.joinExhaustedGPUNZC(SIZE, SIZE, resultpaircoarsegpunzc, resultvaluecoarsegpunzc);
+	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
+
+
+
+	/*
 	printf("***** 1-gpu fine *****\n");
 	vector<trajPair> resultpairfinegpu;
 	vector<float> resultvaluefinegpu;
@@ -108,6 +118,8 @@ int main() {
 	vector<float> resultvaluefinegpu2;
 	grid.joinExhaustedGPUV2p1(SIZE, SIZE, resultpairfinegpu2, resultvaluefinegpu2);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
+
+	*/
 
 	//sleep(10);
 
