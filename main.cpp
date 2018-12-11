@@ -64,7 +64,7 @@ int main() {
 	vector<float> resultvalue;
 
 	// 频繁调参使用变量！！
-	int SIZE = 64; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 16; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
@@ -86,14 +86,14 @@ int main() {
 	//printf("***** cpu  %d *****\n" , MAX_CPU_THREAD);
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD); // not that accurate!!
 	
-	*/
+	
 
 	printf("***** 1-gpu coarse *****\n");
 	vector<trajPair> resultpaircoarsegpu;
 	vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
-	
+	*/
 
 
 	printf("***** 1-gpu coarse No Zero Copy*****\n");

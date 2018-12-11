@@ -519,7 +519,7 @@ void STGrid::joinExhaustedGPUNZC(
 
 
 			// insert new result
-			for (size_t k = 0; k < getlength(partialResult); k++) {
+			for (size_t k = 0; k < tmptaskGPU.size(); k++) {
 				if (partialResult[k] > EPSILON) {
 					//result[tmptaskGPU[k]] = partialResult[k];
 					resultpair.push_back(tmptaskGPU[k]);

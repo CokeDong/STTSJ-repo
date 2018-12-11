@@ -2932,7 +2932,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	void* gpuAddrStat = GPUMalloc((size_t)1 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
-																	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
+																   //void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
 
 	cudaEvent_t memcpy_to_start, kernel_start, kernel_stop;
 	CUDA_CALL(cudaEventCreate(&memcpy_to_start));
@@ -3203,7 +3203,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	// this is very small memory, actually
 	float *SimResultGPU;
 	SimResultGPU = (float*)pnow;
-	CUDA_CALL(cudaMemset(pnow, 0, sizeof(float) * dataSizeP * dataSizeQ));
+	CUDA_CALL(cudaMemset(pnow, 0, sizeof(float) * dataSizeP * dataSizeQ)); // may unnecessary!
 	pnow = (void*)((float*)pnow + dataSizeP * dataSizeQ);
 
 
@@ -3224,7 +3224,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 
 
 	/*
-	// zero-copy 内存 
+	// zero-copy 内存
 	// 需要手动free!!
 	float *SimResult, *SimResultGPU;
 	CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
@@ -3254,7 +3254,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
 
-	CUDA_CALL(cudaStreamSynchronize(stream));
+	CUDA_CALL(cudaStreamSynchronize(stream)); // this is necessary, as SimResultGPU must be calculated done by kernel computeSimGPU
 	//CUDA_CALL(cudaDeviceSynchronize());
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
@@ -3264,21 +3264,32 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	printf("memcpy time: %.5f s\n", memcpy_time / 1000.0);
 	printf("kernel time: %.5f s\n", kernel_time / 1000.0);
 
+	cudaEvent_t resultback;
+	float resultback_time = 0.0;
 
 	// GPU->CPU 传回结果
-	CUDA_CALL(cudaMemcpyAsync(result, SimResultGPU, sizeof(float) * dataSizeP * dataSizeQ, cudaMemcpyDeviceToHost));
-
+	//float *SimResult = new float[dataSizeP * dataSizeQ];
+	CUDA_CALL(cudaMemcpyAsync(result, SimResultGPU, sizeof(float) * dataSizeP * dataSizeQ, cudaMemcpyDeviceToHost, stream));
+	
 	CUDA_CALL(cudaStreamSynchronize(stream)); // may be not necessary, but this is safe!
+
+	CUDA_CALL(cudaEventRecord(resultback, stream));
+	CUDA_CALL(cudaEventElapsedTime(&resultback_time, kernel_stop, resultback));
+	printf("resultback time: %.5f s\n", resultback_time / 1000.0);
+	
 	//CUDA_CALL(cudaDeviceSynchronize());
 
-	/*
-	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
-		result.push_back(SimResult[i]);
-	}
-	*/
+
+
+	//for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
+	//	result[i] = SimResult[i];
+	//}
+
 
 	// free CPU memory
 	free(stattableCPU);
+	//delete[] SimResult;
+
 
 	// free GPU memory
 	//CUDA_CALL(cudaFreeHost(SimResult));
@@ -3290,7 +3301,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaEventDestroy(memcpy_to_start));
 	CUDA_CALL(cudaEventDestroy(kernel_start));
 	CUDA_CALL(cudaEventDestroy(kernel_stop));
-	
+
 	CUDA_CALL(cudaStreamDestroy(stream));
 	CUDA_CALL(cudaDeviceReset());
 
@@ -3625,14 +3636,16 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaEventRecord(kernel_start, stream));
 
 
-	// no need, because different block have no overlap between global memory! for keypmqnMatrixGPU keypmqMatrixGPU keypqMatrixGPU
+	// multi-kernel, but no need, because different block have no overlap between global memory! for keypmqnMatrixGPU keypmqMatrixGPU keypqMatrixGPU
+
+
 	computeTSimpmqn << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 		);
 
-	// debug: 非默认stream, this is necessary ? or not at all? ： NO 
+	// debug: 非默认stream, this is necessary ? or not at all? ： NO , no overlap between global memory
 	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 
@@ -3663,7 +3676,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
 	//CUDA_CALL(cudaDeviceSynchronize());
-	CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good
+	CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary
 
 
 
