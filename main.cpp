@@ -87,13 +87,14 @@ int main() {
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD); // not that accurate!!
 	
 	
+	*/
 
 	printf("***** 1-gpu coarse *****\n");
 	vector<trajPair> resultpaircoarsegpu;
 	vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
-	*/
+	
 
 
 	printf("***** 1-gpu coarse No Zero Copy*****\n");
@@ -105,6 +106,7 @@ int main() {
 
 
 	/*
+	
 	printf("***** 1-gpu fine *****\n");
 	vector<trajPair> resultpairfinegpu;
 	vector<float> resultvaluefinegpu;

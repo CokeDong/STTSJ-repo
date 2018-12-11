@@ -1757,6 +1757,7 @@ __global__ void computeSimGPUV2p1(float* latDataPGPU1, float* latDataQGPU1, floa
 		maxSimRow[tId] = 0;
 		maxSimColumn[tId] = 0;
 	}
+	
 	__syncthreads(); // we still have to syncthreads
 
 
@@ -2101,20 +2102,20 @@ CPU function definition.
 All functions of CPU are defined here.
 */
 
-void CUDAwarmUp() {
+inline void CUDAwarmUp() {
 	CUDA_CALL(cudaSetDeviceFlags(cudaDeviceMapHost)); // zero-copy mem
-	CUDA_CALL(cudaSetDevice(1)); // GPU-0
+	CUDA_CALL(cudaSetDevice(0)); // GPU-0
 	if(DUALGPU) CUDA_CALL(cudaSetDevice(1)); // GPU-1
 }
 
-void CUDAwarmUp2() {
+inline void CUDAwarmUp2() {
 	// no zero-copy mem! here
 	//CUDA_CALL(cudaSetDeviceFlags(cudaDeviceMapHost)); // zero-copy mem
-	CUDA_CALL(cudaSetDevice(1)); // GPU-0
+	CUDA_CALL(cudaSetDevice(0)); // GPU-0
 	if (DUALGPU) CUDA_CALL(cudaSetDevice(1)); // GPU-1
 }
 
-void* GPUMalloc(size_t byteNum) {
+inline void* GPUMalloc(size_t byteNum) {
 	void *addr;
 	CUDA_CALL(cudaMalloc((void**)&addr, byteNum));
 	return addr;
@@ -2499,7 +2500,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	*/
 
-	
+	MyTimer timer;
+	timer.start();
+
 	CUDAwarmUp();
 	
 	//void* gpuAddrTextualIndex = GPUMalloc((size_t)400 * 1024 * 1024); // MB
@@ -2529,8 +2532,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaStreamCreate(&stream));
 	
 	
-	MyTimer timer;
-	timer.start();
+
 
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
@@ -2827,6 +2829,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 
 	CUDA_CALL(cudaStreamSynchronize(stream));
 	//CUDA_CALL(cudaDeviceSynchronize());
+	
+	timer.start();// here is appropriate!
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
@@ -2839,7 +2843,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
 		result.push_back(SimResult[i]);
 	}
-
+	timer.stop();
+	printf("resultback time time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
+	timer.start();
 
 	// free CPU memory
 	free(stattableCPU);
@@ -2856,6 +2862,9 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
     CUDA_CALL(cudaEventDestroy(kernel_stop));
 	CUDA_CALL(cudaStreamDestroy(stream));
 	CUDA_CALL(cudaDeviceReset());
+
+	timer.stop();
+	printf("CPU  sfter-processing time: %f s\n", timer.elapse());
 
 	//return;
 
@@ -2909,12 +2918,15 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	//float *SimResult, *SimResultGPU;
 	CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
 	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
-
-
 	*/
+	MyTimer timer;
 
-
+	//timer.start(); // here: 0.X s
 	CUDAwarmUp2();
+
+	//CUDA_CALL(cudaSetDevice(0)); // GPU-0
+	//if (DUALGPU) CUDA_CALL(cudaSetDevice(1)); // GPU-1
+
 
 	//void* gpuAddrTextualIndex = GPUMalloc((size_t)400 * 1024 * 1024); // MB
 	//void* gpuAddrTextualValue = GPUMalloc((size_t)400 * 1024 * 1024); // MB
@@ -2926,13 +2938,26 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	// 需要手动free!!
 	// CUDA_CALL
 
-	// here only for quick occupying GPU 
-	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrStat = GPUMalloc((size_t)1 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	//timer.start(); // here: 0.X s
+
+	// here only for quick occupying GPU
+
+	
+	// cudaMalloc()如果是第一个常规runtime函数的话（cudaGetDeviceCount / cudaDeviceReset / cudaSetDevice这些特殊的不算），的确会引入一定的初始化时间
+	// Warm up
+	// GPU sample: not calculating this!!
+	void* gpuAddrPSet, *gpuAddrQSet, *gpuAddrStat;
+	CUDA_CALL(cudaMalloc((void**)&gpuAddrPSet, (size_t)20 * 1024 * 1024));
+	CUDA_CALL(cudaMalloc((void**)&gpuAddrQSet, (size_t)20 * 1024 * 1024));
+	CUDA_CALL(cudaMalloc((void**)&gpuAddrStat, (size_t)1 * 1024 * 1024 * 1024));
+	
+	//void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
+	//void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
+	//void* gpuAddrStat = GPUMalloc((size_t)1 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 																   //void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
+	//timer.start(); // here: 0.000X s
 
 	cudaEvent_t memcpy_to_start, kernel_start, kernel_stop;
 	CUDA_CALL(cudaEventCreate(&memcpy_to_start));
@@ -2943,8 +2968,8 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaStreamCreate(&stream));
 
 
-	MyTimer timer;
-	timer.start();
+	
+	timer.start(); // here: 0.000X s, here is right !!
 
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
@@ -3237,6 +3262,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 
 
 
+	//timer.start(); // including kernel time, so here is wrong!
 
 	// running kernel
 
@@ -3253,9 +3279,13 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 		);
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
+	
 
-	CUDA_CALL(cudaStreamSynchronize(stream)); // this is necessary, as SimResultGPU must be calculated done by kernel computeSimGPU
+	CUDA_CALL(cudaStreamSynchronize(stream)); // this is necessary, as SimResultGPU(of course and formal asynccpy) will return control to CPU at once! must be calculated done by kernel computeSimGPU, have proved!
 	//CUDA_CALL(cudaDeviceSynchronize());
+
+
+	//timer.start(); // here: 0.X s must after cudaStreamSynchronize, but not propriate here !
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
@@ -3265,15 +3295,21 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	printf("kernel time: %.5f s\n", kernel_time / 1000.0);
 
 	cudaEvent_t resultback;
+	CUDA_CALL(cudaEventCreate(&resultback));
 	float resultback_time = 0.0;
 
 	// GPU->CPU 传回结果
 	//float *SimResult = new float[dataSizeP * dataSizeQ];
 	CUDA_CALL(cudaMemcpyAsync(result, SimResultGPU, sizeof(float) * dataSizeP * dataSizeQ, cudaMemcpyDeviceToHost, stream));
-	
-	CUDA_CALL(cudaStreamSynchronize(stream)); // may be not necessary, but this is safe!
-
 	CUDA_CALL(cudaEventRecord(resultback, stream));
+
+	
+	CUDA_CALL(cudaStreamSynchronize(stream)); //  this is necessary, we just have to look at later codes! cudaMemcpyAsync will return control to CPU at once! result is used!!!
+
+	
+	timer.start(); // here: 0.X s must after cudaStreamSynchronize
+
+	
 	CUDA_CALL(cudaEventElapsedTime(&resultback_time, kernel_stop, resultback));
 	printf("resultback time: %.5f s\n", resultback_time / 1000.0);
 	
@@ -3297,13 +3333,17 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaFree(gpuAddrQSet));
 	CUDA_CALL(cudaFree(gpuAddrStat));
 
-	// GPU stream management
+	// GPU stream management -> 0.X s overload !!
 	CUDA_CALL(cudaEventDestroy(memcpy_to_start));
 	CUDA_CALL(cudaEventDestroy(kernel_start));
 	CUDA_CALL(cudaEventDestroy(kernel_stop));
+	CUDA_CALL(cudaEventDestroy(resultback));
 
 	CUDA_CALL(cudaStreamDestroy(stream));
 	CUDA_CALL(cudaDeviceReset());
+
+	timer.stop();
+	printf("CPU  after-processing time: %f s\n", timer.elapse());
 
 	//return;
 
@@ -3316,6 +3356,10 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	vector<STTrajectory> &trajSetQ,
 	vector<float> &result) {
+
+
+	MyTimer timer;
+	timer.start();
 
 	CUDAwarmUp();
 	/*
@@ -3346,8 +3390,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaStreamCreate(&stream));
 
 
-	MyTimer timer;
-	timer.start();
+
 
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
