@@ -64,28 +64,28 @@ int main() {
 	vector<float> resultvalue;
 
 	// 频繁调参使用变量！！
-	int SIZE = 8;
+	int SIZE = 16; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
 
-	//vector<trajPair> resultpaircpu;
-	//vector<float> resultvaluecpu;
-	//vector<trajPair> resultpairgpu;
-	//vector<float> resultvaluegpu;
 
-	// printf("***** 1-cpu *****\n");
-	//grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
+	printf("***** 1-cpu *****\n");
+	vector<trajPair> resultpaircpu;
+	vector<float> resultvaluecpu;
+	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 
-	
-	printf("***** mul-cpu *****\n");
+
+	/*
+	printf("***** mul-cpu full *****\n");
 	vector<trajPair> resultpairmcpu;
 	vector<float> resultvaluemcpu;
 	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
+	*/
+
+	//printf("***** cpu  %d *****\n" , MAX_CPU_THREAD);
+	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD); // not that accurate!!
 	
-
-	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD);
-
 	
 	printf("***** 1-gpu coarse *****\n");
 	vector<trajPair> resultpaircoarsegpu;
@@ -101,11 +101,13 @@ int main() {
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
+	
+	// not that important for performance improvement
 	printf("***** 1-gpu V2p1 fine *****\n");
-	vector<trajPair> resultpairfinegpu;
-	vector<float> resultvaluefinegpu;
-	grid.joinExhaustedGPUV2p1(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
-	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
+	vector<trajPair> resultpairfinegpu2;
+	vector<float> resultvaluefinegpu2;
+	grid.joinExhaustedGPUV2p1(SIZE, SIZE, resultpairfinegpu2, resultvaluefinegpu2);
+	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
 
 	//sleep(10);
 

@@ -144,6 +144,7 @@ public:
 		//vector<STTrajectory> &Q
 	);
 
+	// 类内定义的成员方法，编译器会将其优先编译成内联函数，这里没采用
 	void GetTaskPair(vector<size_t> &taskp, vector<size_t> &taskq, vector<trajPair> &resultpair);
 
 protected:

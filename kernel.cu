@@ -3289,8 +3289,11 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaEventCreate(&kernel_start));
 	CUDA_CALL(cudaEventCreate(&kernel_stop));
 
+	// 非默认stream中的数据传输使用函数cudaMemcpyAsync()? 不对 默认的也可以用
+	//cudaStream_t stream = NULL; 
 	cudaStream_t stream;
 	CUDA_CALL(cudaStreamCreate(&stream));
+
 
 
 	MyTimer timer;
@@ -3580,7 +3583,7 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 
-	CUDA_CALL(cudaEventRecord(kernel_start, stream));
+	CUDA_CALL(cudaEventRecord(kernel_start, 0));
 
 	/*
 	// no need, because different block have no overlap between global memory! for keypmqnMatrixGPU keypmqMatrixGPU keypqMatrixGPU
@@ -3623,7 +3626,7 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 
 	//CUDA_CALL(cudaDeviceSynchronize());
 	CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good
-
+	//CUDA_CALL(cudaEventSynchronize(kernel_stop));
 
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
@@ -3656,7 +3659,7 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaEventDestroy(memcpy_to_start));
 	CUDA_CALL(cudaEventDestroy(kernel_start));
 	CUDA_CALL(cudaEventDestroy(kernel_stop));
-	CUDA_CALL(cudaStreamDestroy(stream));
+	if(stream != NULL) CUDA_CALL(cudaStreamDestroy(stream));
 	CUDA_CALL(cudaDeviceReset());
 
 	//return;
