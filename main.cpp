@@ -69,26 +69,29 @@ int main() {
 	STGrid grid;
 	grid.init(trajDB); // clever！！
 
-	/*
+	
+
 	printf("***** 1-cpu *****\n");
 	vector<trajPair> resultpaircpu;
 	vector<float> resultvaluecpu;
 	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 
 
-	
+	/*
 	printf("***** mul-cpu full *****\n");
 	vector<trajPair> resultpairmcpu;
 	vector<float> resultvaluemcpu;
 	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
+	*/
 
 
 	//printf("***** cpu  %d *****\n" , MAX_CPU_THREAD);
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD); // not that accurate!!
 	
 	
-	*/
+	
 
+	
 	printf("***** 1-gpu coarse *****\n");
 	vector<trajPair> resultpaircoarsegpu;
 	vector<float> resultvaluecoarsegpu;
@@ -97,16 +100,17 @@ int main() {
 	
 
 
-	printf("***** 1-gpu coarse No Zero Copy*****\n");
-	vector<trajPair> resultpaircoarsegpunzc;
-	vector<float> resultvaluecoarsegpunzc;
-	grid.joinExhaustedGPUNZC(SIZE, SIZE, resultpaircoarsegpunzc, resultvaluecoarsegpunzc);
-	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
-
-
-
-	/*
+	//// this is worse than Zero Copy, but very very tiny
+	//printf("***** 1-gpu coarse No Zero Copy*****\n");
+	//vector<trajPair> resultpaircoarsegpunzc;
+	//vector<float> resultvaluecoarsegpunzc;
+	//grid.joinExhaustedGPUNZC(SIZE, SIZE, resultpaircoarsegpunzc, resultvaluecoarsegpunzc);
+	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	
+
+
+
+
 	printf("***** 1-gpu fine *****\n");
 	vector<trajPair> resultpairfinegpu;
 	vector<float> resultvaluefinegpu;
@@ -114,14 +118,18 @@ int main() {
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
 	
-	// not that important for performance improvement
-	printf("***** 1-gpu V2p1 fine *****\n");
-	vector<trajPair> resultpairfinegpu2;
-	vector<float> resultvaluefinegpu2;
-	grid.joinExhaustedGPUV2p1(SIZE, SIZE, resultpairfinegpu2, resultvaluefinegpu2);
-	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
 
-	*/
+
+	//// not that important for performance improvement  -> 合并多个kernel
+	//printf("***** 1-gpu V2p1 fine *****\n");
+	//vector<trajPair> resultpairfinegpu2;
+	//vector<float> resultvaluefinegpu2;
+	//grid.joinExhaustedGPUV2p1(SIZE, SIZE, resultpairfinegpu2, resultvaluefinegpu2);
+	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
+
+	
+
+
 
 	//sleep(10);
 

@@ -2844,7 +2844,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 		result.push_back(SimResult[i]);
 	}
 	timer.stop();
-	printf("resultback time time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
+	printf("resultback time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
 	timer.start();
 
 	// free CPU memory
@@ -2864,7 +2864,7 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaDeviceReset());
 
 	timer.stop();
-	printf("CPU  sfter-processing time: %f s\n", timer.elapse());
+	printf("CPU  after-processing time: %f s\n", timer.elapse());
 
 	//return;
 
@@ -2920,8 +2920,8 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
 	*/
 	MyTimer timer;
+	timer.start(); // here: 0.X s
 
-	//timer.start(); // here: 0.X s
 	CUDAwarmUp2();
 
 	//CUDA_CALL(cudaSetDevice(0)); // GPU-0
@@ -2949,7 +2949,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	void* gpuAddrPSet, *gpuAddrQSet, *gpuAddrStat;
 	CUDA_CALL(cudaMalloc((void**)&gpuAddrPSet, (size_t)20 * 1024 * 1024));
 	CUDA_CALL(cudaMalloc((void**)&gpuAddrQSet, (size_t)20 * 1024 * 1024));
-	CUDA_CALL(cudaMalloc((void**)&gpuAddrStat, (size_t)1 * 1024 * 1024 * 1024));
+	CUDA_CALL(cudaMalloc((void**)&gpuAddrStat, (size_t)10 * 1024 * 1024 * 1024));
 	
 	//void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
 	//void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
@@ -2969,7 +2969,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 
 
 	
-	timer.start(); // here: 0.000X s, here is right !!
+	//timer.start(); // here: 0.000X s, here is right !!
 
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
@@ -3376,7 +3376,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	// here only for quick occupying GPU 
 	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
 	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrStat = GPUMalloc((size_t)10 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrStat = GPUMalloc((size_t)1 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 																	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
@@ -3669,7 +3669,7 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
 
 	timer.stop();
-	printf("CPU  processing time: %f s\n", timer.elapse());
+	printf("CPU  processing time: %f s\n", timer.elapse()); // data pre-processing on CPU
 
 	// running kernel
 	//CUDA_CALL(cudaDeviceSynchronize());
@@ -3720,7 +3720,8 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 
 	//CUDA_CALL(cudaDeviceSynchronize());
 	CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary
-
+	
+	timer.start();
 
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
@@ -3737,6 +3738,9 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 		result.push_back(SimResult[i]);
 	}
 
+	timer.stop();
+	printf("resultback time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
+	timer.start();
 
 	// free CPU memory
 	free(stattableCPU);
@@ -3758,6 +3762,8 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	CUDA_CALL(cudaStreamDestroy(stream));
 	CUDA_CALL(cudaDeviceReset());
 
+	timer.stop();
+	printf("CPU  after-processing time: %f s\n", timer.elapse()); // cuda-managing time
 	//return;
 }
 
@@ -4131,7 +4137,8 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	//CUDA_CALL(cudaDeviceSynchronize());
 	CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good
 	//CUDA_CALL(cudaEventSynchronize(kernel_stop));
-
+	
+	timer.start();
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
@@ -4144,6 +4151,10 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
 		result.push_back(SimResult[i]);
 	}
+
+	timer.stop();
+	printf("resultback time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
+	timer.start();
 
 
 	// free CPU memory
@@ -4166,6 +4177,8 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	if(stream != NULL) CUDA_CALL(cudaStreamDestroy(stream));
 	CUDA_CALL(cudaDeviceReset());
 
+	timer.stop();
+	printf("CPU  after-processing time: %f s\n", timer.elapse());
 	//return;
 }
 
