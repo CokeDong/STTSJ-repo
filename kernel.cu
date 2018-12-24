@@ -467,6 +467,15 @@ __global__ void computeSimGPU(float* latDataPGPU1, float* latDataQGPU1, float* l
 
 }
 
+/*****
+computeTSimpmqn dependency:
+	|_textDataPIndexGPU,textDataQIndexGPU,textDataPValueGPU,textDataQValueGPU --->|
+	|	|_textPid,textQid													      |
+	|_keypmqnGPU <----------------------------------------------------------------|
+		|_pmqnid																 
+		|_keycntP,keycntQ														  	
+****/
+
 __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
 	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
 	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
@@ -527,13 +536,15 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 		//pmqnid = task.keywordpmqMatrixId;
 		//pmqid = task.keywordpmqnMatrixId;
 
-		pmqnid = task.keywordpmqnMatrixId;
+		pmqnid = task.keywordpmqnMatrixId; // starting ID in GPU for each block, accumulated
 		pmqid = task.keywordpmqMatrixId;
 		pqid = task.keywordpqMatrixId;
 
 		keycntP = task.keycntP;
 		keycntQ = task.keycntQ;
-		textPid = task.textIdxP;
+		
+		
+		textPid = task.textIdxP; // starting position of text data for each task / block, accumulated
 		textQid = task.textIdxQ;
 	}
 	__syncthreads();
@@ -618,6 +629,16 @@ __global__ void computeTSimpmqn(float* latDataPGPU1, float* latDataQGPU1, float*
 
 }
 
+/******
+computeTSimpmq dependency	
+	|_keypmqnGPU ---------------------->|
+	|	|_pmqnid						|
+	|	|_numWordQGPU,textIdxQGPU		|
+	|		|_pointIdQ					|
+	|_keypmqGPU  <----------------------|
+		|_pmqid
+		|_keycntP,pointNumQ
+*******/
 __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
 	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
 	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
@@ -772,8 +793,16 @@ __global__ void computeTSimpmq(float* latDataPGPU1, float* latDataQGPU1, float* 
 
 }
 
-
-
+/*******
+computeTSimpq dependency
+|_keypmqGPU ---------------------->|
+|	|_pmqid						   |
+|	|_numWordPGPU,textIdxPGPU	   |
+|		|_pointIdP				   |
+|_keypqGPU  <----------------------|
+	|_pqid
+	|_pointNumQ,pointNumP
+*******/
 __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* lonDataPGPU1, float* lonDataQGPU1,
 	int* textDataPIndexGPU1, int* textDataQIndexGPU1, float* textDataPValueGPU1, float* textDataQValueGPU1,
 	int* textIdxPGPU1, int* textIdxQGPU1, int* numWordPGPU1, int* numWordQGPU1,
@@ -879,6 +908,19 @@ __global__ void computeTSimpq(float* latDataPGPU1, float* latDataQGPU1, float* l
 		}
 	}
 }
+
+/*****
+computeSimGPUV2 dependency
+	|_SimResultGPU
+		|_pointNumP,pointNumQ
+		|_keypqGPU
+		|	|_pqid
+		|_SSimGPU()
+			|_latDataPGPU,lonDataPGPU,latDataQGPU,lonDataQGPU
+				|_pointIdP,pointIdQ
+
+
+*****/
 
 
 __global__ void computeSimGPUV2(float* latDataPGPU1,float* latDataQGPU1,float* lonDataPGPU1,float* lonDataQGPU1,
@@ -2949,7 +2991,7 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	void* gpuAddrPSet, *gpuAddrQSet, *gpuAddrStat;
 	CUDA_CALL(cudaMalloc((void**)&gpuAddrPSet, (size_t)20 * 1024 * 1024));
 	CUDA_CALL(cudaMalloc((void**)&gpuAddrQSet, (size_t)20 * 1024 * 1024));
-	CUDA_CALL(cudaMalloc((void**)&gpuAddrStat, (size_t)10 * 1024 * 1024 * 1024));
+	CUDA_CALL(cudaMalloc((void**)&gpuAddrStat, (size_t)1 * 1024 * 1024 * 1024));
 	
 	//void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
 	//void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
@@ -3789,7 +3831,7 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	// here only for quick occupying GPU 
 	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
 	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrStat = GPUMalloc((size_t)10 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrStat = GPUMalloc((size_t)1 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 																	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
@@ -4181,6 +4223,512 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	printf("CPU  after-processing time: %f s\n", timer.elapse());
 	//return;
 }
+
+
+
+
+
+
+void STSimilarityJoinCalcGPUV3(vector<STTrajectory> &trajSetP,
+	vector<STTrajectory> &trajSetQ,
+	vector<float> &result) {
+
+
+	MyTimer timer;
+	timer.start();
+
+	CUDAwarmUp();
+	/*
+	void* gpuAddrTextualIndex = GPUMalloc((size_t)400 * 1024 * 1024); // MB
+	void* gpuAddrTextualValue = GPUMalloc((size_t)400 * 1024 * 1024); // MB
+	void* gpuAddrSpacialLat = GPUMalloc((size_t)200 * 1024 * 1024);
+	void* gpuAddrSpacialLon = GPUMalloc((size_t)200 * 1024 * 1024);
+	*/
+
+	// GPUmem-alloc
+	// 需要手动free!!
+	// CUDA_CALL
+	int gpuData = 500;
+	//int gpuQSet = 20;
+	int gpuStat = 2;
+	// here only for quick occupying GPU 
+	void* gpuAddrData = GPUMalloc((size_t)gpuData * 1024 * 1024);
+	//void* gpuAddrQSet = GPUMalloc((size_t)gpuQSet * 1024 * 1024);
+	void* gpuAddrStat = GPUMalloc((size_t)gpuStat * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+
+
+																   //void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
+
+	cudaEvent_t memcpy_to_start, kernel_start, kernel_stop;
+	CUDA_CALL(cudaEventCreate(&memcpy_to_start));
+	CUDA_CALL(cudaEventCreate(&kernel_start));
+	CUDA_CALL(cudaEventCreate(&kernel_stop));
+
+	cudaStream_t stream;
+	CUDA_CALL(cudaStreamCreate(&stream));
+
+
+
+
+	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
+
+	// build cpu data
+	//vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
+	vector<float> latDataPCPU, latDataQCPU; // lat array
+	vector<float> lonDataPCPU, lonDataQCPU; // lon array
+
+											//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+											// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
+											//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+
+	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
+
+										  // for status info.
+	vector<int> keycntTrajP, keycntTrajQ;
+	//vector<int> pointcntTrajP, pointcntTrajQ;
+
+	// 需要手动free!!
+	StatInfoTable* stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
+	if (stattableCPU == NULL) { printf("malloc failed!");  assert(0); };
+
+	void *latDataPGPU, *latDataQGPU, *lonDataPGPU, *lonDataQGPU;
+	void *textDataPIndexGPU, *textDataQIndexGPU, *textDataPValueGPU, *textDataQValueGPU;
+	void *textIdxPGPU, *textIdxQGPU, *numWordPGPU, *numWordQGPU;
+	void *stattableGPU;
+
+	//void *keycntGPU;
+	void *keypmqnMatrixGPU, *keypmqMatrixGPU, *keypqMatrixGPU;
+
+	// P != Q
+	// process P
+	int latlonPId = 0, textPId = 0;
+	for (size_t i = 0; i < trajSetP.size(); i++) {
+
+		// 统计表
+		for (size_t j = 0; j < dataSizeQ; j++) {
+			stattableCPU[i*dataSizeQ + j].latlonIdxP = (int)latlonPId;
+			stattableCPU[i*dataSizeQ + j].pointNumP = (int)trajSetP[i].traj_of_stpoint.size();
+
+			stattableCPU[i*dataSizeQ + j].textIdxP = textPId;
+		}
+
+		int keywordcnt = 0;
+		for (size_t j = 0; j < trajSetP[i].traj_of_stpoint.size(); j++) {
+			Latlon p;
+			p.lat = trajSetP[i].traj_of_stpoint[j].lat;
+			p.lon = trajSetP[i].traj_of_stpoint[j].lon;
+			//latlonDataPCPU.push_back(p);
+			latDataPCPU.push_back(p.lat);
+			lonDataPCPU.push_back(p.lon);
+			numWordPCPU.push_back(trajSetP[i].traj_of_stpoint[j].keywords.size());
+			textIdxPCPU.push_back(textPId);
+			latlonPId++;
+			for (size_t k = 0; k < trajSetP[i].traj_of_stpoint[j].keywords.size(); k++) {
+				textDataPIndexCPU.push_back(trajSetP[i].traj_of_stpoint[j].keywords.at(k).keywordid);
+				textDataPValueCPU.push_back(trajSetP[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
+				textPId++;
+				keywordcnt++;
+			}
+		}
+
+		// for L2 cache(32 byte) alignment
+		int remainder = 4 * trajSetP[i].traj_of_stpoint.size() % 32; // bytes
+		Latlon p; p.lat = 180.0; p.lon = 360.0;
+		if (remainder) {
+			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
+				latDataPCPU.push_back(p.lat);
+				lonDataPCPU.push_back(p.lon);
+				numWordPCPU.push_back(-1);
+				textIdxPCPU.push_back(-1);
+				latlonPId++;
+			}
+		}
+		// debug: 逻辑错误！！ --> 自定义补齐 padding
+		//remainder = 4 * textPId % 32; -> // 32 bytes对齐
+		remainder = 4 * keywordcnt % 32;
+		if (remainder) {
+			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
+				textDataPIndexCPU.push_back(-1);
+				textDataPValueCPU.push_back(-1);
+				textPId++;
+				keywordcnt++;
+			}
+		}
+
+		keycntTrajP.push_back(keywordcnt);// keycnt including padding , if want not including padding, to do
+
+										  //for (size_t j = 0; j < dataSizeQ; j++) {
+										  //	stattableCPU[i*dataSizeQ + j].textIdxP = keywordcnt;
+										  //}
+
+										  //pointcntTrajP.push_back()
+	}
+
+	CUDA_CALL(cudaEventRecord(memcpy_to_start, stream));
+	// Copy data of P to GPU
+	void *pnow = gpuAddrData;
+	CUDA_CALL(cudaMemcpyAsync(pnow, &latDataPCPU[0], sizeof(float)*latDataPCPU.size(), cudaMemcpyHostToDevice, stream));
+	latDataPGPU = pnow;
+	pnow = (void*)((float*)pnow + latDataPCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &lonDataPCPU[0], sizeof(float)*lonDataPCPU.size(), cudaMemcpyHostToDevice, stream));
+	lonDataPGPU = pnow;
+	pnow = (void*)((float*)pnow + lonDataPCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxPCPU[0], sizeof(int)*textIdxPCPU.size(), cudaMemcpyHostToDevice, stream));
+	textIdxPGPU = pnow;
+	pnow = (void*)((int*)pnow + textIdxPCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordPCPU[0], sizeof(int)*numWordPCPU.size(), cudaMemcpyHostToDevice, stream));
+	numWordPGPU = pnow;
+	pnow = (void*)((int*)pnow + numWordPCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPIndexCPU[0], sizeof(int)*textDataPIndexCPU.size(), cudaMemcpyHostToDevice, stream));
+	textDataPIndexGPU = pnow;
+	pnow = (void*)((int*)pnow + textDataPIndexCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataPValueCPU[0], sizeof(float)*textDataPValueCPU.size(), cudaMemcpyHostToDevice, stream));
+	textDataPValueGPU = pnow;
+	pnow = (void*)((float*)pnow + textDataPValueCPU.size());
+
+
+	// process Q
+
+	int latlonQId = 0, textQId = 0;
+	for (size_t i = 0; i < trajSetQ.size(); i++) {
+
+		for (size_t j = 0; j < dataSizeP; j++) {
+			stattableCPU[j*dataSizeQ + i].latlonIdxQ = (int)latlonQId;
+			stattableCPU[j*dataSizeQ + i].pointNumQ = (int)trajSetQ[i].traj_of_stpoint.size();
+
+			stattableCPU[j*dataSizeQ + i].textIdxQ = textQId;
+		}
+
+		int keywordcnt = 0;
+		for (size_t j = 0; j < trajSetQ[i].traj_of_stpoint.size(); j++) {
+			Latlon p;
+			p.lat = trajSetQ[i].traj_of_stpoint[j].lat;
+			p.lon = trajSetQ[i].traj_of_stpoint[j].lon;
+			//latlonDataPCPU.push_back(p);
+			latDataQCPU.push_back(p.lat);
+			lonDataQCPU.push_back(p.lon);
+			numWordQCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.size());
+			textIdxQCPU.push_back(textQId);
+
+			latlonQId++; // grain of each point, accumulated
+
+						 // need to define parameter to clean code!!
+			for (size_t k = 0; k < trajSetQ[i].traj_of_stpoint[j].keywords.size(); k++) {
+
+				//textDataPIndexCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordid);
+				//textDataPValueCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
+
+				// tiny bug!! mem error!!
+				textDataQIndexCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordid);
+				textDataQValueCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
+				textQId++;// grain of each point, accumulated
+				keywordcnt++; // grain of each trajectory, not-accumulated
+			}
+		}
+
+		// for L2 cache(32 byte) alignment
+		int remainder = 4 * trajSetQ[i].traj_of_stpoint.size() % 32;
+		Latlon p; p.lat = 180.0; p.lon = 360.0;
+		if (remainder) {
+			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
+				latDataQCPU.push_back(p.lat);
+				lonDataQCPU.push_back(p.lon);
+				numWordQCPU.push_back(-1);
+				textIdxQCPU.push_back(-1);
+				latlonQId++;
+			}
+		}
+
+		// ATTENTION!!---> keywordcnt
+		remainder = 4 * keywordcnt % 32;
+		if (remainder) {
+			for (size_t k = 0; k < (32 - remainder) / 4; k++) {
+				textDataQIndexCPU.push_back(-1);
+				textDataQValueCPU.push_back(-1);
+				textQId++;// grain of each point 
+				keywordcnt++; // grain of each trajectory
+			}
+		}
+
+		// status info. here
+		keycntTrajQ.push_back(keywordcnt);
+
+
+		//for (size_t j = 0; j < dataSizeP; j++) {
+		//	// debug: this is wrong data structure!
+		//	stattableCPU[j*dataSizeQ + i].textIdxQ = keywordcnt;
+		//}
+	}
+
+
+
+	// Copy data of Q to GPU
+	//pnow = gpuAddrQSet;
+
+	CUDA_CALL(cudaMemcpyAsync(pnow, &latDataQCPU[0], sizeof(float)*latDataQCPU.size(), cudaMemcpyHostToDevice, stream));
+	latDataQGPU = pnow;
+	pnow = (void*)((float*)pnow + latDataQCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &lonDataQCPU[0], sizeof(float)*lonDataQCPU.size(), cudaMemcpyHostToDevice, stream));
+	// debug: wrong code!!! 符号错误造成逻辑错误 cpy原因
+	//lonDataPGPU = pnow;
+	lonDataQGPU = pnow;
+	pnow = (void*)((float*)pnow + lonDataQCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textIdxQCPU[0], sizeof(int)*textIdxQCPU.size(), cudaMemcpyHostToDevice, stream));
+	textIdxQGPU = pnow;
+	pnow = (void*)((int*)pnow + textIdxQCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &numWordQCPU[0], sizeof(int)*numWordQCPU.size(), cudaMemcpyHostToDevice, stream));
+	numWordQGPU = pnow;
+	pnow = (void*)((int*)pnow + numWordQCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQIndexCPU[0], sizeof(int)*textDataQIndexCPU.size(), cudaMemcpyHostToDevice, stream));
+	textDataQIndexGPU = pnow;
+	pnow = (void*)((int*)pnow + textDataQIndexCPU.size());
+	CUDA_CALL(cudaMemcpyAsync(pnow, &textDataQValueCPU[0], sizeof(float)*textDataQValueCPU.size(), cudaMemcpyHostToDevice, stream));
+	textDataQValueGPU = pnow;
+	pnow = (void*)((float*)pnow + textDataQValueCPU.size());
+
+	// zero-copy 内存 
+	// 需要手动free!!
+	float *SimResult, *SimResultGPU;
+	CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
+	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
+
+
+
+	// pre-order for status info.
+	size_t pmqnid = 0, pmqid = 0, pqid = 0;
+	
+	//size_t statussum = 0; // no need
+
+	vector<int> stattableoffset; // store the pointer offset for stattableCPU for each round
+	stattableoffset.push_back(0);
+	vector<size_t> pmqnidtable, pmqidtable, pqidtable; // store the total pmqn pmq pq for each round
+
+	//pmqnidtable.push_back(0); // starting id !
+	//pmqidtable.push_back(0);
+	//pqidtable.push_back(0);
+
+	for (size_t i = 0; i < trajSetP.size(); i++) {
+		for (size_t j = 0; j < trajSetQ.size(); j++) {
+			
+			// we must pre-judge first! and first one must fit  gpuStat !!, hidden bug here
+			size_t prejudgesum = (pmqnid  + keycntTrajP[i] * keycntTrajQ[j] +
+			pmqid + stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i] +
+			pqid + stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ);
+
+			//statussum = pmqnid + pmqid + pqid; // not += , // not propriate!
+			if (prejudgesum*4.0 / 1024 / 1024 / 1024 > gpuStat*1.0) {
+				pmqnidtable.push_back(pmqnid);
+				pmqidtable.push_back(pmqid);
+				pqidtable.push_back(pqid);
+				pmqnid = 0, pmqid = 0, pqid = 0; // starting a new round
+				stattableoffset.push_back(i*dataSizeQ + j);
+			}
+
+			//size_t pmqnpre = pmqnid; // no need, same for afterwards
+			stattableCPU[i*dataSizeQ + j].keywordpmqnMatrixId = pmqnid;
+			pmqnid += keycntTrajP[i] * keycntTrajQ[j];
+
+			// not symmetric Matrix processing  -> aborted first programming! to be easier
+			//size_t pmqpre = pmqid;
+			stattableCPU[i*dataSizeQ + j].keywordpmqMatrixId = pmqid;
+			pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
+
+			///*
+			// maybe this is not wrong, but may cause high coupling with kernel!
+			//if (stattableCPU[i*dataSizeQ + j].pointNumP > stattableCPU[i*dataSizeQ + j].pointNumQ) {
+			//	pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
+			//}
+			//else {
+			//	pmqid += stattableCPU[i*dataSizeQ + j].pointNumP*keycntTrajQ[j];
+			//}
+			//*/
+			//size_t pqpre = pqid;
+			stattableCPU[i*dataSizeQ + j].keywordpqMatrixId = pqid;
+			pqid += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
+
+			// this is okay, no need for change
+			stattableCPU[i*dataSizeQ + j].keycntP = keycntTrajP[i];
+			stattableCPU[i*dataSizeQ + j].keycntQ = keycntTrajQ[j];
+			
+
+			//size_t sumpre = statussum;
+			//statussum = pmqnid + pmqid + pqid; // not += 
+
+			//if (statussum*4.0 / 1024 / 1024 / 1024 > gpuStat*1.0) {
+			//	
+			//	pmqnidtable.push_back(pmqnpre);
+			//	pmqidtable.push_back(pmqpre);
+			//	pqidtable.push_back(pqpre);
+
+			//	stattableoffset.push_back(i*dataSizeQ + j);
+
+			//	pmqnid = pmqnid - pmqnpre;
+			//	pmqid = pmqid - pmqpre;
+			//	pqid = pqid - pqpre;
+
+			//	statussum = (pmqnid - pmqnpre) + (pmqid - pmqpre) + (pqid - pqpre);
+			//}
+
+		}
+	}
+
+	// donnot forget this! final result for pmqnid pmqid pqid
+	pmqnidtable.push_back(pmqnid);
+	pmqidtable.push_back(pmqid);
+	pqidtable.push_back(pqid);
+
+
+	// stattable very important
+	CUDA_CALL(cudaMemcpyAsync(pnow, stattableCPU, sizeof(StatInfoTable)* dataSizeP*dataSizeQ, cudaMemcpyHostToDevice, stream));
+	//CUDA_CALL(cudaMemcpyAsync(pnow, &stattableCPU[0], sizeof(StatInfoTable)*stattableCPU.size(), cudaMemcpyHostToDevice, stream));
+	stattableGPU = pnow;
+	pnow = (void*)((StatInfoTable*)pnow + dataSizeP*dataSizeQ);
+
+
+	
+
+	for (size_t i = 0; i < stattableoffset.size(); i++) {
+
+		pnow = gpuAddrStat;
+
+		// stattable cpy: one block only once!! fetch i+1, be careful!
+		int statussizeonce = (i == stattableoffset.size() - 1) ? dataSizeP * dataSizeQ - stattableoffset[i] : stattableoffset[i + 1] - stattableoffset[i];
+		printf("************ statussizeonce: %d \n************", statussizeonce);
+
+		// no cpy here!
+		//// stattable very important
+		//CUDA_CALL(cudaMemcpyAsync(pnow, stattableCPU + stattableoffset[i], sizeof(StatInfoTable)* statussizeonce, cudaMemcpyHostToDevice, stream));
+		////CUDA_CALL(cudaMemcpyAsync(pnow, &stattableCPU[0], sizeof(StatInfoTable)*stattableCPU.size(), cudaMemcpyHostToDevice, stream));
+		//stattableGPU = pnow;
+		//pnow = (void*)((StatInfoTable*)pnow + statussizeonce);
+
+		keypmqnMatrixGPU = (float*)pnow;
+		pnow = (void*)((float*)pnow + pmqnidtable[i]);
+		keypmqMatrixGPU = (float*)pnow;
+		pnow = (void*)((float*)pnow + pmqidtable[i]);
+		keypqMatrixGPU = (float*)pnow;
+		pnow = (void*)((float*)pnow + pqidtable[i]);
+	
+
+		// debug: big int -> size_t
+		//OutGPUMemNeeded(pmqnid, pmqid,pqid);
+		printf("***** size_t ***** %zu %zu %zu\n", pmqnidtable[i], pmqidtable[i], pqidtable[i]);
+		//printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
+		//printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
+		printf("***** total status size *****%f GB\n", (pmqnidtable[i] + pmqidtable[i] + pqidtable[i])*4.0 / 1024 / 1024 / 1024);
+
+		// running kernel
+		//CUDA_CALL(cudaDeviceSynchronize());
+		//CUDA_CALL(cudaStreamSynchronize(stream));
+
+
+		// ABOVE low cost! and cnted because of CUDA_CALL(cudaStreamSynchronize(stream));
+		if (i == 0) {
+			timer.stop();
+			printf("CPU  processing time: %f s\n", timer.elapse()); // data pre-processing on CPU
+			timer.start();
+			CUDA_CALL(cudaEventRecord(kernel_start, stream));
+		}
+
+		// multi-kernel, but no need, because different block have no overlap between global memory! for keypmqnMatrixGPU keypmqMatrixGPU keypqMatrixGPU
+
+		computeTSimpmqn << < statussizeonce, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+			(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+			(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+			(StatInfoTable*)stattableGPU + stattableoffset[i], (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU + stattableoffset[i]
+			);
+
+
+		// debug: 非默认stream, this is necessary ? or not at all? ： NO , no overlap between global memory
+		//CUDA_CALL(cudaStreamSynchronize(stream));
+
+		computeTSimpmq << < statussizeonce, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+			(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+			(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+			(StatInfoTable*)stattableGPU + stattableoffset[i], (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU + stattableoffset[i]
+			);
+		//CUDA_CALL(cudaStreamSynchronize(stream));
+
+
+		computeTSimpq << < statussizeonce, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+			(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+			(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+			(StatInfoTable*)stattableGPU + stattableoffset[i], (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU + stattableoffset[i]
+			);
+		//CUDA_CALL(cudaStreamSynchronize(stream));
+
+		// above three can be merged!
+
+		computeSimGPUV2 << < statussizeonce, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+			(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+			(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+			(StatInfoTable*)stattableGPU + stattableoffset[i], (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU + stattableoffset[i]
+			);
+
+		//CUDA_CALL(cudaDeviceSynchronize());
+		CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
+
+	}
+
+
+	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+
+
+	float memcpy_time = 0.0, kernel_time = 0.0;
+	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
+	CUDA_CALL(cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop));
+
+	printf("memcpy time: %.5f s\n", memcpy_time / 1000.0);
+	printf("kernel time: %.5f s\n", kernel_time / 1000.0);
+
+
+	// here has about 2s latency
+	// rediculous
+	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
+		result.push_back(SimResult[i]);
+	}
+
+	timer.stop();
+	printf("resultback time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
+	timer.start();
+
+	// free CPU memory
+	free(stattableCPU);
+
+	// free GPU memory
+	// debug: cudaFree doesn't erase anything!! it simply returns memory to a pool to be re-allocated
+	// cudaMalloc doesn't guarantee the value of memory that has been allocated (to 0)
+	// You need to Initialize memory (both global and shared) that your program uses, in order to have consistent results!!
+	// The same is true for malloc and free, by the way
+	CUDA_CALL(cudaFreeHost(SimResult));
+	CUDA_CALL(cudaFree(gpuAddrData));
+	//CUDA_CALL(cudaFree(gpuAddrPSet));
+	//CUDA_CALL(cudaFree(gpuAddrQSet));
+	CUDA_CALL(cudaFree(gpuAddrStat));
+
+	// GPU stream management
+	CUDA_CALL(cudaEventDestroy(memcpy_to_start));
+	CUDA_CALL(cudaEventDestroy(kernel_start));
+	CUDA_CALL(cudaEventDestroy(kernel_stop));
+	CUDA_CALL(cudaStreamDestroy(stream));
+	CUDA_CALL(cudaDeviceReset());
+
+	timer.stop();
+	printf("CPU  after-processing time: %f s\n", timer.elapse()); // cuda-managing time
+																  //return;
+}
+
+
+
+
+
+
+
+
+
 
 
 /*

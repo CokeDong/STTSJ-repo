@@ -35,7 +35,11 @@ public:
 	void ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName,vector<STPoint> &pointdb);
 	void ReadTrajDBPoint(vector<STTrajectory> &trajdb, vector<STPoint> &pointdb);
 
-	
+	void ReadPointDBLLV2(vector<STPoint> &pointdb, string fileName);
+	// next 3: not modified yet!
+	void ReadPointDBKeywordV2(vector<STPoint> &pointdb, string fileName);
+	void ReadTrajDBPointIDV2(vector<STTrajectory> &trajdb, string fileName, vector<STPoint> &pointdb);
+	void ReadTrajDBPointV2(vector<STTrajectory> &trajdb, vector<STPoint> &pointdb);
 
 
 	//void getInvertedIndex();

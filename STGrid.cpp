@@ -643,8 +643,12 @@ void STGrid::joinExhaustedGPUV2(
 
 			// P Q batch-join
 			// only calculate the result here!!
+			MyTimer timer2;
+			timer2.start();
 			vector<float> partialResult;
 			STSimilarityJoinCalcGPUV2(trajSetP, trajSetQ, partialResult); // have big overload?
+			timer2.stop();
+			printf("GPU time once: %f s\n", timer2.elapse());
 
 			// insert new result
 			for (size_t k = 0; k < partialResult.size(); k++) {
@@ -782,6 +786,132 @@ void STGrid::joinExhaustedGPUV2p1(
 	cout << "finalresult size: " << resultpair.size() << endl;
 
 }
+
+
+
+void STGrid::joinExhaustedGPUV3(
+	//float epsilon,
+	//float alpha,
+	int sizeP,
+	int sizeQ,
+	vector<trajPair>& resultpair,
+	vector<float>& resultvalue
+	//vector<STTrajectory> &P,
+	//vector<STTrajectory> &Q
+) {
+	// only one TrajDB - selfjoin
+	// get ID only one trajDB
+	MyTimer timer;
+	timer.start();
+
+	vector<size_t> taskSet1, taskSet2;
+
+	GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+
+
+	// filtering 
+
+
+
+
+
+
+	/*
+	// get the trajPAIR(candidate pair)
+	for (size_t i = 0; i < taskSet1.size(); i++) {
+	for (size_t j = 0; j < taskSet2.size(); j++) {
+	//if(i != j){ // no need
+	trajPair tmppair = trajPair(taskSet1[i], taskSet2[j]); // 这样是否不利于 多线程？？是否有性能影响
+	totaltaskGPU.push_back(tmppair); // 这里不考虑GPU内存拷贝问题
+	//}
+	}
+	}
+
+	cout << "totaltaskGPU size: " << totaltaskGPU.size() << endl;
+	*/
+
+	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+
+	//bedug: 注意作用域
+	//vector<STTrajectory> trajSetP, trajSetQ;
+	//vector<trajPair> resultpair;
+	//vector<float> resultvalue;
+
+
+	
+	for (size_t i = 0; i < taskSet1.size(); i += taskSet1.size()) { // ONLY once
+
+
+		// Pbatch
+		//bedug: 注意作用域
+		vector<size_t> tmptaskp;
+		vector<STTrajectory> trajSetP;
+		for (size_t k = 0; k < (i + taskSet1.size() > taskSet1.size() ? taskSet1.size() - i : taskSet1.size()); k++) {
+			trajSetP.push_back(this->dataPtr[taskSet1[i + k]]);
+			tmptaskp.push_back(taskSet1[i + k]);
+		}
+
+		for (size_t j = 0; j < taskSet2.size(); j += taskSet2.size()) { // ONLY once
+
+
+			// Qbatch
+			//bedug: 注意作用域
+			vector<size_t> tmptaskq;
+			vector<STTrajectory> trajSetQ;
+			for (size_t k = 0; k < (j + taskSet2.size() > taskSet2.size() ? taskSet2.size() - j : taskSet2.size()); k++) {
+				//debug: a tiny error
+				//trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
+				trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
+				tmptaskq.push_back(taskSet2[j + k]);
+			}
+
+			//ATTENTION: BELOW 2 operation must match!: GetTaskPair and STSimilarityJoinCalcGPUV3
+
+			// get trajpair(taskpair)
+			vector<trajPair> tmptaskGPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
+			GetTaskPair(tmptaskp, tmptaskq, tmptaskGPU);
+
+			// P Q batch-join
+			// only calculate the result here!!
+			MyTimer timer2;
+			timer2.start();
+			vector<float> partialResult;
+			STSimilarityJoinCalcGPUV3(trajSetP, trajSetQ, partialResult); // have big overload?
+			timer2.stop();
+			printf("GPU time once: %f s\n", timer2.elapse());
+
+			// insert new result
+			for (size_t k = 0; k < partialResult.size(); k++) {
+				if (partialResult[k] > EPSILON) {
+					//result[tmptaskGPU[k]] = partialResult[k];
+					resultpair.push_back(tmptaskGPU[k]);
+					resultvalue.push_back(partialResult[k]);
+				}
+			}
+
+
+			/*
+			for (map<trajPair, float>::iterator it = partialResult.begin(); it != partialResult.end(); it++) {
+			//if ( (*it).second > EPSILON ) {
+			if (it->second > EPSILON) {
+			result.insert(*it);
+			}
+			}
+			*/
+		}
+
+	}
+
+	timer.stop();
+	printf("GPU time: %f s\n", timer.elapse());
+
+	cout << "finalresult size: " << resultpair.size() << endl;
+
+}
+
+
+
+
 
 
 // this is 类外定义

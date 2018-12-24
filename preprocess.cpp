@@ -1,6 +1,6 @@
 #include "preprocess.h"
 #include "util.h"
-
+#include<sstream>
 
 
 //extern void split(string s, string delim, vector<string>* ret);
@@ -311,6 +311,156 @@ void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName
 }
 
 void Preprocess::ReadTrajDBPoint(vector<STTrajectory> &trajdb, vector<STPoint> &pointdb) {
+
+	for (vector<STTrajectory>::iterator it = trajdb.begin(); it != trajdb.end(); it++) {
+		(*it).GettingSTPointOnpointID(pointdb);
+	}
+	cout << "TrajDBPoints reading finished" << endl;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+void Preprocess::ReadPointDBLLV2(vector<STPoint> &pointdb, string fileName) {
+
+	fin.open(fileName);
+	if (!fin.is_open())
+	{
+		cout << "Error opening file";
+		exit(1);
+	}
+
+	string buffer;
+	buffer.assign(istreambuf_iterator<char>(fin), istreambuf_iterator<char>());
+	stringstream bufferstream;
+	bufferstream.str(buffer);
+
+	// cannot see any improvement!
+	string linestr;
+
+	float latmax = -180, lonmax = -360, latmin = 180, lonmin = 360;
+	while (getline(bufferstream, linestr)) {
+	//while (getline(fin, linestr)) {
+		string s = linestr;
+		vector<string> ssplit;
+		string dot = "\t";
+		split(s, dot, &ssplit);
+		STPoint stptmp;
+		stptmp.stpoint_id = atoi(ssplit.at(1).c_str()); // venuesdict is okay 2
+		stptmp.lat = atof(ssplit.at(2).c_str());
+		stptmp.lon = atof(ssplit.at(3).c_str());
+		if (stptmp.lat > latmax) latmax = stptmp.lat;
+		if (stptmp.lon > lonmax) lonmax = stptmp.lon;
+		if (stptmp.lat < latmin) latmin = stptmp.lat;
+		if (stptmp.lon < lonmin) latmax = stptmp.lon;
+		pointdb.push_back(stptmp); // 确定OK
+	}
+
+	cout << "maxdistance = " << calculateDistance(latmax, lonmax, latmin, lonmin) << endl;
+	cout << "PointDBLL reading finished" << endl;
+	fin.close();
+}
+
+
+void Preprocess::ReadPointDBKeywordV2(vector<STPoint> &pointdb, string fileName) {
+
+	fin.open(fileName);
+	if (!fin.is_open())
+	{
+		cout << "Error opening file";
+		exit(1);
+	}
+
+	string linestr;
+	int maxkeywordcnt = -1;
+	while (getline(fin, linestr)) {
+		//cout << "gettting here";
+		string s = linestr;
+		vector<string> ssplit;
+		string dot = "\t";
+		split(s, dot, &ssplit);
+		int indexofpointdb = atoi(ssplit.at(0).c_str());
+		//for (int i = 1; i < ssplit.size() - 1; i++) { // i < ssplit.size() - 1 
+		//	Keywordtuple ktuple;
+		//	ktuple.keywordid = atoi(ssplit.at(i).c_str());
+		//	ktuple.keywordvalue = atof(ssplit.at(i + 1).c_str()); // 注意下标越界
+		//	pointdb.at(indexofpointdb).keywords.push_back(ktuple);
+		//	i++;
+		//}
+		//cout << ssplit.size() << endl;
+
+		// debug: 逻辑错误 行位 \t\n  -1 \n 占一位所以减一 否则vector越界
+		for (int i = 1; i < ssplit.size() - 1; i += 2) { //  GAP = 2 ！！！ BUG here: -1 \n 占一位所以减一 否则vector越界
+			Keywordtuple ktuple;
+			ktuple.keywordid = atoi(ssplit.at(i).c_str());
+			ktuple.keywordvalue = atof(ssplit.at(i + 1).c_str()); // 注意下标越界
+			pointdb.at(indexofpointdb).keywords.push_back(ktuple);
+			//i++;
+		}
+		// vector.size() 的返回值类型是size_type(int) !!
+		if (maxkeywordcnt < (int)pointdb.at(indexofpointdb).keywords.size()) {
+			maxkeywordcnt = (int)pointdb.at(indexofpointdb).keywords.size();
+		}
+		//cout << pointdb.at(indexofpointdb).keywords.size()<<endl; // why??  because forgetting fin.close!!!否则无法继续读取
+	}
+	cout << "max keyword cnt= " << maxkeywordcnt << endl;
+	cout << "PointDBkeyword reading finished" << endl;
+	fin.close();
+}
+
+
+void Preprocess::ReadTrajDBPointIDV2(vector<STTrajectory> &trajdb, string fileName, vector<STPoint> &pointdb) {
+
+	fin.open(fileName);
+	if (!fin.is_open())
+	{
+		cout << "Error opening file";
+		exit(1);
+	}
+	string linestr;
+	int linecnt = 0;
+	int maxlen = -1;
+	while (getline(fin, linestr)) {
+
+		string s = linestr;
+		vector<string> ssplit;
+		string dot = "\t";
+		split(s, dot, &ssplit);
+		STTrajectory trajtmp;
+		int trajid = atoi(ssplit.at(1).c_str());
+		trajtmp.sttraj_id = trajid;// trajdict is ok 2
+								   //int indexofpointdb = atoi(ssplit.at(0).c_str());
+
+								   // debug: 逻辑错误 split自定义函数考虑不完全 末尾有 dot 需要 -1 行尾有 \t\n!!!
+		for (int i = 2; i < ssplit.size() - 1; i++) { // BUG here: -1 \n 占一位所以减一 否则vector越界
+			int pointID = atoi(ssplit.at(i).c_str());
+			trajtmp.traj_of_stpoint_id.push_back(pointID);
+
+			// here 更新 STPoint::belongtraj
+			pointdb.at(pointID).belongtraj.push_back(trajid);
+		}
+		trajtmp.traj_length = trajtmp.traj_of_stpoint_id.size();
+		if (maxlen < trajtmp.traj_length) {
+			maxlen = trajtmp.traj_length;
+		}
+
+		trajdb.push_back(trajtmp);
+	}
+	cout << "maxtrajetory len= " << maxlen << endl;
+	cout << "TrajDBpointsID reading finished" << endl;
+	fin.close();
+}
+
+void Preprocess::ReadTrajDBPointV2(vector<STTrajectory> &trajdb, vector<STPoint> &pointdb) {
 
 	for (vector<STTrajectory>::iterator it = trajdb.begin(); it != trajdb.end(); it++) {
 		(*it).GettingSTPointOnpointID(pointdb);

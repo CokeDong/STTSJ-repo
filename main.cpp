@@ -52,7 +52,7 @@ int main() {
 	// slow time-consuming for large # of points and traj
 	// 引用传递 比指针传递 更简单
 
-	// 已验证 无问题！！
+	// 已验证 无问题！！but too slow!! -> stringstream v.s. string, no big difference!!
 	pp.ReadPointDBLL(pointDB, "./NY/VenuesExtc.txt");
 	pp.ReadPointDBKeyword(pointDB, "./NY/tfidf.txt");
 	pp.ReadTrajDBPointID(trajDB, "./NY/TrajExtc.txt", pointDB);
@@ -110,13 +110,13 @@ int main() {
 
 
 
-
+	/*
 	printf("***** 1-gpu fine *****\n");
 	vector<trajPair> resultpairfinegpu;
 	vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
-	
+	*/
 	
 
 
@@ -128,7 +128,11 @@ int main() {
 	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
 
 	
-
+	printf("***** 1-gpu V3 fine *****\n");
+	vector<trajPair> resultpairfinegpu3;
+	vector<float> resultvaluefinegpu3;
+	grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
+	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 
 
 	//sleep(10);
