@@ -74,6 +74,7 @@ int main() {
 	printf("***** 1-cpu *****\n");
 	vector<trajPair> resultpaircpu;
 	vector<float> resultvaluecpu;
+	// for equality, we have to padding for CPU?? -----> no need!!
 	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 
 
@@ -133,6 +134,13 @@ int main() {
 	vector<float> resultvaluefinegpu3;
 	grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
+
+
+	printf("***** 1-gpu V4 fine cusparse *****\n");
+	vector<trajPair> resultpairfinegpu4;
+	vector<float> resultvaluefinegpu4;
+	grid.joinExhaustedGPUV4(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4);
+	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu4, resultvaluefinegpu4);
 
 
 	//sleep(10);

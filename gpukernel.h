@@ -34,3 +34,7 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 void STSimilarityJoinCalcGPUV3(vector<STTrajectory> &trajSetP,
 	vector<STTrajectory> &trajSetQ,
 	vector<float> &result);
+
+void STSimilarityJoinCalcGPUV4(vector<STTrajectory> &trajSetP,
+	vector<STTrajectory> &trajSetQ,
+	vector<float> &result);

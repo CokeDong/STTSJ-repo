@@ -145,21 +145,43 @@ typedef struct Latlon {
 // every task of GPU has a StatInfoTable
 // 16 bytes now
 typedef struct StatInfoTable {
+	
 	int latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block) in GPU, accumulated
-	int pointNumP, pointNumQ; // # of points in each traj
+	
+	int pointNumP, pointNumQ; // # of points in each traj, excluding padding!  -->> the significance of padding may not that big!
 
-	
-	//int textNumP, textNumQ; // total # word in each traj
-	
+
+	int keycntP, keycntQ; // # of total keywords in each traj, including padding, not-accumulated
+						  // # of word in each traj, similar to int pointNumP, pointNumQ; // # of points in each traj
+
+
 	// only used in kernel-V2
-	int textIdxP, textIdxQ; // starting position of text data for each task / block, accumulated
+	int textIdxP, textIdxQ; // starting position of text data for each traj (each task / block), accumulated
 
 	// used in kernel-V2 + kernel-V3
 	size_t keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block, accumulated
-	int keycntP, keycntQ; // # of total keywords in each traj, including padding, not-accumulated
+	
+	
 	
 	//int padding;?
-	int keycntPnoPadding, keycntQnoPadding;
+	//int keycntPnoPadding, keycntQnoPadding;
 	
 
 }StatInfoTable;
+
+
+
+typedef struct TrajStatTable {
+
+	// only to Traj, common attributes
+	int latlonIdx;
+	int pointNum;
+	int keycnt;
+	int textIdx;
+
+	// for the input para. of Ccusparse<t>csrgemm
+	size_t csrRowPtrIdx, csrColIndIdx, csrValIdx; // only for v4
+	size_t nnz;
+	int row, col;
+
+}TrajStatTable;
