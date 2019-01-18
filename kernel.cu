@@ -2166,7 +2166,7 @@ All functions of CPU are defined here.
 
 inline void CUDAwarmUp() {
 	CUDA_CALL(cudaSetDeviceFlags(cudaDeviceMapHost)); // zero-copy mem
-	CUDA_CALL(cudaSetDevice1(1)); // GPU-0
+	CUDA_CALL(cudaSetDevice(1)); // GPU-0
 	if(DUALGPU) CUDA_CALL(cudaSetDevice(1)); // GPU-1
 }
 
