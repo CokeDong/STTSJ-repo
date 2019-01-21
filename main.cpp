@@ -64,19 +64,19 @@ int main() {
 	vector<float> resultvalue;
 
 	// 频繁调参使用变量！！
-	int SIZE = 16; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 64; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
 
 	
-
+	/*
 	printf("***** 1-cpu *****\n");
 	vector<trajPair> resultpaircpu;
 	vector<float> resultvaluecpu;
 	// for equality, we have to padding for CPU?? -----> no need!!
 	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
-
+	*/
 
 	/*
 	printf("***** mul-cpu full *****\n");
@@ -92,13 +92,13 @@ int main() {
 	
 	
 
-	
+	/*
 	printf("***** 1-gpu coarse *****\n");
 	vector<trajPair> resultpaircoarsegpu;
 	vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
-	
+	*/
 
 
 	//// this is worse than Zero Copy, but very very tiny
@@ -129,11 +129,14 @@ int main() {
 	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
 
 	
+	/*
 	printf("***** 1-gpu V3 fine *****\n");
 	vector<trajPair> resultpairfinegpu3;
 	vector<float> resultvaluefinegpu3;
 	grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
+	*/
+
 
 
 	printf("***** 1-gpu V4 fine cusparse *****\n");
@@ -141,6 +144,7 @@ int main() {
 	vector<float> resultvaluefinegpu4;
 	grid.joinExhaustedGPUV4(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu4, resultvaluefinegpu4);
+
 
 
 	//sleep(10);

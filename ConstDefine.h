@@ -161,7 +161,8 @@ typedef struct StatInfoTable {
 	// used in kernel-V2 + kernel-V3
 	size_t keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block, accumulated
 	
-	
+	// for v4
+	size_t DensepqIdx; // Id ~= Idx
 	
 	//int padding;?
 	//int keycntPnoPadding, keycntQnoPadding;
@@ -179,7 +180,7 @@ typedef struct TrajStatTable {
 	int keycnt;
 	int textIdx;
 
-	// for the input para. of Ccusparse<t>csrgemm
+	// for the input para. of Ccusparse<t>csrgemm for qkq ppk
 	size_t csrRowPtrIdx, csrColIndIdx, csrValIdx; // only for v4
 	size_t nnz;
 	int row, col;
