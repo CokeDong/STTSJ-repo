@@ -1,11 +1,11 @@
 #include "STTrajectory.h"
 
+using namespace std;
 
-
-void STTrajectory::GettingSTPointOnpointID(vector<STPoint> &pointdb) {
+void STTrajectory::GettingSTPointOnpointID(std::vector<STPoint> &pointdb) {
 
 	//for_each(traj_of_stpoint_id.cbegin(), traj_of_stpoint_id.cend(), ?);
-	for (vector<int>::iterator it = traj_of_stpoint_id.begin(); it != traj_of_stpoint_id.end(); it++) {
+	for (std::vector<int>::iterator it = traj_of_stpoint_id.begin(); it != traj_of_stpoint_id.end(); it++) {
 		traj_of_stpoint.push_back(pointdb.at(*it));
 	}
 	

@@ -3,16 +3,18 @@
 
 //extern float calculateDistance(float LatA, float LonA, float LatB, float LonB); 
 
+using namespace std;
+
 // 数据成员初始化是在进入构造函数之前完成的
 //STPoint::STPoint() {
 //	lat = 0;
 //	lon = 0;
 //	stpoint_id = 0;
 //
-//	vector<Keywordtuple> kwtmp;
+//	std::vector<Keywordtuple> kwtmp;
 //	keywords = kwtmp;
 //
-//	vector<int> bjtmp;
+//	std::vector<int> bjtmp;
 //	belongtraj = bjtmp;
 //
 //}

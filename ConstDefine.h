@@ -16,6 +16,7 @@
 #include <string>
 #include <cstdlib>
 
+
 #ifdef WIN32
 #include "WinTimer.h"
 #else
@@ -40,7 +41,7 @@
 // way2: #include "util.h" / main中引用
 // 编译不通过 : makefile没更新
 
-using namespace std;
+//using namespace std;
 
 //#define DIS_SIM_RESULT
 
@@ -132,7 +133,7 @@ typedef struct Pointtuple {
 	float keywordvalue;
 }Pointtuple;
 
-typedef pair<size_t, size_t> trajPair; // very smart 定义数据结构
+typedef std::pair<size_t, size_t> trajPair; // very smart 定义数据结构
 
 
 // 8 bytes [* 4 = 32 bytes(L2 Cache)]

@@ -4,7 +4,7 @@
 #include "STPoint.h"
 
 
-using namespace std;
+//using namespace std;
 
 
 // 仅仅是 host 声明，方便其他cpp中调用
@@ -15,26 +15,26 @@ void* GPUMalloc(size_t byteNum);
 */
 
 
-void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result);
+void STSimilarityJoinCalcGPU(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result);
 
-void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
+void STSimilarityJoinCalcGPUNoZeroCopy(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
 	float *result);
 
-void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result);
+void STSimilarityJoinCalcGPUV2(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result);
 
-void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result);
+void STSimilarityJoinCalcGPUV2p1(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result);
 
-void STSimilarityJoinCalcGPUV3(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result);
+void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result);
 
-void STSimilarityJoinCalcGPUV4(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result);
+void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result);

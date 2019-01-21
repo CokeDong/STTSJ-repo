@@ -11,7 +11,7 @@
 #include <string>
 #include <cstdlib>
 
-using namespace std;
+//using namespace std;
 
 
 #pragma once
@@ -19,11 +19,11 @@ using namespace std;
 // only simple fuction, no while, no switch, no recursion
 float calculateDistance(float LatA, float LonA, float LatB, float LonB); // Question: 内联函数如何实现？
 
-void split(string s, string delim, vector<string>* ret);
-void split2(string s, string delim, vector<string>* ret);
-void split3(string s, string delim, vector<string>* ret);
+void split(std::string s, std::string delim, std::vector<std::string>* ret);
+void split2(std::string s, std::string delim, std::vector<std::string>* ret);
+void split3(std::string s, std::string delim, std::vector<std::string>* ret);
 
-void GetSample(vector<size_t> &taskSet1, vector<size_t> &taskSet2, int sizeP, int sizeQ);
+void GetSample(std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int sizeP, int sizeQ);
 
 // this is a wrong coding!! -> stupid!
 //template<class T>

@@ -4,13 +4,15 @@
 #include "ConstDefine.h"
 #include "gpukernel.h"
 
-class STGrid {
+//using namespace std;
 
+class STGrid {
+	
 public:
 	// 整个 grid 的调控 在这里进行全局调用 处理 CPU GPU 类似 GAT really good? may be not, what real project looks like?
 	// really in this way. must done before 7/17
 
-	vector<STTrajectory> dataPtr; // 小技巧：引入引用/指针 一次初始化后便不需要每次都把vector<STTrajectory> trajDB 作为参数 简化程序
+	std::vector<STTrajectory> dataPtr; // 小技巧：引入引用/指针 一次初始化后便不需要每次都把std::vector<STTrajectory> trajDB 作为参数 简化程序
 	
 	
 
@@ -18,7 +20,7 @@ public:
 
 
 	// functions started here
-	void init(const vector<STTrajectory> &dptr);
+	void init(const std::vector<STTrajectory> &dptr);
 
 
 
@@ -44,12 +46,12 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
 
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 
 	// no filter and verification here
@@ -59,12 +61,12 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
 
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 
 	// only for test
@@ -73,13 +75,13 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue,
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue,
 
 		int threadnum
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 
 	void STSimilarityJoinCalcCPU(
@@ -87,9 +89,9 @@ public:
 		//float alpha,
 		const STTrajectory &T1,
 		const STTrajectory &T2,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
 	);
 
 	// const 多线程考虑
@@ -111,35 +113,35 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
 
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 	void joinExhaustedGPUNZC(
 		//float epsilon,
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
 
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 	void joinExhaustedGPUV2(
 		//float epsilon,
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 
 
@@ -148,11 +150,11 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 
 	void joinExhaustedGPUV3(
@@ -160,11 +162,11 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 
 
@@ -173,15 +175,15 @@ public:
 		//float alpha,
 		int sizeP,
 		int sizeQ,
-		//map<trajPair, float>& result
-		vector<trajPair>& resultpair,
-		vector<float>& resultvalue
-		//vector<STTrajectory> &P,
-		//vector<STTrajectory> &Q
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
 	);
 
 	// 类内定义的成员方法，编译器会将其优先编译成内联函数，这里没采用
-	void GetTaskPair(vector<size_t> &taskp, vector<size_t> &taskq, vector<trajPair> &resultpair);
+	void GetTaskPair(std::vector<size_t> &taskp, std::vector<size_t> &taskq, std::vector<trajPair> &resultpair);
 
 protected:
 

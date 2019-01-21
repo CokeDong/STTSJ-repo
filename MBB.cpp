@@ -1,6 +1,6 @@
 #include "MBB.h"
 
-using namespace std;
+//using namespace std;
 // for test
 
 //MBB::MBB()

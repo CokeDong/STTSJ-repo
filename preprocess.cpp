@@ -3,9 +3,9 @@
 #include<sstream>
 
 
-//extern void split(string s, string delim, vector<string>* ret);
+//extern void split(std::string s, std::string delim, std::vector<std::string>* ret);
 
-
+using namespace std;
 
 /*
 数据说明：
@@ -15,7 +15,7 @@
 
 
 // this EXTRC is foooooooooooool 直接在python上读取一次即可！！ 
-void Preprocess::VenuesExtraction(string fileName,string outFileName) {
+void Preprocess::VenuesExtraction(std::string fileName,std::string outFileName) {
 	fin.open(fileName);
 	fout.open(outFileName);
 	if ( ! fin.is_open())
@@ -23,22 +23,22 @@ void Preprocess::VenuesExtraction(string fileName,string outFileName) {
 		cout << "Error opening file";
 		exit(1);
 	}
-	string linestr;
+	std::string linestr;
 	//int linecnt = 1; // 行数
 	int linecnt = 0; // 数组
 	while  (getline(fin,linestr))
 	{
-		string s = linestr;
-		vector<string> ssplit;
-		string dot = "\t";
+		std::string s = linestr;
+		std::vector<std::string> ssplit;
+		std::string dot = "\t";
 		split(s, dot, &ssplit);
-		//for (vector<string>::iterator it = ssplit.begin(); it != ssplit.end(); it++) {					
+		//for (std::vector<std::string>::iterator it = ssplit.begin(); it != ssplit.end(); it++) {					
 		//}
-		string vid = *ssplit.begin();
-		string name = vid.substr(1, vid.length() - 2);
+		std::string vid = *ssplit.begin();
+		std::string name = vid.substr(1, vid.length() - 2);
 		venuesdict[name] = linecnt++;
-		string vlati = *(ssplit.begin() + 2);
-		string vlong = *(ssplit.begin() + 3);
+		std::string vlati = *(ssplit.begin() + 2);
+		std::string vlong = *(ssplit.begin() + 3);
 		fout << name <<'\t'<< venuesdict[name] <<'\t'<<vlati<<'\t'<<vlong<<endl;
 		//fout << venuesdict[name] << '\t' << vlati << '\t' << vlong << endl;
 	}
@@ -47,7 +47,7 @@ void Preprocess::VenuesExtraction(string fileName,string outFileName) {
 }
 
 
-void Preprocess::TipsExtraction(string fileName) {
+void Preprocess::TipsExtraction(std::string fileName) {
 	
 	
 	//fin.open(fileName);
@@ -57,22 +57,22 @@ void Preprocess::TipsExtraction(string fileName) {
 	//	cout << "Error opening file";
 	//	exit(1);
 	//}
-	//string linestr;
+	//std::string linestr;
 	//while (getline(fin, linestr))
 	//{
-	//	string s = linestr;
-	//	vector<string> ssplit;
-	//	string dot = "\t";
+	//	std::string s = linestr;
+	//	std::vector<std::string> ssplit;
+	//	std::string dot = "\t";
 	//	split(s, dot, &ssplit);
-	//	//for (vector<string>::iterator it = ssplit.begin(); it != ssplit.end(); it++) {					
+	//	//for (std::vector<std::string>::iterator it = ssplit.begin(); it != ssplit.end(); it++) {					
 	//	//}
 	//	fout << ssplit.at(0) << '\t';
 	//	for (int i = 1; i < ssplit.size(); i++) {
-	//		string vid = ssplit.at(i);
-	//		string name = vid.substr(1, vid.length() - 2);
+	//		std::string vid = ssplit.at(i);
+	//		std::string name = vid.substr(1, vid.length() - 2);
 	//		fout << name << '\t';
 	//		i += 2;
-	//		string tip = ssplit.at(i);
+	//		std::string tip = ssplit.at(i);
 	//		fout << tip.substr(1, tip.length() - 2) << '\t';
 	//		i += 4;
 	//		int num = atoi(ssplit.at(i).c_str());
@@ -95,17 +95,17 @@ void Preprocess::TipsExtraction(string fileName) {
 		exit(1);
 	}
 
-	map<string, vector<string>> venuescorpus; // venuesname alltips
+	std::map<std::string, std::vector<std::string>> venuescorpus; // venuesname alltips
 
-	string linestr;
+	std::string linestr;
 	int linecnt = 0;
 	while (getline(fin, linestr))
 	{
-		string s = linestr;
-		vector<string> ssplit;
-		string dot = "\t";
+		std::string s = linestr;
+		std::vector<std::string> ssplit;
+		std::string dot = "\t";
 		split(s, dot, &ssplit);
-		//for (vector<string>::iterator it = ssplit.begin(); it != ssplit.end(); it++) {					
+		//for (std::vector<std::string>::iterator it = ssplit.begin(); it != ssplit.end(); it++) {					
 		//}
 		//fout << ssplit.at(0) << '\t';
 
@@ -115,12 +115,12 @@ void Preprocess::TipsExtraction(string fileName) {
 		fout << ssplit.at(0) << '\t';
 		fout << trajdict[ssplit.at(0)] << '\t';
 		for (int i = 1; i < ssplit.size(); i++) {
-			string vid = ssplit.at(i);
-			string name = vid.substr(1, vid.length() - 2);
+			std::string vid = ssplit.at(i);
+			std::string name = vid.substr(1, vid.length() - 2);
 			fout << venuesdict[name] << '\t';
 			i += 2;
 			if (ssplit.at(i).compare("0") == 0) i += 1; // 后尾数据 some 异常
-			string tip = ssplit.at(i);
+			std::string tip = ssplit.at(i);
 			//fout << tip.substr(1, tip.length() - 2) << '\t';
 			venuescorpus[name].push_back(tip.substr(1, tip.length() - 2)); // save results to parameter before write into file
 			i += 4;
@@ -143,25 +143,25 @@ void Preprocess::TipsExtraction(string fileName) {
 		exit(1);
 	}
 
-	//map<string, vector<string>> venuescorpus; // venuesname alltips
-	////map<string, vector<string>> venueskeywords;// venuesname venueskeyword
+	//std::map<std::string, std::vector<std::string>> venuescorpus; // venuesname alltips
+	////std::map<std::string, std::vector<std::string>> venueskeywords;// venuesname venueskeyword
 
 	//while (getline(fin, linestr))
 	//{
-	//	string s = linestr;
-	//	vector<string> ssplit;
-	//	string dot = "\t";
+	//	std::string s = linestr;
+	//	std::vector<std::string> ssplit;
+	//	std::string dot = "\t";
 	//	split(s, dot, &ssplit);
-	//	//for (vector<string>::iterator it = ssplit.begin(); it != ssplit.end(); it++) {					
+	//	//for (std::vector<std::string>::iterator it = ssplit.begin(); it != ssplit.end(); it++) {					
 	//	//}
 	//	//fout << ssplit.at(0) << '\t';
 	//	for (int i = 1; i < ssplit.size(); i++) {
-	//		string vid = ssplit.at(i);
-	//		string name = vid.substr(1, vid.length() - 2);
+	//		std::string vid = ssplit.at(i);
+	//		std::string name = vid.substr(1, vid.length() - 2);
 	//		//fout << name << '\t';
 	//		i += 2;
 	//		if (ssplit.at(i).compare("0") == 0) i += 1;
-	//		string tip = ssplit.at(i);
+	//		std::string tip = ssplit.at(i);
 	//		//fout << tip.substr(1, tip.length() - 2) << '\n';
 	//		venuescorpus[name].push_back(tip.substr(1, tip.length() - 2));
 	//		i += 4;
@@ -172,9 +172,9 @@ void Preprocess::TipsExtraction(string fileName) {
 	//}
 
 	// save corpus
-	for (map<string, vector<string>>::iterator it = venuescorpus.begin(); it != venuescorpus.end(); it++) {
+	for (std::map<std::string, std::vector<std::string>>::iterator it = venuescorpus.begin(); it != venuescorpus.end(); it++) {
 		fout << it->first << '\t' << venuesdict[it->first] << '\t'<< it->second.size()<<'\t';
-		for (vector<string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+		for (std::vector<std::string>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++) {
 			fout << *it2 << '\t';
 		}
 		fout << endl;
@@ -189,7 +189,7 @@ void Preprocess::TipsExtraction(string fileName) {
 
 
 
-void Preprocess::ReadPointDBLL(vector<STPoint> &pointdb, string fileName) {
+void Preprocess::ReadPointDBLL(std::vector<STPoint> &pointdb, std::string fileName) {
 
 	fin.open(fileName);
 	if (!fin.is_open())
@@ -197,12 +197,12 @@ void Preprocess::ReadPointDBLL(vector<STPoint> &pointdb, string fileName) {
 		cout << "Error opening file";
 		exit(1);
 	}
-	string linestr;
+	std::string linestr;
 	float latmax=-180, lonmax=-360, latmin=180, lonmin=360;
 	while (getline(fin,linestr)) {
-		string s = linestr;
-		vector<string> ssplit;
-		string dot = "\t";
+		std::string s = linestr;
+		std::vector<std::string> ssplit;
+		std::string dot = "\t";
 		split(s, dot, &ssplit);
 		STPoint stptmp;
 		stptmp.stpoint_id = atoi(ssplit.at(1).c_str()); // venuesdict is okay 2
@@ -221,7 +221,7 @@ void Preprocess::ReadPointDBLL(vector<STPoint> &pointdb, string fileName) {
 }
 
 
-void Preprocess::ReadPointDBKeyword(vector<STPoint> &pointdb, string fileName) {
+void Preprocess::ReadPointDBKeyword(std::vector<STPoint> &pointdb, std::string fileName) {
 
 	fin.open(fileName);
 	if (!fin.is_open())
@@ -230,13 +230,13 @@ void Preprocess::ReadPointDBKeyword(vector<STPoint> &pointdb, string fileName) {
 		exit(1);
 	}
 
-	string linestr;
+	std::string linestr;
 	int maxkeywordcnt = -1;
 	while (getline(fin, linestr)) {
 		//cout << "gettting here";
-		string s = linestr;
-		vector<string> ssplit;
-		string dot = "\t";
+		std::string s = linestr;
+		std::vector<std::string> ssplit;
+		std::string dot = "\t";
 		split(s, dot, &ssplit);
 		int indexofpointdb = atoi(ssplit.at(0).c_str());
 		//for (int i = 1; i < ssplit.size() - 1; i++) { // i < ssplit.size() - 1 
@@ -248,15 +248,15 @@ void Preprocess::ReadPointDBKeyword(vector<STPoint> &pointdb, string fileName) {
 		//}
 		//cout << ssplit.size() << endl;
 
-		// debug: 逻辑错误 行位 \t\n  -1 \n 占一位所以减一 否则vector越界
-		for (int i = 1; i < ssplit.size() - 1; i+=2) { //  GAP = 2 ！！！ BUG here: -1 \n 占一位所以减一 否则vector越界
+		// debug: 逻辑错误 行位 \t\n  -1 \n 占一位所以减一 否则std::vector越界
+		for (int i = 1; i < ssplit.size() - 1; i+=2) { //  GAP = 2 ！！！ BUG here: -1 \n 占一位所以减一 否则std::vector越界
 			Keywordtuple ktuple;
 			ktuple.keywordid = atoi(ssplit.at(i).c_str());
 			ktuple.keywordvalue = atof(ssplit.at(i+1).c_str()); // 注意下标越界
 			pointdb.at(indexofpointdb).keywords.push_back(ktuple);
 			//i++;
 		}
-		// vector.size() 的返回值类型是size_type(int) !!
+		// std::vector.size() 的返回值类型是size_type(int) !!
 		if (maxkeywordcnt < (int)pointdb.at(indexofpointdb).keywords.size()) {
 			maxkeywordcnt = (int)pointdb.at(indexofpointdb).keywords.size();
 		}
@@ -268,7 +268,7 @@ void Preprocess::ReadPointDBKeyword(vector<STPoint> &pointdb, string fileName) {
 }
 
 
-void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName,vector<STPoint> &pointdb) {
+void Preprocess::ReadTrajDBPointID(std::vector<STTrajectory> &trajdb, std::string fileName,std::vector<STPoint> &pointdb) {
 
 	fin.open(fileName);
 	if (!fin.is_open())
@@ -276,14 +276,14 @@ void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName
 		cout << "Error opening file";
 		exit(1);
 	}
-	string linestr;
+	std::string linestr;
 	int linecnt = 0;
 	int maxlen = -1;
 	while (getline(fin, linestr)) {
 
-		string s = linestr;
-		vector<string> ssplit;
-		string dot = "\t";
+		std::string s = linestr;
+		std::vector<std::string> ssplit;
+		std::string dot = "\t";
 		split(s, dot, &ssplit);
 		STTrajectory trajtmp;
 		int trajid = atoi(ssplit.at(1).c_str());
@@ -291,7 +291,7 @@ void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName
 		//int indexofpointdb = atoi(ssplit.at(0).c_str());
 		 
 		// debug: 逻辑错误 split自定义函数考虑不完全 末尾有 dot 需要 -1 行尾有 \t\n!!!
-		for (int i = 2; i < ssplit.size()-1; i++) { // BUG here: -1 \n 占一位所以减一 否则vector越界
+		for (int i = 2; i < ssplit.size()-1; i++) { // BUG here: -1 \n 占一位所以减一 否则std::vector越界
 			int pointID = atoi(ssplit.at(i).c_str());
 			trajtmp.traj_of_stpoint_id.push_back(pointID);
 			
@@ -310,9 +310,9 @@ void Preprocess::ReadTrajDBPointID(vector<STTrajectory> &trajdb, string fileName
 	fin.close();
 }
 
-void Preprocess::ReadTrajDBPoint(vector<STTrajectory> &trajdb, vector<STPoint> &pointdb) {
+void Preprocess::ReadTrajDBPoint(std::vector<STTrajectory> &trajdb, std::vector<STPoint> &pointdb) {
 
-	for (vector<STTrajectory>::iterator it = trajdb.begin(); it != trajdb.end(); it++) {
+	for (std::vector<STTrajectory>::iterator it = trajdb.begin(); it != trajdb.end(); it++) {
 		(*it).GettingSTPointOnpointID(pointdb);
 	}
 	cout << "TrajDBPoints reading finished" << endl;
@@ -330,7 +330,7 @@ void Preprocess::ReadTrajDBPoint(vector<STTrajectory> &trajdb, vector<STPoint> &
 
 
 
-void Preprocess::ReadPointDBLLV2(vector<STPoint> &pointdb, string fileName) {
+void Preprocess::ReadPointDBLLV2(std::vector<STPoint> &pointdb, std::string fileName) {
 
 	fin.open(fileName);
 	if (!fin.is_open())
@@ -339,20 +339,20 @@ void Preprocess::ReadPointDBLLV2(vector<STPoint> &pointdb, string fileName) {
 		exit(1);
 	}
 
-	string buffer;
+	std::string buffer;
 	buffer.assign(istreambuf_iterator<char>(fin), istreambuf_iterator<char>());
 	stringstream bufferstream;
 	bufferstream.str(buffer);
 
 	// cannot see any improvement!
-	string linestr;
+	std::string linestr;
 
 	float latmax = -180, lonmax = -360, latmin = 180, lonmin = 360;
 	while (getline(bufferstream, linestr)) {
 	//while (getline(fin, linestr)) {
-		string s = linestr;
-		vector<string> ssplit;
-		string dot = "\t";
+		std::string s = linestr;
+		std::vector<std::string> ssplit;
+		std::string dot = "\t";
 		split(s, dot, &ssplit);
 		STPoint stptmp;
 		stptmp.stpoint_id = atoi(ssplit.at(1).c_str()); // venuesdict is okay 2
@@ -371,7 +371,7 @@ void Preprocess::ReadPointDBLLV2(vector<STPoint> &pointdb, string fileName) {
 }
 
 
-void Preprocess::ReadPointDBKeywordV2(vector<STPoint> &pointdb, string fileName) {
+void Preprocess::ReadPointDBKeywordV2(std::vector<STPoint> &pointdb, std::string fileName) {
 
 	fin.open(fileName);
 	if (!fin.is_open())
@@ -380,13 +380,13 @@ void Preprocess::ReadPointDBKeywordV2(vector<STPoint> &pointdb, string fileName)
 		exit(1);
 	}
 
-	string linestr;
+	std::string linestr;
 	int maxkeywordcnt = -1;
 	while (getline(fin, linestr)) {
 		//cout << "gettting here";
-		string s = linestr;
-		vector<string> ssplit;
-		string dot = "\t";
+		std::string s = linestr;
+		std::vector<std::string> ssplit;
+		std::string dot = "\t";
 		split(s, dot, &ssplit);
 		int indexofpointdb = atoi(ssplit.at(0).c_str());
 		//for (int i = 1; i < ssplit.size() - 1; i++) { // i < ssplit.size() - 1 
@@ -398,15 +398,15 @@ void Preprocess::ReadPointDBKeywordV2(vector<STPoint> &pointdb, string fileName)
 		//}
 		//cout << ssplit.size() << endl;
 
-		// debug: 逻辑错误 行位 \t\n  -1 \n 占一位所以减一 否则vector越界
-		for (int i = 1; i < ssplit.size() - 1; i += 2) { //  GAP = 2 ！！！ BUG here: -1 \n 占一位所以减一 否则vector越界
+		// debug: 逻辑错误 行位 \t\n  -1 \n 占一位所以减一 否则std::vector越界
+		for (int i = 1; i < ssplit.size() - 1; i += 2) { //  GAP = 2 ！！！ BUG here: -1 \n 占一位所以减一 否则std::vector越界
 			Keywordtuple ktuple;
 			ktuple.keywordid = atoi(ssplit.at(i).c_str());
 			ktuple.keywordvalue = atof(ssplit.at(i + 1).c_str()); // 注意下标越界
 			pointdb.at(indexofpointdb).keywords.push_back(ktuple);
 			//i++;
 		}
-		// vector.size() 的返回值类型是size_type(int) !!
+		// std::vector.size() 的返回值类型是size_type(int) !!
 		if (maxkeywordcnt < (int)pointdb.at(indexofpointdb).keywords.size()) {
 			maxkeywordcnt = (int)pointdb.at(indexofpointdb).keywords.size();
 		}
@@ -418,7 +418,7 @@ void Preprocess::ReadPointDBKeywordV2(vector<STPoint> &pointdb, string fileName)
 }
 
 
-void Preprocess::ReadTrajDBPointIDV2(vector<STTrajectory> &trajdb, string fileName, vector<STPoint> &pointdb) {
+void Preprocess::ReadTrajDBPointIDV2(std::vector<STTrajectory> &trajdb, std::string fileName, std::vector<STPoint> &pointdb) {
 
 	fin.open(fileName);
 	if (!fin.is_open())
@@ -426,14 +426,14 @@ void Preprocess::ReadTrajDBPointIDV2(vector<STTrajectory> &trajdb, string fileNa
 		cout << "Error opening file";
 		exit(1);
 	}
-	string linestr;
+	std::string linestr;
 	int linecnt = 0;
 	int maxlen = -1;
 	while (getline(fin, linestr)) {
 
-		string s = linestr;
-		vector<string> ssplit;
-		string dot = "\t";
+		std::string s = linestr;
+		std::vector<std::string> ssplit;
+		std::string dot = "\t";
 		split(s, dot, &ssplit);
 		STTrajectory trajtmp;
 		int trajid = atoi(ssplit.at(1).c_str());
@@ -441,7 +441,7 @@ void Preprocess::ReadTrajDBPointIDV2(vector<STTrajectory> &trajdb, string fileNa
 								   //int indexofpointdb = atoi(ssplit.at(0).c_str());
 
 								   // debug: 逻辑错误 split自定义函数考虑不完全 末尾有 dot 需要 -1 行尾有 \t\n!!!
-		for (int i = 2; i < ssplit.size() - 1; i++) { // BUG here: -1 \n 占一位所以减一 否则vector越界
+		for (int i = 2; i < ssplit.size() - 1; i++) { // BUG here: -1 \n 占一位所以减一 否则std::vector越界
 			int pointID = atoi(ssplit.at(i).c_str());
 			trajtmp.traj_of_stpoint_id.push_back(pointID);
 
@@ -460,9 +460,9 @@ void Preprocess::ReadTrajDBPointIDV2(vector<STTrajectory> &trajdb, string fileNa
 	fin.close();
 }
 
-void Preprocess::ReadTrajDBPointV2(vector<STTrajectory> &trajdb, vector<STPoint> &pointdb) {
+void Preprocess::ReadTrajDBPointV2(std::vector<STTrajectory> &trajdb, std::vector<STPoint> &pointdb) {
 
-	for (vector<STTrajectory>::iterator it = trajdb.begin(); it != trajdb.end(); it++) {
+	for (std::vector<STTrajectory>::iterator it = trajdb.begin(); it != trajdb.end(); it++) {
 		(*it).GettingSTPointOnpointID(pointdb);
 	}
 	cout << "TrajDBPoints reading finished" << endl;

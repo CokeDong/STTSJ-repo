@@ -7,26 +7,30 @@
 #include "test.h"
 #include "util.h"
 
+
 using namespace std;
 
-//extern void split2(string s, string delim, vector<string>* ret); // for test
-//extern void GetKeywords(vector<string>* keywords, vector<string>* corpus);
+
+//extern void split2(std::string s, std::string delim, std::vector<std::string>* ret); // for test
+//extern void GetKeywords(std::vector<std::string>* keywords, std::vector<std::string>* corpus);
 
 
 // global really good ?? why global? not global 跨文件使用 poor coding ? how to improve really have meaning ?
 // global is a poor choice!!
 
-//// vector push_back 全部比较慢
+//// std::vector push_back 全部比较慢
 //
-//vector<STPoint> pointDB; // only points in ram
-//vector<STTrajectory> trajDB; // still need
+//std::vector<STPoint> pointDB; // only points in ram
+//std::vector<STTrajectory> trajDB; // still need
 //
 //// for filtering 
-//vector<STInvertedList> invertedlist;
+//std::vector<STInvertedList> invertedlist;
 
-void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<trajPair> pairgpu, vector<float> valuegpu);
+void CheckSimResult(std::vector<trajPair> paircpu, std::vector<float> valuecpu, std::vector<trajPair> pairgpu, std::vector<float> valuegpu);
 
 int main() {
+
+	using namespace std;
 
 	cout << "hello world" << endl;
 	bool first = false;
@@ -41,27 +45,27 @@ int main() {
 	//test test;
 	//test.testfunc();
 
-	// vector push_back 全部比较慢 all into ram!!  & or * 传递
-	vector<STPoint> pointDB; // only points in ram
-	vector<STTrajectory> trajDB; // still need
+	// std::vector push_back 全部比较慢 all into ram!!  & or * 传递
+	std::vector<STPoint> pointDB; // only points in ram
+	std::vector<STTrajectory> trajDB; // still need
 
 	// for filtering 
-	vector<STInvertedList> invertedlist;
+	std::vector<STInvertedList> invertedlist;
 
 	// in this way only because of 预处理 2次 PointDB not good enough
 	// slow time-consuming for large # of points and traj
 	// 引用传递 比指针传递 更简单
 
-	// 已验证 无问题！！but too slow!! -> stringstream v.s. string, no big difference!!
+	// 已验证 无问题！！but too slow!! -> stringstream v.s. std::string, no big difference!!
 	pp.ReadPointDBLL(pointDB, "./NY/VenuesExtc.txt");
 	pp.ReadPointDBKeyword(pointDB, "./NY/tfidf.txt");
 	pp.ReadTrajDBPointID(trajDB, "./NY/TrajExtc.txt", pointDB);
 
 	pp.ReadTrajDBPoint(trajDB, pointDB);
 
-	//map<trajPair, float> result;
-	vector<trajPair> resultpair;
-	vector<float> resultvalue;
+	//std::map<trajPair, float> result;
+	std::vector<trajPair> resultpair;
+	std::vector<float> resultvalue;
 
 	// 频繁调参使用变量！！
 	int SIZE = 64; // this is good or gloabal parameter not #define? maybe more convenient
@@ -72,16 +76,16 @@ int main() {
 	
 	/*
 	printf("***** 1-cpu *****\n");
-	vector<trajPair> resultpaircpu;
-	vector<float> resultvaluecpu;
+	std::vector<trajPair> resultpaircpu;
+	std::vector<float> resultvaluecpu;
 	// for equality, we have to padding for CPU?? -----> no need!!
 	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 	*/
 
 	/*
 	printf("***** mul-cpu full *****\n");
-	vector<trajPair> resultpairmcpu;
-	vector<float> resultvaluemcpu;
+	std::vector<trajPair> resultpairmcpu;
+	std::vector<float> resultvaluemcpu;
 	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
 	*/
 
@@ -94,8 +98,8 @@ int main() {
 
 	/*
 	printf("***** 1-gpu coarse *****\n");
-	vector<trajPair> resultpaircoarsegpu;
-	vector<float> resultvaluecoarsegpu;
+	std::vector<trajPair> resultpaircoarsegpu;
+	std::vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	*/
@@ -103,8 +107,8 @@ int main() {
 
 	//// this is worse than Zero Copy, but very very tiny
 	//printf("***** 1-gpu coarse No Zero Copy*****\n");
-	//vector<trajPair> resultpaircoarsegpunzc;
-	//vector<float> resultvaluecoarsegpunzc;
+	//std::vector<trajPair> resultpaircoarsegpunzc;
+	//std::vector<float> resultvaluecoarsegpunzc;
 	//grid.joinExhaustedGPUNZC(SIZE, SIZE, resultpaircoarsegpunzc, resultvaluecoarsegpunzc);
 	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	
@@ -113,8 +117,8 @@ int main() {
 
 	/*
 	printf("***** 1-gpu fine *****\n");
-	vector<trajPair> resultpairfinegpu;
-	vector<float> resultvaluefinegpu;
+	std::vector<trajPair> resultpairfinegpu;
+	std::vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	*/
@@ -123,16 +127,16 @@ int main() {
 
 	//// not that important for performance improvement  -> 合并多个kernel
 	//printf("***** 1-gpu V2p1 fine *****\n");
-	//vector<trajPair> resultpairfinegpu2;
-	//vector<float> resultvaluefinegpu2;
+	//std::vector<trajPair> resultpairfinegpu2;
+	//std::vector<float> resultvaluefinegpu2;
 	//grid.joinExhaustedGPUV2p1(SIZE, SIZE, resultpairfinegpu2, resultvaluefinegpu2);
 	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
 
 	
 	/*
 	printf("***** 1-gpu V3 fine *****\n");
-	vector<trajPair> resultpairfinegpu3;
-	vector<float> resultvaluefinegpu3;
+	std::vector<trajPair> resultpairfinegpu3;
+	std::vector<float> resultvaluefinegpu3;
 	grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 	*/
@@ -140,8 +144,8 @@ int main() {
 
 
 	printf("***** 1-gpu V4 fine cusparse *****\n");
-	vector<trajPair> resultpairfinegpu4;
-	vector<float> resultvaluefinegpu4;
+	std::vector<trajPair> resultpairfinegpu4;
+	std::vector<float> resultvaluefinegpu4;
 	grid.joinExhaustedGPUV4(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu4, resultvaluefinegpu4);
 
@@ -159,7 +163,7 @@ int main() {
 }
 
 
-void CheckSimResult(vector<trajPair> paircpu, vector<float> valuecpu, vector<trajPair> pairgpu, vector<float> valuegpu) {
+void CheckSimResult(std::vector<trajPair> paircpu, std::vector<float> valuecpu, std::vector<trajPair> pairgpu, std::vector<float> valuegpu) {
 	
 	// fully output: #define EPSILON -1
 

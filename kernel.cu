@@ -4,12 +4,15 @@
 #include "device_launch_parameters.h"
 #include "ConstDefine.h"
 #include "gpukernel.h"
+
+
 //#include "util.h"
 
-#include <cusparse.h>
+#include "cusparse.h"
 
 
-using namespace std;
+//using namespace std;
+
 
 //#define CUDA_CALL(x) { const cudaError_t a = (x); if (a!= cudaSuccess) { printf("\nCUDA Error: %s(err_num=%d)\n", cudaGetErrorString(a), a); cudaDeviceReset(); assert(0);}}
 
@@ -2683,8 +2686,8 @@ void STSimPQCommonCPUPreProcess(void* latDataPGPU, void* latDataQGPU, void* lonD
 	void* stattableGPU, void* keypmqnMatrixGPU, void* keypmqMatrixGPU, void* keypqMatrixGPU, //float* SimResultGPU,
 	StatInfoTable* stattableCPU, void* gpuAddrPSet, void* gpuAddrQSet, void* gpuAddrStat, //float *SimResult,
 	//cudaEvent_t* memcpy_to_start, cudaEvent_t* kernel_start, cudaEvent_t* kernel_stop,
-	vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
+	std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
 	cudaStream_t* stream, // can or not? maybe this way is not allowed!
 	MyTimer* timer
 ) {
@@ -2726,22 +2729,22 @@ void STSimPQCommonCPUPreProcess(void* latDataPGPU, void* latDataQGPU, void* lonD
 
 	// build cpu data
 
-	//vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
-	vector<float> latDataPCPU, latDataQCPU; // lat array
-	vector<float> lonDataPCPU, lonDataQCPU; // lon array
+	//std::vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
+	std::vector<float> latDataPCPU, latDataQCPU; // lat array
+	std::vector<float> lonDataPCPU, lonDataQCPU; // lon array
 
-	//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+	//std::vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
 	// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
-	//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+	//std::vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 
-	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
-	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
-	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
-	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
+	std::vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	std::vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	std::vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	std::vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
 										  // for status info.
-	vector<int> keycntTrajP, keycntTrajQ;
-	//vector<int> pointcntTrajP, pointcntTrajQ;
+	std::vector<int> keycntTrajP, keycntTrajQ;
+	//std::vector<int> pointcntTrajP, pointcntTrajQ;
 
 	// 需要手动free!!
 	stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
@@ -3003,9 +3006,9 @@ void STSimPQCommonCPUFinalProcess() {
 }
 
 
-void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result) {
+void STSimilarityJoinCalcGPU(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result) {
 
 
 	/*
@@ -3090,22 +3093,22 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
 	// build cpu data
-	//vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
-	vector<float> latDataPCPU, latDataQCPU; // lat array
-	vector<float> lonDataPCPU, lonDataQCPU; // lon array
+	//std::vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
+	std::vector<float> latDataPCPU, latDataQCPU; // lat array
+	std::vector<float> lonDataPCPU, lonDataQCPU; // lon array
 
-	//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+	//std::vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
 													// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
-	//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+	//std::vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 	
-	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
-	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
-	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
-	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
+	std::vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	std::vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	std::vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	std::vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
 	// for status info.
-	vector<int> keycntTrajP, keycntTrajQ;
-	//vector<int> pointcntTrajP, pointcntTrajQ;
+	std::vector<int> keycntTrajP, keycntTrajQ;
+	//std::vector<int> pointcntTrajP, pointcntTrajQ;
 	
 	// 需要手动free!!
 	StatInfoTable* stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
@@ -3425,8 +3428,8 @@ void STSimilarityJoinCalcGPU(vector<STTrajectory> &trajSetP,
 }
 
 
-void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
+void STSimilarityJoinCalcGPUNoZeroCopy(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
 	float* result) {
 
 
@@ -3527,22 +3530,22 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
 	// build cpu data
-	//vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
-	vector<float> latDataPCPU, latDataQCPU; // lat array
-	vector<float> lonDataPCPU, lonDataQCPU; // lon array
+	//std::vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
+	std::vector<float> latDataPCPU, latDataQCPU; // lat array
+	std::vector<float> lonDataPCPU, lonDataQCPU; // lon array
 
-											//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+											//std::vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
 											// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
-											//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+											//std::vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 
-	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
-	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
-	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
-	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
+	std::vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	std::vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	std::vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	std::vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
 										  // for status info.
-	vector<int> keycntTrajP, keycntTrajQ;
-	//vector<int> pointcntTrajP, pointcntTrajQ;
+	std::vector<int> keycntTrajP, keycntTrajQ;
+	//std::vector<int> pointcntTrajP, pointcntTrajQ;
 
 	// 需要手动free!!
 	StatInfoTable* stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
@@ -3906,9 +3909,9 @@ void STSimilarityJoinCalcGPUNoZeroCopy(vector<STTrajectory> &trajSetP,
 
 
 
-void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result) {
+void STSimilarityJoinCalcGPUV2(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result) {
 
 
 	MyTimer timer;
@@ -3948,22 +3951,22 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
 	// build cpu data
-	//vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
-	vector<float> latDataPCPU, latDataQCPU; // lat array
-	vector<float> lonDataPCPU, lonDataQCPU; // lon array
+	//std::vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
+	std::vector<float> latDataPCPU, latDataQCPU; // lat array
+	std::vector<float> lonDataPCPU, lonDataQCPU; // lon array
 
-											//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+											//std::vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
 											// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
-											//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+											//std::vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 
-	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
-	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
-	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
-	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
+	std::vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	std::vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	std::vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	std::vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
 										  // for status info.
-	vector<int> keycntTrajP, keycntTrajQ;
-	//vector<int> pointcntTrajP, pointcntTrajQ;
+	std::vector<int> keycntTrajP, keycntTrajQ;
+	//std::vector<int> pointcntTrajP, pointcntTrajQ;
 
 	// 需要手动free!!
 	StatInfoTable* stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
@@ -4323,9 +4326,9 @@ void STSimilarityJoinCalcGPUV2(vector<STTrajectory> &trajSetP,
 
 
 
-void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result) {
+void STSimilarityJoinCalcGPUV2p1(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result) {
 
 	CUDAwarmUp();
 	/*
@@ -4365,22 +4368,22 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
 	// build cpu data
-	//vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
-	vector<float> latDataPCPU, latDataQCPU; // lat array
-	vector<float> lonDataPCPU, lonDataQCPU; // lon array
+	//std::vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
+	std::vector<float> latDataPCPU, latDataQCPU; // lat array
+	std::vector<float> lonDataPCPU, lonDataQCPU; // lon array
 
-											//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+											//std::vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
 											// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
-											//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+											//std::vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 
-	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
-	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
-	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
-	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
+	std::vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	std::vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	std::vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	std::vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
 										  // for status info.
-	vector<int> keycntTrajP, keycntTrajQ;
-	//vector<int> pointcntTrajP, pointcntTrajQ;
+	std::vector<int> keycntTrajP, keycntTrajQ;
+	//std::vector<int> pointcntTrajP, pointcntTrajQ;
 
 	// 需要手动free!!
 	StatInfoTable* stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
@@ -4740,9 +4743,9 @@ void STSimilarityJoinCalcGPUV2p1(vector<STTrajectory> &trajSetP,
 
 
 
-void STSimilarityJoinCalcGPUV3(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result) {
+void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result) {
 
 
 	MyTimer timer;
@@ -4784,22 +4787,22 @@ void STSimilarityJoinCalcGPUV3(vector<STTrajectory> &trajSetP,
 	size_t dataSizeP = trajSetP.size(), dataSizeQ = trajSetQ.size();
 
 	// build cpu data
-	//vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
-	vector<float> latDataPCPU, latDataQCPU; // lat array
-	vector<float> lonDataPCPU, lonDataQCPU; // lon array
+	//std::vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
+	std::vector<float> latDataPCPU, latDataQCPU; // lat array
+	std::vector<float> lonDataPCPU, lonDataQCPU; // lon array
 
-											//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+											//std::vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
 											// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
-											//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+											//std::vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 
-	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
-	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
-	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
-	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
+	std::vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	std::vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	std::vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	std::vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
 										  // for status info.
-	vector<int> keycntTrajP, keycntTrajQ;
-	//vector<int> pointcntTrajP, pointcntTrajQ;
+	std::vector<int> keycntTrajP, keycntTrajQ;
+	//std::vector<int> pointcntTrajP, pointcntTrajQ;
 
 	// 需要手动free!!
 	StatInfoTable* stattableCPU = (StatInfoTable*)malloc(sizeof(StatInfoTable)* dataSizeP * dataSizeQ);
@@ -5013,9 +5016,9 @@ void STSimilarityJoinCalcGPUV3(vector<STTrajectory> &trajSetP,
 	
 	//size_t statussum = 0; // no need
 
-	vector<int> stattableoffset; // store the pointer offset for stattableCPU for each round
+	std::vector<int> stattableoffset; // store the pointer offset for stattableCPU for each round
 	stattableoffset.push_back(0);
-	vector<size_t> pmqnidtable, pmqidtable, pqidtable; // store the total pmqn pmq pq for each round
+	std::vector<size_t> pmqnidtable, pmqidtable, pqidtable; // store the total pmqn pmq pq for each round
 
 	//pmqnidtable.push_back(0); // starting id !
 	//pmqidtable.push_back(0);
@@ -5243,9 +5246,9 @@ void STSimilarityJoinCalcGPUV3(vector<STTrajectory> &trajSetP,
 
 
 
-void STSimilarityJoinCalcGPUV4(vector<STTrajectory> &trajSetP,
-	vector<STTrajectory> &trajSetQ,
-	vector<float> &result) {
+void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result) {
 
 
 	MyTimer timer;
@@ -5289,24 +5292,24 @@ void STSimilarityJoinCalcGPUV4(vector<STTrajectory> &trajSetP,
 
 
 	// build cpu data
-	//vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
-	vector<float> latDataPCPU, latDataQCPU; // lat array
-	vector<float> lonDataPCPU, lonDataQCPU; // lon array
+	//std::vector<Latlon> latlonDataPCPU, latlonDataQCPU; // latlon array
+	std::vector<float> latDataPCPU, latDataQCPU; // lat array
+	std::vector<float> lonDataPCPU, lonDataQCPU; // lon array
 
-	//vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
+	//std::vector<int> latlonIdxPCPU, latlonIdxQCPU; // way1: starting id of latlon data for each traj (each task / block) 
 	// way2: void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024); -> StatInfoTable
-	//vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
+	//std::vector<int> latlonPointNumPCPU, latlonPointNumQCPU; // # of points in each traj -> StatInfoTable
 
-	vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
-	vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
+	std::vector<int> textIdxPCPU, textIdxQCPU; // starting id of text data for each point
+	std::vector<int> numWordPCPU, numWordQCPU; // keyword num in each point
 
-	vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
-	vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
+	std::vector<int> textDataPIndexCPU, textDataQIndexCPU; // keyword Index array
+	std::vector<float> textDataPValueCPU, textDataQValueCPU; // keyword Value array
 	
 	// for status info.  -> can be merged into StatInfoTable* stattableCPU !!
-	vector<int> keycntTrajP, keycntTrajQ; // keycnt each traj
+	std::vector<int> keycntTrajP, keycntTrajQ; // keycnt each traj
 
-	//vector<int> pointcntTrajP, pointcntTrajQ;
+	//std::vector<int> pointcntTrajP, pointcntTrajQ;
 
 
 	// 需要手动free!!
@@ -5315,13 +5318,13 @@ void STSimilarityJoinCalcGPUV4(vector<STTrajectory> &trajSetP,
 
 
 	// sparse matrix data
-	vector<int> qkqcsrRowPtr;
-	vector<int> qkqcsrColInd;
-	vector<float> qkqcsrVal;
+	std::vector<int> qkqcsrRowPtr;
+	std::vector<int> qkqcsrColInd;
+	std::vector<float> qkqcsrVal;
 
-	vector<int> ppkcsrRowPtr;
-	vector<int> ppkcsrColInd;
-	vector<float> ppkcsrVal;
+	std::vector<int> ppkcsrRowPtr;
+	std::vector<int> ppkcsrColInd;
+	std::vector<float> ppkcsrVal;
 
 
 
@@ -5335,13 +5338,13 @@ void STSimilarityJoinCalcGPUV4(vector<STTrajectory> &trajSetP,
 
 	// for moving gpu pointer!  -------> maybe better to define: TrajStatTable! as above, for better code organization
 	// can be aborted! as we have trajPStattable trajQStattable now!
-	vector<size_t> qkqcsrRowPtrIdx;
-	vector<size_t> qkqcsrColIndIdx;
-	vector<size_t> qkqcsrValIdx;
+	std::vector<size_t> qkqcsrRowPtrIdx;
+	std::vector<size_t> qkqcsrColIndIdx;
+	std::vector<size_t> qkqcsrValIdx;
 
-	vector<size_t> ppkcsrRowPtrIdx;
-	vector<size_t> ppkcsrColIndIdx;
-	vector<size_t> ppkcsrValIdx;
+	std::vector<size_t> ppkcsrRowPtrIdx;
+	std::vector<size_t> ppkcsrColIndIdx;
+	std::vector<size_t> ppkcsrValIdx;
 
 	
 
@@ -5990,9 +5993,9 @@ void STSimilarityJoinCalcGPUV4(vector<STTrajectory> &trajSetP,
 	//// pre-order for status info.
 	//size_t pmqnid = 0, pmqid = 0, pqid = 0;
 	////size_t statussum = 0; // no need
-	//vector<int> stattableoffset; // store the pointer offset for stattableCPU for each round
+	//std::vector<int> stattableoffset; // store the pointer offset for stattableCPU for each round
 	//stattableoffset.push_back(0);
-	//vector<size_t> pmqnidtable, pmqidtable, pqidtable; // store the total pmqn pmq pq for each round
+	//std::vector<size_t> pmqnidtable, pmqidtable, pqidtable; // store the total pmqn pmq pq for each round
 
 	////pmqnidtable.push_back(0); // starting id !
 	////pmqidtable.push_back(0);
@@ -6353,7 +6356,7 @@ cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size)
         goto Error;
     }
 
-    // Copy output vector from GPU buffer to host memory.
+    // Copy output std::vector from GPU buffer to host memory.
     cudaStatus = cudaMemcpy(c, dev_c, size * sizeof(int), cudaMemcpyDeviceToHost);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");

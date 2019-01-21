@@ -55,7 +55,7 @@ all: CUDASTTSJ
 
 CUDASTTSJ: $(OBJECTS) $(CUDA)
 
-	$(CUDACC) $(CUDAFLAGS) -o CUDASTTSJ -L/usr/local/cuda/lib64 -lcuda $(OBJECTS) $(CUDA) $(USRLIB) $(SYSLIBS)
+	$(CUDACC) $(CUDAFLAGS) -o CUDASTTSJ -L/usr/local/cuda/lib64 -lcusparse -lcuda $(OBJECTS) $(CUDA) $(USRLIB) $(SYSLIBS)
 
 CUDASTTSJ_CPP.o: main.cpp
 

@@ -6,7 +6,7 @@
 
 
 
-using namespace std;
+//using namespace std;
 
 
 
@@ -25,12 +25,12 @@ public:
 	// seems better
 	int stpoint_id; // this is ID , only identity of point = index of stpointDB
 	
-	//vector<string> keyeords; 
-	//vector<int> keywords_id;
-	vector<Keywordtuple> keywords; // int: ID of keywords: value of TF-IDF ,may have more than one keywords
+	//std::vector<std::string> keyeords; 
+	//std::vector<int> keywords_id;
+	std::vector<Keywordtuple> keywords; // int: ID of keywords: value of TF-IDF ,may have more than one keywords
 										// turple makes things hard a little bit, we use Keywordtuple struct
 
-	vector<int> belongtraj; // int: ID of traj having this point, may have more than one trajs
+	std::vector<int> belongtraj; // int: ID of traj having this point, may have more than one trajs
 						
 	// if help GPU? may be easy to use on CPU
 
