@@ -5779,9 +5779,10 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//tmppmqcsrValGPU = (float*)pnow;
 	//pnow = (void*)((int*)pnow + MAX_LEN * MAX_POINT * MAX_POINT);
 
-
-	if (max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj *4.0 / 1024 / 1024 / 1024 * 6 > gpuStat*1.0) {
+	// *2 is okay, as the big max_totalkeyword_a_single_traj has dominance of mem!
+	if (max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj *4.0 / 1024 / 1024 / 1024 * 1.5 > gpuStat*1.0) {
 		printf("****** too big mem! QUIT ABNORMAL \n");
+		assert(-1);
 		return;
 	}
 
@@ -5864,16 +5865,24 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	CUSPARSE_CALL(cusparseStat = cusparseCreateMatDescr(&DensepqDescr));
 
 
-	//if (i == 0 && j == 0) {
-		timer.stop();
-		printf("CPU  processing time: %f s\n", timer.elapse()); // data pre-processing on CPU
-		timer.start();
-		CUDA_CALL(cudaEventRecord(kernel_start, stream));
-	//}
+	////if (i == 0 && j == 0) {
+	//	timer.stop();
+	//	printf("CPU  processing time: %f s\n", timer.elapse()); // data pre-processing on CPU
+	//	timer.start();
+	//	CUDA_CALL(cudaEventRecord(kernel_start, stream));
+	////}
 
 
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
+
+
+			if (i == 0 && j == 0) {
+				timer.stop();
+				printf("CPU  processing time: %f s\n", timer.elapse()); // data pre-processing on CPU
+				timer.start();
+				CUDA_CALL(cudaEventRecord(kernel_start, stream));
+			}
 
 			
 			StatInfoTable statinfo = stattableCPU[i*dataSizeQ + j];
@@ -5946,9 +5955,13 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			CUSPARSE_CALL(cusparseScsr2dense(cusparseH, pointNumP, pointNumQ, DensepqDescr,
 				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + DensepqIdx, pointNumP));
 
+			if (i == trajSetP.size() - 1 && j == trajSetQ.size() - 1) {
+				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+			}
 
 			//CUDA_CALL(cudaDeviceSynchronize());
 			// for tmp-mem usage, we must wait here !!
+
 			CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
 
 		}
@@ -5975,18 +5988,19 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
 		);
 
+	
+	//CUDA_CALL(cudaEventRecord(kernel_stop2, stream));
 
-
-	// why must here?  --> because if (i == 0 && j == 0) is in the loop? maybe, we can have a try
-	//if (i == trajSetP.size() - 1 && j == trajSetQ.size() - 1) {
-		CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-	//}
-
-
+	// very improtant here
+	CUDA_CALL(cudaStreamSynchronize(stream));
 
 
 
-	//CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+
+
+
+
+	
 
 
 
@@ -6181,6 +6195,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
 
+
+
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
 	CUDA_CALL(cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop));
@@ -6222,7 +6238,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	CUSPARSE_CALL(cusparseDestroyMatDescr(DensepmqnDescr));
 	CUSPARSE_CALL(cusparseDestroyMatDescr(CSRpmqnDescr));
 	CUSPARSE_CALL(cusparseDestroyMatDescr(CSRpmqDescr));
-	CUSPARSE_CALL(cusparseDestroyMatDescr(CSRpqDescr));
+	// debug: careless bug here
+//	CUSPARSE_CALL(cusparseDestroyMatDescr(CSRpqDescr));
 	CUSPARSE_CALL(cusparseDestroyMatDescr(CSRqkqDescr));
 	CUSPARSE_CALL(cusparseDestroyMatDescr(CSRppkDescr));
 	CUSPARSE_CALL(cusparseDestroyMatDescr(CSRpqDescr));

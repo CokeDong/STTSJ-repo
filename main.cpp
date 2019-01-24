@@ -68,7 +68,7 @@ int main() {
 	std::vector<float> resultvalue;
 
 	// 频繁调参使用变量！！
-	int SIZE = 64; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 16; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
