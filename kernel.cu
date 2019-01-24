@@ -2034,7 +2034,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 	__shared__ size_t pmqnid, pmqid, pqid;
 	__shared__ int keycntP, keycntQ, textPid, textQid;
 
-	__shared__ size_t densepqidx;
+	__shared__ size_t densepqindexx;
 
 	// seems not important!
 
@@ -2079,7 +2079,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 		textPid = task.textIdxP;
 		textQid = task.textIdxQ;
 
-		densepqidx = task.DensepqIdx;
+		densepqindexx = task.DensepqIdx;
 
 	}
 
@@ -2346,7 +2346,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 
 				// way2: store way 决定-> fetch way	是否合并访问 fetch from global memory!! 
 				//tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
-				tsim = densepqGPU[densepqidx + tmpflagj*height + tmpflagi];
+				tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi];
 
 
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
@@ -5816,18 +5816,18 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 	DensepqGPU = (float*)pnow;
 
-	size_t densepqidx = 0; // = pqid
+	size_t densepqidx2 = 0; // = pqid
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
 			//debug： index bugging!!
 			//stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
 			//densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
-			stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx;
-			densepqidx += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
+			stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx2;
+			densepqidx2 += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
 		}
 	}
 
-	pnow = (void*)((float*)pnow + densepqidx);
+	pnow = (void*)((float*)pnow + densepqidx2);
 
 	tmpnnzPerRowColGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj);
@@ -5900,7 +5900,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			int keycntP = statinfo.keycntP, keycntQ = statinfo.keycntQ;
 			int textPid = statinfo.textIdxP, textQid= statinfo.textIdxQ;
 			int pointNumP = statinfo.pointNumP, pointNumQ = statinfo.pointNumQ;
-			size_t DensepqIdx = statinfo.DensepqIdx;
+			size_t Densepqindex = statinfo.DensepqIdx;
 
 			TrajStatTable tpstatinfo = trajPStattable[i];
 			TrajStatTable tqstatinfo = trajQStattable[j];
@@ -5964,7 +5964,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 			CUSPARSE_CALL(cusparseScsr2dense(cusparseH, pointNumP, pointNumQ, DensepqDescr,
-				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + DensepqIdx, pointNumP));
+				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + Densepqindex, pointNumP));
 
 			if (i == trajSetP.size() - 1 && j == trajSetQ.size() - 1) {
 
