@@ -2346,7 +2346,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 
 				// way2: store way 决定-> fetch way	是否合并访问 fetch from global memory!! 
 				//tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
-				tsim = densepqGPU[densepqidx + tmpflagj*height + tmpflagi];
+				//tsim = densepqGPU[densepqidx + tmpflagj*height + tmpflagi];
 
 
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
@@ -5815,7 +5815,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
 			stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
-			densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
+			densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;// this is not appropriate, as the address is not aligned!
 		}
 	}
 
@@ -5956,6 +5956,13 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + DensepqIdx, pointNumP));
 
 			if (i == trajSetP.size() - 1 && j == trajSetQ.size() - 1) {
+
+				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+					(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+					(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+					(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
+					);
+
 				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 			}
 
@@ -5982,17 +5989,17 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//	);
 
 	// only (dataSizeP*dataSizeQ)*1 THREADNUM * 1
-	computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-		(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-		);
+	//computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+	//	(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+	//	(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+	//	(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
+	//	);
 
-	
-	//CUDA_CALL(cudaEventRecord(kernel_stop2, stream));
+	//
+	////CUDA_CALL(cudaEventRecord(kernel_stop2, stream));
 
-	// very improtant here
-	CUDA_CALL(cudaStreamSynchronize(stream));
+	//// very improtant here
+	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 
 
