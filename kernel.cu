@@ -2346,7 +2346,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 
 				// way2: store way 决定-> fetch way	是否合并访问 fetch from global memory!! 
 				//tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
-				//tsim = densepqGPU[densepqidx + tmpflagj*height + tmpflagi];
+				tsim = densepqGPU[densepqidx + tmpflagj*height + tmpflagi];
 
 
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
@@ -5408,7 +5408,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		}
 
 
-		int ppointcnt = 0;
+		int ppointcnt = 0; // used for Ccusparse<t>csrgemm -> ppk
 		ppointcnt = trajSetP[i].traj_of_stpoint.size();
 
 
@@ -5498,6 +5498,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		ppkcsrValIdx.push_back(pkeywordcntaccumulated);
 
 
+		// just for Ccusparse<t>csrgemm
 		trajPStattable[i].csrRowPtrIdx = ppointcntaccumulated;
 		trajPStattable[i].csrColIndIdx = pkeywordcntaccumulated;
 		trajPStattable[i].csrValIdx = pkeywordcntaccumulated;
@@ -5741,7 +5742,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 
-/*
+
 	CUDA_CALL(cudaMemcpyAsync(pnow, &qkqcsrRowPtr[0], sizeof(int)*qkqcsrRowPtr.size(), cudaMemcpyHostToDevice, stream));
 	qkqcsrRowPtrGPU = pnow;
 	pnow = (void*)((int*)pnow + qkqcsrRowPtr.size());
@@ -5828,7 +5829,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	tmpnnzPerRowColGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj);
 
-*/
+
 
 
 	// we donnot need stattableGPU now ? no we still need because we still have to cal. S + T, but T is fetching from densepqGPU
@@ -5877,7 +5878,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	////}
 
 
-	/*
+	
 
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
@@ -5890,8 +5891,9 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CUDA_CALL(cudaEventRecord(kernel_start, stream));
 			}
 
-			
-			StatInfoTable statinfo = stattableCPU[i*dataSizeQ + j];
+			//debug:
+			//StatInfoTable statinfo = stattableCPU[i*dataSizeQ + j];
+			StatInfoTable statinfo = stattableCPU[i*dataSizeP + j];
 			int keycntP = statinfo.keycntP, keycntQ = statinfo.keycntQ;
 			int textPid = statinfo.textIdxP, textQid= statinfo.textIdxQ;
 			int pointNumP = statinfo.pointNumP, pointNumQ = statinfo.pointNumQ;
@@ -6008,8 +6010,10 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 
-	*/
+	
 
+
+/*
 	CUDA_CALL(cudaEventRecord(kernel_start, stream));
 	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
@@ -6020,7 +6024,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 	CUDA_CALL(cudaStreamSynchronize(stream));
-
+*/
 
 	
 
