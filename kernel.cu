@@ -2347,7 +2347,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 				// way2: store way 决定-> fetch way	是否合并访问 fetch from global memory!! 
 				//tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
 				tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi];
-
+				printf("densepqGPU[%d]= %f densepqindexx = %d\n", tmpflagi,densepqGPU[tmpflagi] ,densepqindexx);
 
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
@@ -5823,6 +5823,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			//stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
 			//densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
 			stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx2;
+			printf("densepqidx2 = %zu\n", densepqidx2);
 			densepqidx2 += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
 		}
 	}
