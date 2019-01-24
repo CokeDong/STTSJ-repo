@@ -5717,6 +5717,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	textDataQValueGPU = pnow;
 	pnow = (void*)((float*)pnow + textDataQValueCPU.size());
 
+
 	// zero-copy 内存 
 	// 需要手动free!!
 	float *SimResult, *SimResultGPU;
@@ -5738,6 +5739,9 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	// cpy the qkq ppk csr-matrix
 	pnow = gpuAddrStat;
 
+
+
+/*
 	CUDA_CALL(cudaMemcpyAsync(pnow, &qkqcsrRowPtr[0], sizeof(int)*qkqcsrRowPtr.size(), cudaMemcpyHostToDevice, stream));
 	qkqcsrRowPtrGPU = pnow;
 	pnow = (void*)((int*)pnow + qkqcsrRowPtr.size());
@@ -5824,7 +5828,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	tmpnnzPerRowColGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj);
 
-
+*/
 
 
 	// we donnot need stattableGPU now ? no we still need because we still have to cal. S + T, but T is fetching from densepqGPU
@@ -5872,6 +5876,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//	CUDA_CALL(cudaEventRecord(kernel_start, stream));
 	////}
 
+
+	/*
 
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
@@ -6002,12 +6008,23 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//CUDA_CALL(cudaStreamSynchronize(stream));
 
 
+	*/
+
+	CUDA_CALL(cudaEventRecord(kernel_start, stream));
+	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
+		);
+	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
 
-
+	CUDA_CALL(cudaStreamSynchronize(stream));
 
 
 	
+
+
 
 
 
