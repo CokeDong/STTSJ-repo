@@ -5741,6 +5741,28 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	pnow = gpuAddrStat;
 
 
+	DensepqGPU = (float*)pnow;
+	size_t densepqidx2 = 0; // = pqid
+	for (size_t i = 0; i < trajSetP.size(); i++) {
+		for (size_t j = 0; j < trajSetQ.size(); j++) {
+			//debug£º index bugging!!
+			//stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
+			//densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
+			stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx2;
+			printf("densepqidx2 = %zu\n", densepqidx2);
+			densepqidx2 += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
+		}
+	}
+	pnow = (void*)((float*)pnow + densepqidx2);
+
+
+	// we donnot need stattableGPU now ? no we still need because we still have to cal. S + T, but T is fetching from densepqGPU
+	// stattable very important
+	CUDA_CALL(cudaMemcpyAsync(pnow, stattableCPU, sizeof(StatInfoTable)* dataSizeP*dataSizeQ, cudaMemcpyHostToDevice, stream));
+	//CUDA_CALL(cudaMemcpyAsync(pnow, &stattableCPU[0], sizeof(StatInfoTable)*stattableCPU.size(), cudaMemcpyHostToDevice, stream));
+	stattableGPU = pnow;
+	pnow = (void*)((StatInfoTable*)pnow + dataSizeP*dataSizeQ);
+
 
 
 	CUDA_CALL(cudaMemcpyAsync(pnow, &qkqcsrRowPtr[0], sizeof(int)*qkqcsrRowPtr.size(), cudaMemcpyHostToDevice, stream));
@@ -5814,21 +5836,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	tmppqcsrValGPU = (float*)pnow;
 	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj * max_totalpoint_a_single_traj);
 
-	DensepqGPU = (float*)pnow;
 
-	size_t densepqidx2 = 0; // = pqid
-	for (size_t i = 0; i < trajSetP.size(); i++) {
-		for (size_t j = 0; j < trajSetQ.size(); j++) {
-			//debug£º index bugging!!
-			//stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
-			//densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
-			stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx2;
-			printf("densepqidx2 = %zu\n", densepqidx2);
-			densepqidx2 += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
-		}
-	}
-
-	pnow = (void*)((float*)pnow + densepqidx2);
 
 	tmpnnzPerRowColGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj);
@@ -5836,12 +5844,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 
-	// we donnot need stattableGPU now ? no we still need because we still have to cal. S + T, but T is fetching from densepqGPU
-	// stattable very important
-	CUDA_CALL(cudaMemcpyAsync(pnow, stattableCPU, sizeof(StatInfoTable)* dataSizeP*dataSizeQ, cudaMemcpyHostToDevice, stream));
-	//CUDA_CALL(cudaMemcpyAsync(pnow, &stattableCPU[0], sizeof(StatInfoTable)*stattableCPU.size(), cudaMemcpyHostToDevice, stream));
-	stattableGPU = pnow;
-	pnow = (void*)((StatInfoTable*)pnow + dataSizeP*dataSizeQ);
+
 
 
 
