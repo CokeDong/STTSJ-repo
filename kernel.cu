@@ -5819,8 +5819,11 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	size_t densepqidx = 0; // = pqid
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
-			stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
-			densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;// this is not appropriate, as the address is not aligned!
+			//debug£º index bugging!!
+			//stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
+			//densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
+			stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx;
+			densepqidx += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
 		}
 	}
 
