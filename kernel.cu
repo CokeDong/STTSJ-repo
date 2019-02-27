@@ -655,6 +655,8 @@ __global__ void computeTSimpmqnGridlevel(int* textDataPIndexGPU, int* textDataQI
 	const unsigned int idy = (blockIdx.y*blockDim.y) + threadIdx.y;
 	const unsigned int thread_id = ((gridDim.x*blockDim.x)*idy) + idx;
 
+	
+
 	int pmindex, qnindex;
 	float pmvalue, qnvalue;
 
@@ -669,6 +671,7 @@ __global__ void computeTSimpmqnGridlevel(int* textDataPIndexGPU, int* textDataQI
 
 		if ((pmindex != -1) && (qnindex != -1) && (pmindex == qnindex)) {
 			tmpdensepmqnGPU[thread_id] = pmvalue*qnvalue;
+			printf("tmpdensepmqnGPU[%d] = %f\n", thread_id, pmvalue*qnvalue);
 		}
 	}
 }
@@ -2046,6 +2049,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 
 	//fetch task info
 	if (tId == 0) {
+		printf("*********\n");
 		task = stattableGPU[bId];
 
 		latDataPGPU = latDataPGPU1;
@@ -5244,7 +5248,29 @@ void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
 
 
 
+void testing_v4(std::vector<int> & pindexcpu, std::vector<float> & pvaluecpu, std::vector<int> & qindexcpu, std::vector<float> & qvaluecpu, int pidx, int qidx, int pkeycnt, int qkeycnt, float* result) {
 
+	for (size_t i = 0; i < pkeycnt; i++) {
+		for (size_t j = 0; j < qkeycnt; j++) {
+			result[i*pkeycnt + j] = 0;
+			if ((pindexcpu[pidx + i] == qindexcpu[qidx + j]) &&(pindexcpu[pidx + i] != -1)) {
+				result[i*pkeycnt + j] = pvaluecpu[pidx + i] * qvaluecpu[qidx + j];
+			}
+		}
+	}
+
+}
+
+void testing_v4_compare(float* calcfromgpu, float* calcfromcpu, int cnt) {
+	bool allconsisitent = true;
+	for (size_t i = 0; i < cnt; i++) {
+		if (calcfromgpu[i] != calcfromcpu[i]) {
+			if(allconsisitent) allconsisitent = false;
+			printf("position: %zu gpu:%f cpu:%f\n", i, calcfromgpu[i], calcfromcpu[i]);
+		}
+	}
+	if (allconsisitent) printf("ALL Consistent\n");
+}
 
 void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	std::vector<STTrajectory> &trajSetQ,
@@ -5813,6 +5839,9 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		return;
 	}
 
+	float* testing_pmqndenseCPU = new float[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+	float* cpyback_pmqndenseCPU = new float[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+
 	tmpDensepmqnGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
 	tmppmqncsrRowPtrGPU = (int*)pnow;
@@ -5924,11 +5953,24 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			dim3 grid_rect(gridcol, gridrow);
 			dim3 block_rect(blockcol, blockrow);
 
-			computeTSimpmqnGridlevel << <grid_rect, block_rect, 0, stream >> > ((int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-			 textPid, textQid, keycntP, keycntQ, (float*)tmpDensepmqnGPU);
+			
+			// 不支持值传递？
+			
+			//computeTSimpmqnGridlevel << <grid_rect, block_rect, 0, stream >> > ((int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+			//(StatInfoTable*)stattableGPU, (float*)tmpDensepmqnGPU);
+
+			computeTSimpmqnGridlevel <<<grid_rect, block_rect, 0, stream >>> ((int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+				textPid, textQid, keycntP, keycntQ, (float*)tmpDensepmqnGPU);
+
+			CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, keycntP*keycntQ, cudaMemcpyDeviceToHost));
+			
+			CUDA_CALL(cudaStreamSynchronize(stream));
+
+			testing_v4(textDataPIndexCPU, textDataPValueCPU, textDataQIndexCPU, textDataQValueCPU, textPid, textQid, keycntP, keycntQ, testing_pmqndenseCPU);
+			testing_v4_compare(cpyback_pmqndenseCPU, testing_pmqndenseCPU, keycntP*keycntQ);
 
 
-
+			/*
 			//step1: pmqndende -> pmqncsr
 
 			CUSPARSE_CALL(cusparseSnnz(cusparseH, CUSPARSE_DIRECTION_ROW, keycntP, keycntQ, DensepmqnDescr,
@@ -5985,7 +6027,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			// for tmp-mem usage, we must wait here !!
 
 			CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
-
+			*/
 		}
 	}
 
@@ -6231,8 +6273,10 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 
+/*
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
+
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
 	CUDA_CALL(cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop));
 
@@ -6249,11 +6293,16 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	timer.stop();
 	printf("resultback time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
 	timer.start();
+*/
+
 
 	// free CPU memory
 	free(stattableCPU);
 	free(trajPStattable);
 	free(trajQStattable);
+	delete[]cpyback_pmqndenseCPU;
+	delete[]testing_pmqndenseCPU;
+
 
 	// free GPU memory
 	// debug: cudaFree doesn't erase anything!! it simply returns memory to a pool to be re-allocated
