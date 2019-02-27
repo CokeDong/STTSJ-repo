@@ -5265,7 +5265,7 @@ void testing_v4(std::vector<int> & pindexcpu, std::vector<float> & pvaluecpu, st
 
 }
 
-void testing_v4_compare(float* calcfromgpu, float* calcfromcpu, int cnt) {
+void testing_v4_compare(float* calcfromgpu, float* calcfromcpu, int cnt,int pi,int pj) {
 	bool allconsisitent = true;
 	for (size_t i = 0; i < cnt; i++) {
 		if (calcfromgpu[i] != calcfromcpu[i]) {
@@ -5273,7 +5273,10 @@ void testing_v4_compare(float* calcfromgpu, float* calcfromcpu, int cnt) {
 			printf("position: %zu gpu:%f cpu:%f\n", i, calcfromgpu[i], calcfromcpu[i]);
 		}
 	}
-	if (allconsisitent) printf("ALL Consistent\n");
+	if (allconsisitent)
+		printf("ALL Consistent\n");
+	else 
+		printf("********** i=%d j=%d", pi, pj);
 }
 
 void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
@@ -5974,7 +5977,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			CUDA_CALL(cudaStreamSynchronize(stream));
 
 			testing_v4(textDataPIndexCPU, textDataPValueCPU, textDataQIndexCPU, textDataQValueCPU, textPid, textQid, keycntP, keycntQ, testing_pmqndenseCPU);
-			testing_v4_compare(cpyback_pmqndenseCPU, testing_pmqndenseCPU, keycntP*keycntQ);
+			testing_v4_compare(cpyback_pmqndenseCPU, testing_pmqndenseCPU, keycntP*keycntQ,i,j);
 
 
 
