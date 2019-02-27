@@ -651,10 +651,13 @@ __global__ void computeTSimpmqnGridlevel(int* textDataPIndexGPU, int* textDataQI
 	int textPid, int textQid, int keycntP, int keycntQ, float* tmpdensepmqnGPU
 	) {
 
+	
 	const unsigned int idx = (blockIdx.x*blockDim.x) + threadIdx.x;
 	const unsigned int idy = (blockIdx.y*blockDim.y) + threadIdx.y;
-	const unsigned int thread_id = ((gridDim.x*blockDim.x)*idy) + idx;
 
+	//debug:有问题 Gridlevel传入dinm3时存在padding
+	//const unsigned int thread_id = ((gridDim.x*blockDim.x)*idy) + idx;
+	const unsigned int thread_id = ((keycntP)*idy) + idx;
 	
 
 	int pmindex, qnindex;
@@ -671,8 +674,9 @@ __global__ void computeTSimpmqnGridlevel(int* textDataPIndexGPU, int* textDataQI
 
 		if ((pmindex != -1) && (qnindex != -1) && (pmindex == qnindex)) {
 			tmpdensepmqnGPU[thread_id] = pmvalue*qnvalue;
-			printf("tmpdensepmqnGPU[%d] = %f\n", thread_id, pmvalue*qnvalue);
+			//printf("tmpdensepmqnGPU[%d] = %f\n", thread_id, pmvalue*qnvalue);
 		}
+
 	}
 }
 
@@ -5775,7 +5779,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			//stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
 			//densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
 			stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx2;
-			printf("densepqidx2 = %zu\n", densepqidx2);
+			//printf("densepqidx2 = %zu\n", densepqidx2);
 			densepqidx2 += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
 		}
 	}
@@ -5962,12 +5966,16 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			computeTSimpmqnGridlevel <<<grid_rect, block_rect, 0, stream >>> ((int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 				textPid, textQid, keycntP, keycntQ, (float*)tmpDensepmqnGPU);
 
-			CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, keycntP*keycntQ, cudaMemcpyDeviceToHost));
+
+			// debug: attention: sizeof(int) cpyback is byte!!
+			//CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, keycntP*keycntQ, cudaMemcpyDeviceToHost));
+			CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, sizeof(float)*keycntP*keycntQ, cudaMemcpyDeviceToHost));
 			
 			CUDA_CALL(cudaStreamSynchronize(stream));
 
 			testing_v4(textDataPIndexCPU, textDataPValueCPU, textDataQIndexCPU, textDataQValueCPU, textPid, textQid, keycntP, keycntQ, testing_pmqndenseCPU);
 			testing_v4_compare(cpyback_pmqndenseCPU, testing_pmqndenseCPU, keycntP*keycntQ);
+
 
 
 			/*
