@@ -5254,11 +5254,13 @@ void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
 
 void testing_v4(std::vector<int> & pindexcpu, std::vector<float> & pvaluecpu, std::vector<int> & qindexcpu, std::vector<float> & qvaluecpu, int pidx, int qidx, int pkeycnt, int qkeycnt, float* result) {
 
-	for (size_t i = 0; i < pkeycnt; i++) {
-		for (size_t j = 0; j < qkeycnt; j++) {
+
+	// debug: column-major dense matrix 
+	for (size_t i = 0; i < qkeycnt; i++) {
+		for (size_t j = 0; j < pkeycnt; j++) {
 			result[i*pkeycnt + j] = 0;
-			if ((pindexcpu[pidx + i] == qindexcpu[qidx + j]) &&(pindexcpu[pidx + i] != -1)) {
-				result[i*pkeycnt + j] = pvaluecpu[pidx + i] * qvaluecpu[qidx + j];
+			if ((pindexcpu[pidx + j] == qindexcpu[qidx + i]) &&(pindexcpu[pidx + j] != -1)) {
+				result[i*pkeycnt + j] = pvaluecpu[pidx + j] * qvaluecpu[qidx + i];
 			}
 		}
 	}
@@ -5276,7 +5278,7 @@ void testing_v4_compare(float* calcfromgpu, float* calcfromcpu, int cnt,int pi,i
 	if (allconsisitent)
 		printf("ALL Consistent\n");
 	else 
-		printf("********** i=%d j=%d", pi, pj);
+		printf("********** i=%d j=%d\n", pi, pj);
 }
 
 void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
@@ -5966,19 +5968,21 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			//computeTSimpmqnGridlevel << <grid_rect, block_rect, 0, stream >> > ((int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 			//(StatInfoTable*)stattableGPU, (float*)tmpDensepmqnGPU);
 
+
+			// attention: Cusparse-dense-matrix is column-major format
 			computeTSimpmqnGridlevel <<<grid_rect, block_rect, 0, stream >>> ((int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 				textPid, textQid, keycntP, keycntQ, (float*)tmpDensepmqnGPU);
 
+			bool testing_dense = true;
 
-			// debug: attention: sizeof(int) cpyback is byte!!
-			//CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, keycntP*keycntQ, cudaMemcpyDeviceToHost));
-			CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, sizeof(float)*keycntP*keycntQ, cudaMemcpyDeviceToHost));
-			
-			CUDA_CALL(cudaStreamSynchronize(stream));
-
-			testing_v4(textDataPIndexCPU, textDataPValueCPU, textDataQIndexCPU, textDataQValueCPU, textPid, textQid, keycntP, keycntQ, testing_pmqndenseCPU);
-			testing_v4_compare(cpyback_pmqndenseCPU, testing_pmqndenseCPU, keycntP*keycntQ,i,j);
-
+			if(testing_dense){
+				// debug: attention: sizeof(int) cpyback is byte!!
+				// CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, keycntP*keycntQ, cudaMemcpyDeviceToHost));
+				CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, sizeof(float)*keycntP*keycntQ, cudaMemcpyDeviceToHost));	
+				CUDA_CALL(cudaStreamSynchronize(stream));
+				testing_v4(textDataPIndexCPU, textDataPValueCPU, textDataQIndexCPU, textDataQValueCPU, textPid, textQid, keycntP, keycntQ, testing_pmqndenseCPU);
+				testing_v4_compare(cpyback_pmqndenseCPU, testing_pmqndenseCPU, keycntP*keycntQ,i,j);
+			}
 
 
 			/*
