@@ -5854,7 +5854,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	tmpDensepmqnGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
 	tmppmqncsrRowPtrGPU = (int*)pnow;
-	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
+	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj + 1); // 潜在debug 最极端需要+1 不过概率极其小 最安全加上1
 	tmppmqncsrColIndGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
 	tmppmqncsrValGPU = (float*)pnow;
@@ -5877,7 +5877,9 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 	tmpnnzPerRowColGPU = (int*)pnow;
-	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj);
+	// debug:max_totalkeyword_a_single_traj
+	//pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj); // this is wrong!!
+	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj);
 
 
 
@@ -5973,7 +5975,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			computeTSimpmqnGridlevel <<<grid_rect, block_rect, 0, stream >>> ((int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 				textPid, textQid, keycntP, keycntQ, (float*)tmpDensepmqnGPU);
 
-			bool testing_dense = true;
+			bool testing_dense = false;
 
 			if(testing_dense){
 				// debug: attention: sizeof(int) cpyback is byte!!
@@ -5985,18 +5987,23 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			}
 
 
-			/*
+			
 			//step1: pmqndende -> pmqncsr
 
 			CUSPARSE_CALL(cusparseSnnz(cusparseH, CUSPARSE_DIRECTION_ROW, keycntP, keycntQ, DensepmqnDescr,
 				(float*)tmpDensepmqnGPU, keycntP, tmpnnzPerRowColGPU, &tmppmqnnnzTotalDevHostPtr));
-
+			bool testing_cusparseSnnz = true;
+			if (testing_cusparseSnnz) {
+				CUDA_CALL(cudaStreamSynchronize(stream));
+				printf("nnz = %d\n", tmppmqnnnzTotalDevHostPtr);
+			}
+			
 			CUSPARSE_CALL(cusparseSdense2csr(cusparseH, keycntP, keycntQ, DensepmqnDescr, (float*)tmpDensepmqnGPU,
 				keycntP, tmpnnzPerRowColGPU, (float*)tmppmqncsrValGPU, (int*)tmppmqncsrRowPtrGPU, (int*)tmppmqncsrColIndGPU));
 
 
+			/*
 			//step2: pmqncsr * qkqcsr -> pmqcsr
-
 
 			CUSPARSE_CALL(cusparseXcsrgemmNnz(cusparseH, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, keycntP, pointNumQ, keycntQ,
 				CSRpmqnDescr, tmppmqnnnzTotalDevHostPtr, (int*)tmppmqncsrRowPtrGPU, (int*)tmppmqncsrColIndGPU,
