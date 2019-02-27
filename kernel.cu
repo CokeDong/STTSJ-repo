@@ -5997,12 +5997,14 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 			CUSPARSE_CALL(cusparseSnnz(cusparseH, CUSPARSE_DIRECTION_ROW, keycntP, keycntQ, DensepmqnDescr,
 				(float*)tmpDensepmqnGPU, keycntP, tmpnnzPerRowColGPU, &tmppmqnnnzTotalDevHostPtr));
-			bool testing_cusparseSnnz = true;
+			
+			bool testing_cusparseSnnz = false;
 			if (testing_cusparseSnnz) {
 				// for good i,j filtering
 				// if(i==2 && j==2)
 				{
 					int *nnzperrow = new int[max_totalkeyword_a_single_traj];
+					// ×¢Òâ£ºkeycntP °üÀ¨ padding !!
 					CUDA_CALL(cudaMemcpy(nnzperrow, tmpnnzPerRowColGPU, sizeof(int)*keycntP, cudaMemcpyDeviceToHost));
 					CUDA_CALL(cudaStreamSynchronize(stream));
 					printf("********* i = %d j = %d\n", i, j);
@@ -6017,6 +6019,27 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			
 			CUSPARSE_CALL(cusparseSdense2csr(cusparseH, keycntP, keycntQ, DensepmqnDescr, (float*)tmpDensepmqnGPU,
 				keycntP, tmpnnzPerRowColGPU, (float*)tmppmqncsrValGPU, (int*)tmppmqncsrRowPtrGPU, (int*)tmppmqncsrColIndGPU));
+
+			// writing is better than not-writing
+			bool cusparseSdense2csr = true;
+			if (cusparseSdense2csr) {
+				if(i==2 && j==2)
+				{
+					float* csrval = new float[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+					int* csrrowptr = new int[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+					int* csrcolind = new int[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+					CUDA_CALL(cudaMemcpy(csrval, tmppmqncsrValGPU,sizeof(float)*tmppmqnnnzTotalDevHostPtr, cudaMemcpyDeviceToHost));
+					CUDA_CALL(cudaMemcpy(csrrowptr, tmppmqncsrRowPtrGPU, sizeof(int)*keycntP, cudaMemcpyDeviceToHost));
+					CUDA_CALL(cudaMemcpy(csrcolind, tmppmqncsrColIndGPU, sizeof(int)*tmppmqnnnzTotalDevHostPtr, cudaMemcpyDeviceToHost));
+					printf("********* i = %d j = %d\n", i, j);
+					for (size_t i = 0; i < keycntP; i++) printf("csrrowptr[%d]=%d ", i, csrrowptr[i]);
+					printf("\n");
+					for (size_t i = 0; i < tmppmqnnnzTotalDevHostPtr; i++) printf("csrval[%d]=%d ", i, csrval[i]);
+					printf("\n");
+					for (size_t i = 0; i < tmppmqnnnzTotalDevHostPtr; i++) printf("csrcolind[%d]=%d ", i, csrcolind[i]);
+					printf("\n");
+				}
+			}
 
 
 			/*
