@@ -5848,8 +5848,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		return;
 	}
 
-	float* testing_pmqndenseCPU = new float[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
-	float* cpyback_pmqndenseCPU = new float[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+
 
 	tmpDensepmqnGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
@@ -5978,12 +5977,18 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			bool testing_dense = false;
 
 			if(testing_dense){
+				float* testing_pmqndenseCPU = new float[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+				float* cpyback_pmqndenseCPU = new float[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+
 				// debug: attention: sizeof(int) cpyback is byte!!
 				// CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, keycntP*keycntQ, cudaMemcpyDeviceToHost));
 				CUDA_CALL(cudaMemcpyAsync(cpyback_pmqndenseCPU, tmpDensepmqnGPU, sizeof(float)*keycntP*keycntQ, cudaMemcpyDeviceToHost));	
 				CUDA_CALL(cudaStreamSynchronize(stream));
 				testing_v4(textDataPIndexCPU, textDataPValueCPU, textDataQIndexCPU, textDataQValueCPU, textPid, textQid, keycntP, keycntQ, testing_pmqndenseCPU);
 				testing_v4_compare(cpyback_pmqndenseCPU, testing_pmqndenseCPU, keycntP*keycntQ,i,j);
+
+				delete[]cpyback_pmqndenseCPU;
+				delete[]testing_pmqndenseCPU;
 			}
 
 
@@ -5994,8 +5999,20 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				(float*)tmpDensepmqnGPU, keycntP, tmpnnzPerRowColGPU, &tmppmqnnnzTotalDevHostPtr));
 			bool testing_cusparseSnnz = true;
 			if (testing_cusparseSnnz) {
-				CUDA_CALL(cudaStreamSynchronize(stream));
-				printf("nnz = %d\n", tmppmqnnnzTotalDevHostPtr);
+				// for good i,j filtering
+				// if(i==2 && j==2)
+				{
+					int *nnzperrow = new int[max_totalkeyword_a_single_traj];
+					CUDA_CALL(cudaMemcpy(nnzperrow, tmpnnzPerRowColGPU, sizeof(int)*keycntP, cudaMemcpyDeviceToHost));
+					CUDA_CALL(cudaStreamSynchronize(stream));
+					printf("********* i = %d j = %d\n", i, j);
+					for (size_t i = 0; i < keycntP; i++) {
+						printf("   row:%d nnz=%d \n", i, nnzperrow[i]);
+					}
+					printf("nnz = %d\n", tmppmqnnnzTotalDevHostPtr);
+					// we omit the CPU implemention here
+					delete[]nnzperrow;
+				}
 			}
 			
 			CUSPARSE_CALL(cusparseSdense2csr(cusparseH, keycntP, keycntQ, DensepmqnDescr, (float*)tmpDensepmqnGPU,
@@ -6322,10 +6339,9 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	free(stattableCPU);
 	free(trajPStattable);
 	free(trajQStattable);
-	delete[]cpyback_pmqndenseCPU;
-	delete[]testing_pmqndenseCPU;
 
 
+	
 	// free GPU memory
 	// debug: cudaFree doesn't erase anything!! it simply returns memory to a pool to be re-allocated
 	// cudaMalloc doesn't guarantee the value of memory that has been allocated (to 0)
