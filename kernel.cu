@@ -5758,9 +5758,11 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	// zero-copy 内存 
 	// 需要手动free!!
 	float *SimResult, *SimResultGPU;
-	CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
-	CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
-
+	//CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
+	//CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
+	SimResult = (float*)malloc(dataSizeP*dataSizeQ * sizeof(float));
+	SimResultGPU = (float*)pnow;
+	pnow = (void*)((float*)pnow + dataSizeP*dataSizeQ);
 
 
 	// maybe not that needed!
@@ -6256,11 +6258,11 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-		(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-		);
+		(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU);
 	// 修改下 SimResult zero-copy
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-	CUDA_CALL(cudaStreamSynchronize(stream));
+	cudaMemcpy(SimResult, SimResultGPU, sizeof(float)*dataSizeP*dataSizeQ, cudaMemcpyDeviceToHost);
+
 
 	/*
 	computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
@@ -6303,7 +6305,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	free(stattableCPU);
 	free(trajPStattable);
 	free(trajQStattable);
-
+	free(SimResult);
 
 	
 	// free GPU memory
@@ -6311,7 +6313,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	// cudaMalloc doesn't guarantee the value of memory that has been allocated (to 0)
 	// You need to Initialize memory (both global and shared) that your program uses, in order to have consistent results!!
 	// The same is true for malloc and free, by the way
-	CUDA_CALL(cudaFreeHost(SimResult));
+
+	//CUDA_CALL(cudaFreeHost(SimResult));
 	CUDA_CALL(cudaFree(gpuAddrData));
 	//CUDA_CALL(cudaFree(gpuAddrPSet));
 	//CUDA_CALL(cudaFree(gpuAddrQSet));
