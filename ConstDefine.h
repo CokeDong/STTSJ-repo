@@ -147,7 +147,7 @@ typedef struct Latlon {
 // 16 bytes now
 typedef struct StatInfoTable {
 	
-	int latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block) in GPU, accumulated
+	int latlonIdxP, latlonIdxQ; // starting id of latlon data for each traj (each task / block) in GPU, accumulated ,including padding
 	
 	int pointNumP, pointNumQ; // # of points in each traj, excluding padding!  -->> the significance of padding may not that big!
 
@@ -157,10 +157,11 @@ typedef struct StatInfoTable {
 
 
 	// only used in kernel-V2
-	int textIdxP, textIdxQ; // starting position of text data for each traj (each task / block), accumulated
+	int textIdxP, textIdxQ; // starting position of text data for each traj (each task / block), accumulated, including padding
 
 	// used in kernel-V2 + kernel-V3
 	size_t keywordpmqnMatrixId, keywordpmqMatrixId, keywordpqMatrixId; // starting ID in GPU for each block, accumulated
+																	// point-level: no padding; keyword-level: padding
 	
 	// for v4
 	size_t DensepqIdx; // Id ~= Idx
@@ -173,6 +174,7 @@ typedef struct StatInfoTable {
 
 
 
+// this exsist oonly on CPU, as for Ccusparse<t>csrgemm -> qkq ppk
 typedef struct TrajStatTable {
 
 	// only to Traj, common attributes

@@ -5605,24 +5605,37 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 	// process Q
 
-	int qpointcntaccumulated = 0, qkeywordcntaccumulated = 0;
+
+	// this is for qkq index in CPU and GPU as we store all the qkq in memory in CSR format
+	int qkqcsrrowaccumulated = 0, qkqcsrcolaccumulated = 0, qkqcsrvalaccumulated = 0;
 
 	int latlonQId = 0, textQId = 0;
 	for (size_t i = 0; i < trajSetQ.size(); i++) {
 
 		for (size_t j = 0; j < dataSizeP; j++) {
 			stattableCPU[j*dataSizeQ + i].latlonIdxQ = (int)latlonQId;
-			stattableCPU[j*dataSizeQ + i].pointNumQ = (int)trajSetQ[i].traj_of_stpoint.size();
-
+			stattableCPU[j*dataSizeQ + i].pointNumQ = (int)trajSetQ[i].traj_of_stpoint.size(); // because of here, no padding, real pointNum. 省去了在kernel中另加的判断 （特殊lat lon 180 360）！！别的没看到什么好处 仅仅前后version一致 没考虑那么多
 			stattableCPU[j*dataSizeQ + i].textIdxQ = textQId;
 		}
 
 
-		int qpointcnt = 0;
-		qpointcnt = trajSetQ[i].traj_of_stpoint.size();
+		//// reservation for trajQStattable.col as qpoint is not padding --> NO NEED
+		//int qpointcnt = 0;
+		//qpointcnt = trajSetQ[i].traj_of_stpoint.size();
+
+
+		//// size = |Q set|(trajSetQ.size()) -> aborted as we have trajQStattable as below
+		//qkqcsrRowPtrIdx.push_back(qkqcsrrowaccumulated);
+		//qkqcsrColIndIdx.push_back(qkqcsrcolaccumulated);
+		//qkqcsrValIdx.push_back(qkqcsrvalaccumulated);
+
+		trajQStattable[i].csrRowPtrIdx = qkqcsrrowaccumulated; // just cpy from p-processing, not that good tho.
+		trajQStattable[i].csrColIndIdx = qkqcsrcolaccumulated;
+		trajQStattable[i].csrValIdx = qkqcsrvalaccumulated;
+
 
 		int pointcnt = 0; // padding!
-		int keywordcnt = 0;
+		int keywordcnt = 0; // no padding
 		for (size_t j = 0; j < trajSetQ[i].traj_of_stpoint.size(); j++) {
 			Latlon p;
 			p.lat = trajSetQ[i].traj_of_stpoint[j].lat;
@@ -5632,28 +5645,41 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			lonDataQCPU.push_back(p.lon);
 			numWordQCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.size());
 			textIdxQCPU.push_back(textQId);
-
 			latlonQId++; // grain of each point, accumulated
+
 			pointcnt++;
 
 			// need to define parameter to clean code!!
 			for (size_t k = 0; k < trajSetQ[i].traj_of_stpoint[j].keywords.size(); k++) {
 
-				//textDataPIndexCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordid);
-				//textDataPValueCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
-				
+	
 				qkqcsrRowPtr.push_back(keywordcnt);
-				qkqcsrColInd.push_back(k);
+				qkqcsrrowaccumulated++;
+				//debug: here is wrong! j is not k
+				qkqcsrColInd.push_back(j);
+				qkqcsrcolaccumulated++;
+				//qkqcsrColInd.push_back(k);
 				qkqcsrVal.push_back(1.0);
+				qkqcsrvalaccumulated++;
+				keywordcnt++; // grain of each trajectory, not-accumulated
 
 
 				// tiny bug!! mem error!!
 				textDataQIndexCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordid);
 				textDataQValueCPU.push_back(trajSetQ[i].traj_of_stpoint[j].keywords.at(k).keywordvalue);
 				textQId++;// grain of each point, accumulated
-				keywordcnt++; // grain of each trajectory, not-accumulated
+
+				
 			}
 		}
+		
+
+		// here is better! 
+		// get max_totalpoint_a_single_traj for gpu-tmp-mem-preallocation
+		if (max_totalpoint_a_single_traj < pointcnt) {
+			max_totalpoint_a_single_traj = pointcnt;
+		}
+
 
 		// for L2 cache(32 byte) alignment
 		int remainder = 4 * trajSetQ[i].traj_of_stpoint.size() % 32;
@@ -5665,16 +5691,26 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				numWordQCPU.push_back(-1);
 				textIdxQCPU.push_back(-1);
 				latlonQId++;
-				pointcnt++;
+
+				//pointcnt++; // here is no need now!
+
 			}
 		}
-		if (max_totalpoint_a_single_traj < pointcnt) {
-			max_totalpoint_a_single_traj = pointcnt;
-		}
 
-		// donnot forget this! and before the padding
-		qkqcsrRowPtr.push_back(keywordcnt);
+		//// as no padding,so before padding is better!!
+		//if (max_totalpoint_a_single_traj < pointcnt) {
+		//	max_totalpoint_a_single_traj = pointcnt;
+		//}
+
+
+
+		//debug: wrong !!
+		// donnot forget this! and before the padding -> wrong!!! 包含padding的！！
+		//qkqcsrRowPtr.push_back(keywordcnt);
 		
+
+
+		// reservation for trajQStattable.nzz
 		int nnz = keywordcnt;
 
 		// ATTENTION!!---> keywordcnt
@@ -5684,34 +5720,31 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				textDataQIndexCPU.push_back(-1);
 				textDataQValueCPU.push_back(-1);
 				textQId++;// grain of each point 
-				keywordcnt++; // grain of each trajectory
+				
+				qkqcsrRowPtr.push_back(keywordcnt); // padding
+				qkqcsrrowaccumulated++;
+				qkqcsrColInd.push_back(trajSetQ[i].traj_of_stpoint.size()); // no-padding
+				qkqcsrcolaccumulated++;
+				qkqcsrVal.push_back(1.0);
+				qkqcsrvalaccumulated++;
+				keywordcnt++; // grain of each trajectory, not-accumulated
+
 			}
 		}
+		// donnot forget this!
+		qkqcsrRowPtr.push_back(keywordcnt); // padding
+		qkqcsrrowaccumulated++;
 
 
+		// get max_totalkeyword_a_single_traj for gpu-tmp-mem-preallocation
 		if (max_totalkeyword_a_single_traj < keywordcnt) {
 			max_totalkeyword_a_single_traj = keywordcnt;
 		}
 
 
-		// size = |Q set|(trajSetQ.size())
-		qkqcsrRowPtrIdx.push_back(qpointcntaccumulated);
-		qkqcsrColIndIdx.push_back(qkeywordcntaccumulated);
-		qkqcsrValIdx.push_back(qkeywordcntaccumulated);
-
-
-		trajQStattable[i].csrRowPtrIdx = qpointcntaccumulated; // just cpy from p-processing, not that good tho.
-		trajQStattable[i].csrColIndIdx = qkeywordcntaccumulated;
-		trajQStattable[i].csrValIdx = qkeywordcntaccumulated;
 		trajQStattable[i].nnz = nnz;
-		trajQStattable[i].row = keywordcnt; // including padding!
-		trajQStattable[i].col = qpointcnt;
-
-
-		// update the Idx correspondingly
-		qpointcntaccumulated += (nnz + 1); // csr -> we have to plus 1
-		qkeywordcntaccumulated += nnz;
-
+		trajQStattable[i].row = keywordcnt; // padding!
+		trajQStattable[i].col = trajSetQ[i].traj_of_stpoint.size(); // no-padding
 
 
 		// status info. here
@@ -5719,12 +5752,6 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		for (size_t j = 0; j < dataSizeP; j++) {
 			stattableCPU[j*dataSizeQ + i].keycntQ = keywordcnt;
 		}
-
-
-		//for (size_t j = 0; j < dataSizeP; j++) {
-		//	// debug: this is wrong data structure!
-		//	stattableCPU[j*dataSizeQ + i].textIdxQ = keywordcnt;
-		//}
 	}
 
 	printf("****** max_totalkeywordcnt = %zu \n ****** max_totalpointcnt = %zu \n", max_totalkeyword_a_single_traj, max_totalpoint_a_single_traj);
@@ -5841,6 +5868,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//tmppmqcsrValGPU = (float*)pnow;
 	//pnow = (void*)((int*)pnow + MAX_LEN * MAX_POINT * MAX_POINT);
 
+
 	// *2 is okay, as the big max_totalkeyword_a_single_traj has dominance of mem!
 	if (max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj *4.0 / 1024 / 1024 / 1024 * 1.5 > gpuStat*1.0) {
 		printf("****** too big mem! QUIT ABNORMAL \n");
@@ -5852,6 +5880,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 	tmpDensepmqnGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
+
 	tmppmqncsrRowPtrGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj + 1); // 潜在debug 最极端需要+1 不过概率极其小 最安全加上1
 	tmppmqncsrColIndGPU = (int*)pnow;
@@ -5860,14 +5889,14 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
 	
 	tmppmqcsrRowPtrGPU = (int*)pnow;
-	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalpoint_a_single_traj);
+	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalpoint_a_single_traj + 1);
 	tmppmqcsrColIndGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalpoint_a_single_traj);
 	tmppmqcsrValGPU = (float*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalpoint_a_single_traj);
 
 	tmppqcsrRowPtrGPU = (int*)pnow;
-	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj * max_totalpoint_a_single_traj);
+	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj * max_totalpoint_a_single_traj + 1);
 	tmppqcsrColIndGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj * max_totalpoint_a_single_traj);
 	tmppqcsrValGPU = (float*)pnow;
@@ -5877,7 +5906,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 	tmpnnzPerRowColGPU = (int*)pnow;
 	// debug:max_totalkeyword_a_single_traj
-	//pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj); // this is wrong!!
+	// pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj); // this is wrong!!
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj);
 
 
@@ -5954,6 +5983,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			size_t csrRowPtrIdxQ = tqstatinfo.csrRowPtrIdx, csrColIndIdxQ = tqstatinfo.csrColIndIdx, csrValIdxQ = tqstatinfo.csrValIdx; // only for v4
 			size_t nnzQ = tqstatinfo.nnz;
 
+
 			//step0: get the dense (column major, we have to transpose)
 			
 			int gridcol = (keycntP - 1) / THREADROW + 1;
@@ -6001,12 +6031,12 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			bool testing_cusparseSnnz = false;
 			if (testing_cusparseSnnz) {
 				// for good i,j filtering
-				// if(i==2 && j==2)
+				if(i==2 && j==2)
 				{
 					int *nnzperrow = new int[max_totalkeyword_a_single_traj];
 					// 注意：keycntP 包括 padding !!
 					CUDA_CALL(cudaMemcpy(nnzperrow, tmpnnzPerRowColGPU, sizeof(int)*keycntP, cudaMemcpyDeviceToHost));
-					CUDA_CALL(cudaStreamSynchronize(stream));
+					//CUDA_CALL(cudaStreamSynchronize(stream));
 					printf("********* i = %d j = %d\n", i, j);
 					for (size_t i = 0; i < keycntP; i++) {
 						printf("   row:%d nnz=%d \n", i, nnzperrow[i]);
@@ -6021,40 +6051,75 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				keycntP, tmpnnzPerRowColGPU, (float*)tmppmqncsrValGPU, (int*)tmppmqncsrRowPtrGPU, (int*)tmppmqncsrColIndGPU));
 
 			// writing is better than not-writing
-			bool cusparseSdense2csr = true;
-			if (cusparseSdense2csr) {
+			bool testing_cusparseSdense2csr = false;
+			if (testing_cusparseSdense2csr) {
 				if(i==2 && j==2)
 				{
 					float* csrval = new float[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
-					int* csrrowptr = new int[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
+					int* csrrowptr = new int[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj + 1];
 					int* csrcolind = new int[max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj];
 					CUDA_CALL(cudaMemcpy(csrval, tmppmqncsrValGPU,sizeof(float)*tmppmqnnnzTotalDevHostPtr, cudaMemcpyDeviceToHost));
-					CUDA_CALL(cudaMemcpy(csrrowptr, tmppmqncsrRowPtrGPU, sizeof(int)*keycntP, cudaMemcpyDeviceToHost));
+					CUDA_CALL(cudaMemcpy(csrrowptr, tmppmqncsrRowPtrGPU, sizeof(int)*(keycntP + 1), cudaMemcpyDeviceToHost));
 					CUDA_CALL(cudaMemcpy(csrcolind, tmppmqncsrColIndGPU, sizeof(int)*tmppmqnnnzTotalDevHostPtr, cudaMemcpyDeviceToHost));
 					printf("********* i = %d j = %d\n", i, j);
-					for (size_t i = 0; i < keycntP; i++) printf("csrrowptr[%d]=%d ", i, csrrowptr[i]);
+					for (size_t i = 0; i < (keycntP + 1); i++) printf("csrrowptr[%d]=%d ", i, csrrowptr[i]);
 					printf("\n");
-					for (size_t i = 0; i < tmppmqnnnzTotalDevHostPtr; i++) printf("csrval[%d]=%d ", i, csrval[i]);
+					for (size_t i = 0; i < tmppmqnnnzTotalDevHostPtr; i++) printf("csrval[%d]=%f ", i, csrval[i]);
 					printf("\n");
 					for (size_t i = 0; i < tmppmqnnnzTotalDevHostPtr; i++) printf("csrcolind[%d]=%d ", i, csrcolind[i]);
 					printf("\n");
+					delete[]csrval;
+					delete[]csrrowptr;
+					delete[]csrcolind;
 				}
 			}
 
 
-			/*
+			
 			//step2: pmqncsr * qkqcsr -> pmqcsr
 
 			CUSPARSE_CALL(cusparseXcsrgemmNnz(cusparseH, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, keycntP, pointNumQ, keycntQ,
 				CSRpmqnDescr, tmppmqnnnzTotalDevHostPtr, (int*)tmppmqncsrRowPtrGPU, (int*)tmppmqncsrColIndGPU,
 				CSRqkqDescr, nnzQ, (int*)qkqcsrRowPtrGPU + csrRowPtrIdxQ, (int*)qkqcsrColIndGPU + csrColIndIdxQ,
 				CSRpmqDescr, (int*)tmppmqcsrRowPtrGPU, &tmppmqnnzTotalDevHostPtr));
+			bool testing_cusparseXcsrgemmNnz = true;
+			if (testing_cusparseXcsrgemmNnz) {
+				if (i == 2 && j == 2) {
+					CUDA_CALL(cudaStreamSynchronize(stream));
+					printf("nnz=%d\n", tmppmqnnzTotalDevHostPtr);
+				}
+			}
+			// we can take early-stop strategy here! later
 
 			CUSPARSE_CALL(cusparseScsrgemm(cusparseH, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, keycntP, pointNumQ, keycntQ,
 				CSRpmqnDescr, tmppmqnnnzTotalDevHostPtr, (float*)tmppmqncsrValGPU, (int*)tmppmqncsrRowPtrGPU, (int*)tmppmqncsrColIndGPU,
 				CSRqkqDescr, nnzQ, (float*)qkqcsrValGPU + csrValIdxQ, (int*)qkqcsrRowPtrGPU + csrRowPtrIdxQ, (int*)qkqcsrColIndGPU + csrColIndIdxQ,
 				CSRpmqDescr, (float*)tmppmqcsrValGPU, (int*)tmppmqcsrRowPtrGPU, (int*)tmppmqcsrColIndGPU));
+			
+			bool testing_cusparseScsrgemm = true;
+			if (testing_cusparseScsrgemm) {
+				if (i == 2 && j == 2) {
+					int nnz = tmppmqnnzTotalDevHostPtr;
+					float* csrval = new float[nnz];
+					int* csrrowptr = new int[nnz + 1];
+					int* csrcolind = new int[nnz];
+					CUDA_CALL(cudaMemcpy(csrval, tmppmqcsrValGPU, sizeof(float)*nnz, cudaMemcpyDeviceToHost));
+					CUDA_CALL(cudaMemcpy(csrrowptr, tmppmqcsrRowPtrGPU, sizeof(int)*(nnz+1), cudaMemcpyDeviceToHost));
+					CUDA_CALL(cudaMemcpy(csrcolind, tmppmqcsrColIndGPU, sizeof(int)*nnz, cudaMemcpyDeviceToHost));
+					printf("********* i = %d j = %d\n", i, j);
+					for (size_t i = 0; i < (nnz + 1); i++) printf("csrrowptr[%d]=%d ", i, csrrowptr[i]);
+					printf("\n");
+					for (size_t i = 0; i < nnz ; i++) printf("csrval[%d]=%f ", i, csrval[i]);
+					printf("\n");
+					for (size_t i = 0; i < nnz; i++) printf("csrcolind[%d]=%d ", i, csrcolind[i]);
+					printf("\n");
+					delete[]csrval;
+					delete[]csrrowptr;
+					delete[]csrcolind;
+				}
+			}
 
+			/*
 			//step3: ppkcsr * pmqcsr -> pqcsr
 
 			CUSPARSE_CALL(cusparseXcsrgemmNnz(cusparseH, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, pointNumP, pointNumQ, keycntP,
