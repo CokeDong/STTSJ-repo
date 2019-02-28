@@ -5761,6 +5761,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
 	//CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
 	SimResult = (float*)malloc(dataSizeP*dataSizeQ * sizeof(float));
+	memset(SimResult, 0, dataSizeP*dataSizeQ * sizeof(float));
 	SimResultGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + dataSizeP*dataSizeQ);
 
@@ -6003,7 +6004,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			// attention: Cusparse-dense-matrix is column-major format
 			computeTSimpmqnGridlevel <<<grid_rect, block_rect, 0, stream >>> ((int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 				textPid, textQid, keycntP, keycntQ, (float*)tmpDensepmqnGPU);
-
+			
+			/*
 			bool testing_computeTSimpmqnGridlevel = false;
 
 			if(testing_computeTSimpmqnGridlevel){
@@ -6020,7 +6022,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				delete[]cpyback_pmqndenseCPU;
 				delete[]testing_pmqndenseCPU;
 			}
-
+			*/
 
 			
 			//step1: pmqndende -> pmqncsr
@@ -6028,10 +6030,11 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			CUSPARSE_CALL(cusparseSnnz(cusparseH, CUSPARSE_DIRECTION_ROW, keycntP, keycntQ, DensepmqnDescr,
 				(float*)tmpDensepmqnGPU, keycntP, tmpnnzPerRowColGPU, &tmppmqnnnzTotalDevHostPtr));
 			
-			bool testing_cusparseSnnzs1 = false;
+			/*
+			bool testing_cusparseSnnzs1 = false; // 放到预编译
 			if (testing_cusparseSnnzs1) {
 				// for good i,j filtering
-				if(i==2 && j==2)
+				if(i==2 && j==2) // 影响debug i = 2出问题
 				{
 					int *nnzperrow = new int[max_totalkeyword_a_single_traj];
 					// 注意：keycntP 包括 padding !!
@@ -6046,10 +6049,13 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 					delete[]nnzperrow;
 				}
 			}
+			*/
 			
+
 			CUSPARSE_CALL(cusparseSdense2csr(cusparseH, keycntP, keycntQ, DensepmqnDescr, (float*)tmpDensepmqnGPU,
 				keycntP, tmpnnzPerRowColGPU, (float*)tmppmqncsrValGPU, (int*)tmppmqncsrRowPtrGPU, (int*)tmppmqncsrColIndGPU));
-
+			
+			/*
 			// writing is better than not-writing
 			bool testing_cusparseSdense2csrs1 = false;
 			if (testing_cusparseSdense2csrs1) {
@@ -6073,15 +6079,17 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 					delete[]csrcolind;
 				}
 			}
-
+			*/
 
 			
 			//step2: pmqncsr * qkqcsr -> pmqcsr
 
+			
 			CUSPARSE_CALL(cusparseXcsrgemmNnz(cusparseH, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, keycntP, pointNumQ, keycntQ,
 				CSRpmqnDescr, tmppmqnnnzTotalDevHostPtr, (int*)tmppmqncsrRowPtrGPU, (int*)tmppmqncsrColIndGPU,
 				CSRqkqDescr, nnzQ, (int*)qkqcsrRowPtrGPU + csrRowPtrIdxQ, (int*)qkqcsrColIndGPU + csrColIndIdxQ,
 				CSRpmqDescr, (int*)tmppmqcsrRowPtrGPU, &tmppmqnnzTotalDevHostPtr));
+			/*
 			bool testing_cusparseXcsrgemmNnzs2 = false;
 			if (testing_cusparseXcsrgemmNnzs2) {
 				if (i == 2 && j == 2) {
@@ -6089,7 +6097,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 					printf("nnz=%d\n", tmppmqnnzTotalDevHostPtr);
 				}
 			}
-
+			*/
 			// we can take early-stop strategy here! later
 
 			CUSPARSE_CALL(cusparseScsrgemm(cusparseH, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, keycntP, pointNumQ, keycntQ,
@@ -6097,6 +6105,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CSRqkqDescr, nnzQ, (float*)qkqcsrValGPU + csrValIdxQ, (int*)qkqcsrRowPtrGPU + csrRowPtrIdxQ, (int*)qkqcsrColIndGPU + csrColIndIdxQ,
 				CSRpmqDescr, (float*)tmppmqcsrValGPU, (int*)tmppmqcsrRowPtrGPU, (int*)tmppmqcsrColIndGPU));
 			
+			/*
 			bool testing_cusparseScsrgemms2 = false;
 			if (testing_cusparseScsrgemms2) {
 				if (i == 2 && j == 2) {
@@ -6119,7 +6128,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 					delete[]csrcolind;
 				}
 			}
-
+			*/
 			
 			//step3: ppkcsr * pmqcsr -> pqcsr
 
@@ -6127,18 +6136,18 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CSRppkDescr, nnzP, (int*)ppkcsrRowPtrGPU + csrRowPtrIdxP, (int*)ppkcsrColIndGPU + csrColIndIdxP,
 				CSRpmqDescr, tmppmqnnzTotalDevHostPtr, (int*)tmppmqcsrRowPtrGPU, (int*)tmppmqcsrColIndGPU,
 				CSRpqDescr, (int*)tmppqcsrRowPtrGPU, &tmppqnnzTotalDevHostPtr));
-			bool testing_cusparseXcsrgemmNnzs3 = false;
+			/*bool testing_cusparseXcsrgemmNnzs3 = false;
 			if (testing_cusparseXcsrgemmNnzs3) {
 				if (i == 2 && j == 2) {
 					CUDA_CALL(cudaStreamSynchronize(stream));
 					printf("nnz=%d\n", tmppqnnzTotalDevHostPtr);
 				}
-			}
+			}*/
 			CUSPARSE_CALL(cusparseScsrgemm(cusparseH, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, pointNumP, pointNumQ, keycntP,
 				CSRppkDescr, nnzP, (float*)ppkcsrValGPU + csrValIdxP, (int*)ppkcsrRowPtrGPU + csrRowPtrIdxP, (int*)ppkcsrColIndGPU + csrColIndIdxP,
 				CSRpmqDescr, tmppmqnnzTotalDevHostPtr, (float*)tmppmqcsrValGPU, (int*)tmppmqcsrRowPtrGPU, (int*)tmppmqcsrColIndGPU,
 				CSRpqDescr, (float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU));
-			bool testing_cusparseScsrgemms3 = false;
+			/*bool testing_cusparseScsrgemms3 = false;
 			if (testing_cusparseScsrgemms3) {
 				if (i == 2 && j == 2) {
 					int nnz = tmppqnnzTotalDevHostPtr;
@@ -6160,14 +6169,14 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 					delete[]csrcolind;
 				}
 			}
-
+			*/
 			
 			// step4: pqcsr -> pqdense(column-major, maybe need to modify kernel in following step)
 
 
 			CUSPARSE_CALL(cusparseScsr2dense(cusparseH, pointNumP, pointNumQ, DensepqDescr,
 				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + Densepqindex, pointNumP));
-			bool testing_cusparseScsr2denses4 = false;
+			/*bool testing_cusparseScsr2denses4 = false;
 			if (testing_cusparseScsr2denses4) {
 				//if (i == 2 && j == 2) {
 				{	
@@ -6183,11 +6192,13 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 					}
 				}
 			}
+			*/
 
-
-			/*
+			
 			if ((i == trajSetP.size() - 1) && (j == trajSetQ.size() - 1)) {
-				bool testing_final = true;
+				
+
+				/*bool testing_final = true;
 				if (testing_final) {
 					float* densepqCPU = new float[densepqidx];
 
@@ -6215,7 +6226,9 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 					//		}
 					//	}
 					//}
-					
+					delete[]densepqCPU;
+					*/
+
 
 					computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
@@ -6223,23 +6236,15 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 						(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
 						);
 					CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-					delete[]densepqCPU;
+					cudaMemcpy(SimResult, SimResultGPU, sizeof(float)*dataSizeP*dataSizeQ, cudaMemcpyDeviceToHost);
 
 				}
 			
-				CUDA_CALL(cudaStreamSynchronize(stream));
-					
-					
-					computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-						(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-						(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
-						);
-					CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+
 					
 
-			}
-			*/
+			
+			
 
 			// we must here? maybe not, is stream.
 			//CUDA_CALL(cudaDeviceSynchronize());
@@ -6254,7 +6259,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	}
 
 
-	CUDA_CALL(cudaStreamSynchronize(stream));
+	/*
+	//CUDA_CALL(cudaStreamSynchronize(stream));
 	computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
@@ -6262,21 +6268,6 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	// 修改下 SimResult zero-copy
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 	cudaMemcpy(SimResult, SimResultGPU, sizeof(float)*dataSizeP*dataSizeQ, cudaMemcpyDeviceToHost);
-
-
-	/*
-	computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-		(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-		);
-	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
-		);
-	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-	CUDA_CALL(cudaStreamSynchronize(stream));
 	*/
 
 
@@ -6293,6 +6284,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	// here has about 2s latency
 	// rediculous
 	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
+		printf("%f\n", SimResult[i]);
 		result.push_back(SimResult[i]);
 	}
 
@@ -6300,6 +6292,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	printf("resultback time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
 	timer.start();
 
+	
 
 	// free CPU memory
 	free(stattableCPU);
