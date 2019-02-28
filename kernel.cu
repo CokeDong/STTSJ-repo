@@ -2051,10 +2051,12 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 
 	//__shared__ float* keypqGPU = densepqGPU + densepqidx;
 
-	//fetch task info
+	// fetch task info
 	if (tId == 0) {
-		printf("*********\n");
-		task = stattableGPU[bId];
+		
+		//printf("*********\n");
+		
+		task = stattableGPU[bId]; // block层次的关键
 
 		latDataPGPU = latDataPGPU1;
 		latDataQGPU = latDataQGPU1;
@@ -2353,9 +2355,10 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 				//tsim = TSimGPU(&textDataPIndexGPU[textIdP], &textDataQIndexGPU[textIdQ], &textDataPValueGPU[textIdP], &textDataQValueGPU[textIdQ], numWordP, numWordQ);
 
 				// way2: store way 决定-> fetch way	是否合并访问 fetch from global memory!! 
+
 				//tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
-				tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi];
-				printf("densepqGPU[%d]= %f densepqindexx = %d\n", tmpflagi,densepqGPU[tmpflagi] ,densepqindexx);
+				tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi]; // np
+				//printf("densepqGPU[%d]= %f densepqindexx = %d\n", tmpflagi,densepqGPU[tmpflagi] ,densepqindexx);
 
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
@@ -6138,7 +6141,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 			CUSPARSE_CALL(cusparseScsr2dense(cusparseH, pointNumP, pointNumQ, DensepqDescr,
 				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + Densepqindex, pointNumP));
-			bool testing_cusparseScsr2denses4 = true;
+			bool testing_cusparseScsr2denses4 = false;
 			if (testing_cusparseScsr2denses4) {
 				if (i == 2 && j == 2) {
 					int row = pointNumP, col = pointNumQ;
@@ -6153,7 +6156,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				}
 			}
 
-			/*
+
 			if (i == trajSetP.size() - 1 && j == trajSetQ.size() - 1) {
 
 				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
@@ -6167,7 +6170,6 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 
-			*/
 
 			//CUDA_CALL(cudaDeviceSynchronize());
 			// for tmp-mem usage, we must wait here !! but we ave stream though?? 有序 主要是防止下面和中间的CPU代码运行
@@ -6419,7 +6421,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 
-/*
+
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 
@@ -6439,7 +6441,6 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	timer.stop();
 	printf("resultback time: (calculated by timer)%f s\n", timer.elapse()); // very quick!! but nzc is not slow as well!!
 	timer.start();
-*/
 
 
 	// free CPU memory
