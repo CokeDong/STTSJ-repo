@@ -6179,20 +6179,24 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			}
 
 
-			/*
+			
 			if ((i == trajSetP.size() - 1) && (j == trajSetQ.size() - 1)) {
-				
-				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-					(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-					(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-					(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-					);
-				
-				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-				CUDA_CALL(cudaStreamSynchronize(stream)); // because of stream, here is not wrong
+				/*
+					computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+						(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+						(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
+						);*/
+					computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+						(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+						(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
+						);
+					CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+					CUDA_CALL(cudaStreamSynchronize(stream));
 
 			}
-			*/
+			
 
 			//CUDA_CALL(cudaDeviceSynchronize());
 			// for tmp-mem usage, we must wait here !! but we ave stream though?? 有序 主要是防止下面和中间的CPU代码运行
@@ -6202,18 +6206,20 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		}
 	}
 
-	CUDA_CALL(cudaStreamSynchronize(stream));
-
+	/*
 	computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 		(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
 		);
-
+	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
+		);
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 	CUDA_CALL(cudaStreamSynchronize(stream));
-
-
+	*/
 
 	float memcpy_time = 0.0, kernel_time = 0.0;
 
