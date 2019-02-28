@@ -2357,8 +2357,8 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 				// way2: store way 决定-> fetch way	是否合并访问 fetch from global memory!! 
 
 				//tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
-				tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi]; // np
-				printf("densepqGPU[%d]= %f densepqindexx = %d\n tmpflagi = %d tmpflagj= %d\n", densepqindexx + tmpflagj*height + tmpflagi,tsim, densepqindexx, tmpflagi, tmpflagj);
+				//tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi]; // np
+				//printf("densepqGPU[%d]= %f densepqindexx = %d\n tmpflagi = %d tmpflagj= %d\n", densepqindexx + tmpflagj*height + tmpflagi,tsim, densepqindexx, tmpflagi, tmpflagj);
 
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
@@ -6210,6 +6210,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 						}
 					}
 					*/
+					delete[]densepqCPU;
 
 				}
 
@@ -6220,7 +6221,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 					);
 
 				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-
+				CUDA_CALL(cudaStreamSynchronize(stream));
 					/*
 					computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
@@ -6233,7 +6234,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			}
 			
 			// we must here? maybe not, is stream.
-			CUDA_CALL(cudaDeviceSynchronize());
+			//CUDA_CALL(cudaDeviceSynchronize());
 			//CUDA_CALL(cudaStreamSynchronize(stream));
 
 			
