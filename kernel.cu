@@ -6143,8 +6143,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + Densepqindex, pointNumP));
 			bool testing_cusparseScsr2denses4 = false;
 			if (testing_cusparseScsr2denses4) {
-				if (i == 2 && j == 2) {
-					int row = pointNumP, col = pointNumQ;
+				//if (i == 2 && j == 2) {
+				{	int row = pointNumP, col = pointNumQ;
 					float* tmpdensepq = new float[row*col];
 					CUDA_CALL(cudaMemcpy(tmpdensepq, (float*)DensepqGPU + Densepqindex, sizeof(float)*row*col, cudaMemcpyDeviceToHost));	
 					for (size_t i = 0; i < row; i++) {
@@ -6158,13 +6158,13 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 			if (i == trajSetP.size() - 1 && j == trajSetQ.size() - 1) {
-
+				/*
 				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 					(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 					(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 					(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
 					);
-
+				*/
 				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 			}
 
