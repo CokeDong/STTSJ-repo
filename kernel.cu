@@ -6108,7 +6108,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CSRppkDescr, nnzP, (float*)ppkcsrValGPU + csrValIdxP, (int*)ppkcsrRowPtrGPU + csrRowPtrIdxP, (int*)ppkcsrColIndGPU + csrColIndIdxP,
 				CSRpmqDescr, tmppmqnnzTotalDevHostPtr, (float*)tmppmqcsrValGPU, (int*)tmppmqcsrRowPtrGPU, (int*)tmppmqcsrColIndGPU,
 				CSRpqDescr, (float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU));
-			bool testing_cusparseScsrgemms3 = false;
+			bool testing_cusparseScsrgemms3 = true;
 			if (testing_cusparseScsrgemms3) {
 				if (i == 2 && j == 2) {
 					int nnz = tmppqnnzTotalDevHostPtr;
