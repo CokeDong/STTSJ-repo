@@ -5904,10 +5904,14 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//}
 
 	// we make accurate calculation
-	if (allcnt *1.0 / 1024 / 1024 / 1024 > gpuStat*1.0) {
+	double memtotal = allcnt *1.0 / 1024 / 1024 / 1024;
+	if ( memtotal > gpuStat*1.0) {
 		printf("****** too big mem! QUIT ABNORMAL \n");
 		assert(-1);
 		return;
+	}
+	else {
+		printf("MEM: %f\n", memtotal);
 	}
 
 
