@@ -5430,6 +5430,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//ppkcsrColIndIdx.push_back(pkeywordcntaccumulated);
 	//ppkcsrValIdx.push_back(pkeywordcntaccumulated);
 
+
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 
 
@@ -5774,18 +5775,18 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 
 	DensepqGPU = (float*)pnow;
-	size_t densepqidx2 = 0; // = pqid
+	// we have to wait the stattableCPU[i*dataSizeP + j].pointNumP and stattableCPU[i*dataSizeP + j].pointNumQ are both ready!
+	size_t densepqidx = 0; // = pqid
 	for (size_t i = 0; i < trajSetP.size(); i++) {
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
 			//debug： index bugging!!
-			//stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
-			//densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
-			stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx2;
-			//printf("densepqidx2 = %zu\n", densepqidx2);
-			densepqidx2 += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
+			stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
+			densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
+			//stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx;
+			//densepqidx += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
 		}
 	}
-	pnow = (void*)((float*)pnow + densepqidx2);
+	pnow = (void*)((float*)pnow + densepqidx);
 
 
 	// we donnot need stattableGPU now ? no we still need because we still have to cal. S + T, but T is fetching from densepqGPU
@@ -5936,20 +5937,20 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CUDA_CALL(cudaEventRecord(kernel_start, stream));
 			}
 
-			//debug:
-			//StatInfoTable statinfo = stattableCPU[i*dataSizeQ + j];
-			StatInfoTable statinfo = stattableCPU[i*dataSizeP + j];
+			//debug: 注意这里一定要与得到stattableCPU一致：因为stattableCPU是一维数组 先P后Q所以 i*dataSizeQ + j
+			StatInfoTable statinfo = stattableCPU[i*dataSizeQ + j];
+			//StatInfoTable statinfo = stattableCPU[i*dataSizeP + j];
+
+			int textPid = statinfo.textIdxP, textQid = statinfo.textIdxQ;
 			int keycntP = statinfo.keycntP, keycntQ = statinfo.keycntQ;
-			int textPid = statinfo.textIdxP, textQid= statinfo.textIdxQ;
 			int pointNumP = statinfo.pointNumP, pointNumQ = statinfo.pointNumQ;
 			size_t Densepqindex = statinfo.DensepqIdx;
 
+
 			TrajStatTable tpstatinfo = trajPStattable[i];
 			TrajStatTable tqstatinfo = trajQStattable[j];
-
 			size_t csrRowPtrIdxP = tpstatinfo.csrRowPtrIdx, csrColIndIdxP = tpstatinfo.csrColIndIdx, csrValIdxP = tpstatinfo.csrValIdx; // only for v4
 			size_t nnzP = tpstatinfo.nnz;
-
 			size_t csrRowPtrIdxQ = tqstatinfo.csrRowPtrIdx, csrColIndIdxQ = tqstatinfo.csrColIndIdx, csrValIdxQ = tqstatinfo.csrValIdx; // only for v4
 			size_t nnzQ = tqstatinfo.nnz;
 
@@ -6097,7 +6098,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CSRppkDescr, nnzP, (int*)ppkcsrRowPtrGPU + csrRowPtrIdxP, (int*)ppkcsrColIndGPU + csrColIndIdxP,
 				CSRpmqDescr, tmppmqnnzTotalDevHostPtr, (int*)tmppmqcsrRowPtrGPU, (int*)tmppmqcsrColIndGPU,
 				CSRpqDescr, (int*)tmppqcsrRowPtrGPU, &tmppqnnzTotalDevHostPtr));
-			bool testing_cusparseXcsrgemmNnzs3 = true;
+			bool testing_cusparseXcsrgemmNnzs3 = false;
 			if (testing_cusparseXcsrgemmNnzs3) {
 				if (i == 2 && j == 2) {
 					CUDA_CALL(cudaStreamSynchronize(stream));
@@ -6108,7 +6109,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CSRppkDescr, nnzP, (float*)ppkcsrValGPU + csrValIdxP, (int*)ppkcsrRowPtrGPU + csrRowPtrIdxP, (int*)ppkcsrColIndGPU + csrColIndIdxP,
 				CSRpmqDescr, tmppmqnnzTotalDevHostPtr, (float*)tmppmqcsrValGPU, (int*)tmppmqcsrRowPtrGPU, (int*)tmppmqcsrColIndGPU,
 				CSRpqDescr, (float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU));
-			bool testing_cusparseScsrgemms3 = true;
+			bool testing_cusparseScsrgemms3 = false;
 			if (testing_cusparseScsrgemms3) {
 				if (i == 2 && j == 2) {
 					int nnz = tmppqnnzTotalDevHostPtr;
@@ -6131,13 +6132,28 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				}
 			}
 
-			/*
+			
 			// step4: pqcsr -> pqdense(column-major, maybe need to modify kernel in following step)
 
 
 			CUSPARSE_CALL(cusparseScsr2dense(cusparseH, pointNumP, pointNumQ, DensepqDescr,
 				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + Densepqindex, pointNumP));
+			bool testing_cusparseScsr2denses4 = true;
+			if (testing_cusparseScsr2denses4) {
+				if (i == 2 && j == 2) {
+					int row = pointNumP, col = pointNumQ;
+					float* tmpdensepq = new float[row*col];
+					CUDA_CALL(cudaMemcpy(tmpdensepq, (float*)DensepqGPU + Densepqindex, sizeof(float)*row*col, cudaMemcpyDeviceToHost));	
+					for (size_t i = 0; i < row; i++) {
+						for (size_t j = 0; j < col; j++) {
+							printf("%f ", tmpdensepq[j*row + i]);// column-major!!
+						}
+						printf("\n");
+					}
+				}
+			}
 
+			/*
 			if (i == trajSetP.size() - 1 && j == trajSetQ.size() - 1) {
 
 				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
@@ -6149,11 +6165,15 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 			}
 
-			//CUDA_CALL(cudaDeviceSynchronize());
-			// for tmp-mem usage, we must wait here !!
 
-			CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
+
 			*/
+
+			//CUDA_CALL(cudaDeviceSynchronize());
+			// for tmp-mem usage, we must wait here !! but we ave stream though?? 有序 主要是防止下面和中间的CPU代码运行
+			CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
+			
+
 		}
 	}
 

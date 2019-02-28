@@ -164,7 +164,7 @@ typedef struct StatInfoTable {
 																	// point-level: no padding; keyword-level: padding
 	
 	// for v4
-	size_t DensepqIdx; // Id ~= Idx
+	size_t DensepqIdx; // Id ~= Idx for step-4 to locate the dense-matrix offset
 	
 	//int padding;?
 	//int keycntPnoPadding, keycntQnoPadding;
