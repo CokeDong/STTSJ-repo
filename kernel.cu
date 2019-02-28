@@ -6161,7 +6161,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 			CUSPARSE_CALL(cusparseScsr2dense(cusparseH, pointNumP, pointNumQ, DensepqDescr,
 				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + Densepqindex, pointNumP));
-			bool testing_cusparseScsr2denses4 = true;
+			bool testing_cusparseScsr2denses4 = false;
 			if (testing_cusparseScsr2denses4) {
 				//if (i == 2 && j == 2) {
 				{	
@@ -6179,7 +6179,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			}
 
 
-
+			/*
 			if ((i == trajSetP.size() - 1) && (j == trajSetQ.size() - 1)) {
 				
 				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
@@ -6192,6 +6192,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				CUDA_CALL(cudaStreamSynchronize(stream)); // because of stream, here is not wrong
 
 			}
+			*/
 
 			//CUDA_CALL(cudaDeviceSynchronize());
 			// for tmp-mem usage, we must wait here !! but we ave stream though?? 有序 主要是防止下面和中间的CPU代码运行
@@ -6201,248 +6202,16 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		}
 	}
 
+	CUDA_CALL(cudaStreamSynchronize(stream));
 
-
-
-	//step5: outside the loop, we get the final result here
-
-
-	//dim3 grid_rect(dataSizeP, dataSizeQ);
-	//dim3 block_rect(THREADROW, THREADCOLUMN);
-	//
-	//computeSimGPUV4 << < grid_rect, block_rect, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-	//	(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-	//	(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-	//	(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-	//	);
-
-	// only (dataSizeP*dataSizeQ)*1 THREADNUM * 1
-	//computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-	//	(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-	//	(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-	//	(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-	//	);
-
-	//
-	////CUDA_CALL(cudaEventRecord(kernel_stop2, stream));
-
-	//// very improtant here
-	//CUDA_CALL(cudaStreamSynchronize(stream));
-
-
-	
-
-
-/*
-	CUDA_CALL(cudaEventRecord(kernel_start, stream));
-	computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+	computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-		(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
+		(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
 		);
+
 	CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-
-
 	CUDA_CALL(cudaStreamSynchronize(stream));
-*/
-
-	
-
-
-
-
-
-	//// pre-order for status info.
-	//size_t pmqnid = 0, pmqid = 0, pqid = 0;
-	////size_t statussum = 0; // no need
-	//std::vector<int> stattableoffset; // store the pointer offset for stattableCPU for each round
-	//stattableoffset.push_back(0);
-	//std::vector<size_t> pmqnidtable, pmqidtable, pqidtable; // store the total pmqn pmq pq for each round
-
-	////pmqnidtable.push_back(0); // starting id !
-	////pmqidtable.push_back(0);
-	////pqidtable.push_back(0);
-
-	//// updating stattableCPU.keywordpmqnMatrixId keywordpmqMatrixId keywordpqMatrixId
-	//for (size_t i = 0; i < trajSetP.size(); i++) {
-	//	for (size_t j = 0; j < trajSetQ.size(); j++) {
-
-	//		// we must pre-judge first! and first one must fit  gpuStat !!, hidden bug here -> e.g. 32*32 2GB have one: 2.07GB wrong access wrong! 
-	//		size_t prejudgesum = (pmqnid + keycntTrajP[i] * keycntTrajQ[j] +
-	//			pmqid + stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i] +
-	//			pqid + stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ);
-
-	//		//statussum = pmqnid + pmqid + pqid; // not += , // not propriate!
-	//		if (prejudgesum*4.0 / 1024 / 1024 / 1024 > gpuStat*1.0) {
-
-	//			pmqnidtable.push_back(pmqnid);
-	//			pmqidtable.push_back(pmqid);
-	//			pqidtable.push_back(pqid);
-
-	//			pmqnid = 0, pmqid = 0, pqid = 0; // starting a new round
-	//			stattableoffset.push_back(i*dataSizeQ + j);
-	//		}
-
-	//		//size_t pmqnpre = pmqnid; // no need, same for afterwards
-	//		stattableCPU[i*dataSizeQ + j].keywordpmqnMatrixId = pmqnid;
-	//		pmqnid += keycntTrajP[i] * keycntTrajQ[j];
-
-	//		// not symmetric Matrix processing  -> aborted first programming! to be easier
-	//		//size_t pmqpre = pmqid;
-	//		stattableCPU[i*dataSizeQ + j].keywordpmqMatrixId = pmqid;
-	//		pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
-
-	//		///*
-	//		// maybe this is not wrong, but may cause high coupling with kernel!
-	//		//if (stattableCPU[i*dataSizeQ + j].pointNumP > stattableCPU[i*dataSizeQ + j].pointNumQ) {
-	//		//	pmqid += stattableCPU[i*dataSizeQ + j].pointNumQ*keycntTrajP[i];
-	//		//}
-	//		//else {
-	//		//	pmqid += stattableCPU[i*dataSizeQ + j].pointNumP*keycntTrajQ[j];
-	//		//}
-	//		//*/
-	//		//size_t pqpre = pqid;
-	//		stattableCPU[i*dataSizeQ + j].keywordpqMatrixId = pqid;
-	//		pqid += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
-
-
-	//		////this is okay, no need for change, just change for check, ---------> moved to ABOVE
-	//		// stattableCPU[i*dataSizeQ + j].keycntP = keycntTrajP[i];
-	//		// stattableCPU[i*dataSizeQ + j].keycntQ = keycntTrajQ[j];
-
-
-	//		//size_t sumpre = statussum;
-	//		//statussum = pmqnid + pmqid + pqid; // not += 
-
-	//		//if (statussum*4.0 / 1024 / 1024 / 1024 > gpuStat*1.0) {
-	//		//	
-	//		//	pmqnidtable.push_back(pmqnpre);
-	//		//	pmqidtable.push_back(pmqpre);
-	//		//	pqidtable.push_back(pqpre);
-
-	//		//	stattableoffset.push_back(i*dataSizeQ + j);
-
-	//		//	pmqnid = pmqnid - pmqnpre;
-	//		//	pmqid = pmqid - pmqpre;
-	//		//	pqid = pqid - pqpre;
-
-	//		//	statussum = (pmqnid - pmqnpre) + (pmqid - pmqpre) + (pqid - pqpre);
-	//		//}
-
-	//	}
-	//}
-	//// donnot forget this! final result for pmqnid pmqid pqid
-	//pmqnidtable.push_back(pmqnid);
-	//pmqidtable.push_back(pmqid);
-	//pqidtable.push_back(pqid);
-
-	//// stattable very important
-	//CUDA_CALL(cudaMemcpyAsync(pnow, stattableCPU, sizeof(StatInfoTable)* dataSizeP*dataSizeQ, cudaMemcpyHostToDevice, stream));
-	////CUDA_CALL(cudaMemcpyAsync(pnow, &stattableCPU[0], sizeof(StatInfoTable)*stattableCPU.size(), cudaMemcpyHostToDevice, stream));
-	//stattableGPU = pnow;
-	//pnow = (void*)((StatInfoTable*)pnow + dataSizeP*dataSizeQ);
-
-
-
-
-
-	//// have PROVED right,不足之处： statussizeonce 导致 block 数目不可控， 不平衡严重影响GPU性能!!  
-	//// -> CUSP! is  useful here! 最大限度提高 block数目? not that obvious,only one-gemm for a grid! not that good! -> whether take advatage of dynamic parallelism?
-	//for (size_t i = 0; i < stattableoffset.size(); i++) {
-
-	//	// each ROUND, we will move the pointer to gpuAddrStat !!
-	//	pnow = gpuAddrStat;
-
-	//	// stattable cpy: one block only once!! fetch i+1, be careful!
-	//	int statussizeonce = (i == stattableoffset.size() - 1) ? dataSizeP * dataSizeQ - stattableoffset[i] : stattableoffset[i + 1] - stattableoffset[i];
-	//	//		printf("************ statussizeonce: %d \n************", statussizeonce);
-
-	//	// no cpy here!
-
-	//	//// stattable very important
-	//	//CUDA_CALL(cudaMemcpyAsync(pnow, stattableCPU + stattableoffset[i], sizeof(StatInfoTable)* statussizeonce, cudaMemcpyHostToDevice, stream));
-	//	////CUDA_CALL(cudaMemcpyAsync(pnow, &stattableCPU[0], sizeof(StatInfoTable)*stattableCPU.size(), cudaMemcpyHostToDevice, stream));
-	//	//stattableGPU = pnow;
-	//	//pnow = (void*)((StatInfoTable*)pnow + statussizeonce);
-
-	//	keypmqnMatrixGPU = (float*)pnow;
-	//	pnow = (void*)((float*)pnow + pmqnidtable[i]);
-	//	keypmqMatrixGPU = (float*)pnow;
-	//	pnow = (void*)((float*)pnow + pmqidtable[i]);
-	//	keypqMatrixGPU = (float*)pnow;
-	//	pnow = (void*)((float*)pnow + pqidtable[i]);
-
-
-	//	// debug: big int -> size_t
-	//	//OutGPUMemNeeded(pmqnid, pmqid,pqid);
-	//	//		printf("***** size_t ***** %zu %zu %zu\n", pmqnidtable[i], pmqidtable[i], pqidtable[i]);
-	//	//printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
-	//	//printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
-	//	//		printf("***** total status size *****%f GB\n", (pmqnidtable[i] + pmqidtable[i] + pqidtable[i])*4.0 / 1024 / 1024 / 1024);
-
-	//	// running kernel
-	//	//CUDA_CALL(cudaDeviceSynchronize());
-	//	//CUDA_CALL(cudaStreamSynchronize(stream));
-
-
-	//	// ABOVE low cost! and cnted because of CUDA_CALL(cudaStreamSynchronize(stream));
-	//	if (i == 0) {
-	//		timer.stop();
-	//		printf("CPU  processing time: %f s\n", timer.elapse()); // data pre-processing on CPU
-	//		timer.start();
-	//		CUDA_CALL(cudaEventRecord(kernel_start, stream));
-	//	}
-
-	//	// multi-kernel, but no need, because different block have no overlap between global memory! for keypmqnMatrixGPU keypmqMatrixGPU keypqMatrixGPU
-
-	//	computeTSimpmqn << < statussizeonce, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-	//		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-	//		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-	//		(StatInfoTable*)stattableGPU + stattableoffset[i], (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU + stattableoffset[i]
-	//		);
-
-
-	//	// debug: 非默认stream, this is necessary ? or not at all? ： NO , no overlap between global memory
-	//	//CUDA_CALL(cudaStreamSynchronize(stream));
-
-	//	computeTSimpmq << < statussizeonce, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-	//		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-	//		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-	//		(StatInfoTable*)stattableGPU + stattableoffset[i], (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU + stattableoffset[i]
-	//		);
-	//	//CUDA_CALL(cudaStreamSynchronize(stream));
-
-
-	//	computeTSimpq << < statussizeonce, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-	//		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-	//		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-	//		(StatInfoTable*)stattableGPU + stattableoffset[i], (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU + stattableoffset[i]
-	//		);
-	//	//CUDA_CALL(cudaStreamSynchronize(stream));
-
-	//	// above three can be merged!
-
-	//	computeSimGPUV2 << < statussizeonce, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-	//		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-	//		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-	//		(StatInfoTable*)stattableGPU + stattableoffset[i], (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU + stattableoffset[i]
-	//		);
-
-	//	// why must here?
-	//	if (i == stattableoffset.size() - 1) {
-	//		CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-	//	}
-
-	//	//CUDA_CALL(cudaDeviceSynchronize());
-	//	CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
-
-	//}
-
-	// out of FOR loop
-	// here is wrong !! why
-	//CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-
-
 
 
 
