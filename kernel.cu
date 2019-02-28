@@ -6181,22 +6181,55 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 			
 			if ((i == trajSetP.size() - 1) && (j == trajSetQ.size() - 1)) {
-				/*
+				bool testing_final = true;
+				if (testing_final) {
+					float* densepqCPU = new float[densepqidx];
+
+					CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+					
+					// 同步函数
+					CUDA_CALL(cudaMemcpy(densepqCPU, (float*)DensepqGPU, sizeof(float)*densepqidx, cudaMemcpyDeviceToHost));
+					
+					for (size_t i = 0; i < trajSetP.size(); i++) {
+						for (size_t j = 0; j < trajSetQ.size(); j++) {
+							StatInfoTable statinfo = stattableCPU[i*dataSizeQ + j];
+							//StatInfoTable statinfo = stattableCPU[i*dataSizeP + j];
+							int textPid = statinfo.textIdxP, textQid = statinfo.textIdxQ;
+							int keycntP = statinfo.keycntP, keycntQ = statinfo.keycntQ;
+							int pointNumP = statinfo.pointNumP, pointNumQ = statinfo.pointNumQ;
+							size_t Densepqindex = statinfo.DensepqIdx;
+
+							int row = pointNumP, col = pointNumQ;
+							for (size_t p = 0; p < row; p++) {
+								for (size_t q = 0; q < col; q++) {
+									printf("%f ", densepqCPU[Densepqindex + q*row + p]);// column-major!!
+								}
+								printf("\n");
+							}
+						}
+					}
+				}
+
+
+					/*
 					computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 						(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 						(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-						);*/
+						);
+					
 					computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 						(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 						(StatInfoTable*)stattableGPU, (float*)keypmqnMatrixGPU, (float*)keypmqMatrixGPU, (float*)keypqMatrixGPU, (float*)SimResultGPU
 						);
 					CUDA_CALL(cudaEventRecord(kernel_stop, stream));
-					CUDA_CALL(cudaStreamSynchronize(stream));
+					*/
 
 			}
 			
+			// we must here? maybe not, is stream.
+			CUDA_CALL(cudaStreamSynchronize(stream));
 
 			//CUDA_CALL(cudaDeviceSynchronize());
 			// for tmp-mem usage, we must wait here !! but we ave stream though?? 有序 主要是防止下面和中间的CPU代码运行
