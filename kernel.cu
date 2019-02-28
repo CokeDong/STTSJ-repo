@@ -6185,11 +6185,12 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				if (testing_final) {
 					float* densepqCPU = new float[densepqidx];
 
-					CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+					
 					
 					// 同步函数
 					CUDA_CALL(cudaMemcpy(densepqCPU, (float*)DensepqGPU, sizeof(float)*densepqidx, cudaMemcpyDeviceToHost));
 					
+					/*
 					for (size_t i = 0; i < trajSetP.size(); i++) {
 						for (size_t j = 0; j < trajSetQ.size(); j++) {
 							StatInfoTable statinfo = stattableCPU[i*dataSizeQ + j];
@@ -6208,16 +6209,19 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 							}
 						}
 					}
+					*/
+
 				}
 
+				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+					(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+					(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+					(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
+					);
+
+				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
 					/*
-					computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-						(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-						(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-						);
-					
 					computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 						(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
@@ -6229,9 +6233,10 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			}
 			
 			// we must here? maybe not, is stream.
-			CUDA_CALL(cudaStreamSynchronize(stream));
+			CUDA_CALL(cudaDeviceSynchronize());
+			//CUDA_CALL(cudaStreamSynchronize(stream));
 
-			//CUDA_CALL(cudaDeviceSynchronize());
+			
 			// for tmp-mem usage, we must wait here !! but we ave stream though?? 有序 主要是防止下面和中间的CPU代码运行
 			//CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!? -> maybe not
 			
