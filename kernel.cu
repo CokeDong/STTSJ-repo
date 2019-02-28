@@ -6141,10 +6141,12 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 			CUSPARSE_CALL(cusparseScsr2dense(cusparseH, pointNumP, pointNumQ, DensepqDescr,
 				(float*)tmppqcsrValGPU, (int*)tmppqcsrRowPtrGPU, (int*)tmppqcsrColIndGPU, (float*)DensepqGPU + Densepqindex, pointNumP));
-			bool testing_cusparseScsr2denses4 = false;
+			bool testing_cusparseScsr2denses4 = true;
 			if (testing_cusparseScsr2denses4) {
 				//if (i == 2 && j == 2) {
-				{	int row = pointNumP, col = pointNumQ;
+				{	
+					int row = pointNumP, col = pointNumQ;
+					printf("**** i=%d j=%d pcnt=%d qcnt=%d\n", i, j, row, col);
 					float* tmpdensepq = new float[row*col];
 					CUDA_CALL(cudaMemcpy(tmpdensepq, (float*)DensepqGPU + Densepqindex, sizeof(float)*row*col, cudaMemcpyDeviceToHost));	
 					for (size_t i = 0; i < row; i++) {
