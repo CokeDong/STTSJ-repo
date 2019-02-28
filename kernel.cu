@@ -2358,7 +2358,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 
 				//tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
 				tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi]; // np
-				//printf("densepqGPU[%d]= %f densepqindexx = %d\n", tmpflagi,densepqGPU[tmpflagi] ,densepqindexx);
+				printf("densepqGPU[%d]= %f densepqindexx = %d\n tmpflagi = %d tmpflagj= %d\n", densepqindexx + tmpflagj*height + tmpflagi,tsim, densepqindexx, tmpflagi, tmpflagj);
 
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
 				tmpSim[tId] = ALPHA * ssim + (1 - ALPHA) * tsim;
@@ -5775,7 +5775,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 
 	// cpy the qkq ppk csr-matrix
 	pnow = gpuAddrStat;
-
+	size_t allcnt = 0;
 
 	DensepqGPU = (float*)pnow;
 	// we have to wait the stattableCPU[i*dataSizeP + j].pointNumP and stattableCPU[i*dataSizeP + j].pointNumQ are both ready!
@@ -5790,7 +5790,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		}
 	}
 	pnow = (void*)((float*)pnow + densepqidx);
-
+	allcnt += sizeof(float)*densepqidx;
 
 	// we donnot need stattableGPU now ? no we still need because we still have to cal. S + T, but T is fetching from densepqGPU
 	// stattable very important
@@ -5799,6 +5799,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	stattableGPU = pnow;
 	pnow = (void*)((StatInfoTable*)pnow + dataSizeP*dataSizeQ);
 
+	allcnt += sizeof(StatInfoTable)*dataSizeP*dataSizeQ;
 
 
 	CUDA_CALL(cudaMemcpyAsync(pnow, &qkqcsrRowPtr[0], sizeof(int)*qkqcsrRowPtr.size(), cudaMemcpyHostToDevice, stream));
@@ -5811,6 +5812,10 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	qkqcsrValGPU = pnow;
 	pnow = (void*)((float*)pnow + qkqcsrVal.size());
 	
+	allcnt += sizeof(int)*qkqcsrRowPtr.size();
+	allcnt += sizeof(int)*qkqcsrColInd.size();
+	allcnt += sizeof(float)*qkqcsrVal.size();
+
 	CUDA_CALL(cudaMemcpyAsync(pnow, &ppkcsrRowPtr[0], sizeof(int)*ppkcsrRowPtr.size(), cudaMemcpyHostToDevice, stream));
 	ppkcsrRowPtrGPU = pnow;
 	pnow = (void*)((int*)pnow + ppkcsrRowPtr.size());
@@ -5821,6 +5826,9 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	ppkcsrValGPU = pnow;
 	pnow = (void*)((float*)pnow + ppkcsrVal.size());
 
+	allcnt += sizeof(int)*ppkcsrRowPtr.size();
+	allcnt += sizeof(int)*ppkcsrColInd.size();
+	allcnt += sizeof(float)*ppkcsrVal.size();
 
 	// not appropriate, too loose!
 	// we have to calculate max(/delta keywordindex)
@@ -5843,17 +5851,14 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	//pnow = (void*)((int*)pnow + MAX_LEN * MAX_POINT * MAX_POINT);
 
 
-	// *2 is okay, as the big max_totalkeyword_a_single_traj has dominance of mem!
-	if (max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj *4.0 / 1024 / 1024 / 1024 * 1.5 > gpuStat*1.0) {
-		printf("****** too big mem! QUIT ABNORMAL \n");
-		assert(-1);
-		return;
-	}
 
+	
 
 
 	tmpDensepmqnGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
+	
+	allcnt += sizeof(float)*max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj;
 
 	tmppmqncsrRowPtrGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj + 1); // 潜在debug 最极端需要+1 不过概率极其小 最安全加上1
@@ -5861,13 +5866,17 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
 	tmppmqncsrValGPU = (float*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj);
-	
+
+	allcnt += (sizeof(float)*max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj * 4 + 1);
+
 	tmppmqcsrRowPtrGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalpoint_a_single_traj + 1);
 	tmppmqcsrColIndGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalpoint_a_single_traj);
 	tmppmqcsrValGPU = (float*)pnow;
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj * max_totalpoint_a_single_traj);
+
+	allcnt += (sizeof(float)* max_totalkeyword_a_single_traj * max_totalpoint_a_single_traj * 3 + 1);
 
 	tmppqcsrRowPtrGPU = (int*)pnow;
 	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj * max_totalpoint_a_single_traj + 1);
@@ -5876,6 +5885,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	tmppqcsrValGPU = (float*)pnow;
 	pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj * max_totalpoint_a_single_traj);
 
+	allcnt += (sizeof(float)*max_totalpoint_a_single_traj * max_totalpoint_a_single_traj * 3 + 1);
 
 
 	tmpnnzPerRowColGPU = (int*)pnow;
@@ -5883,12 +5893,22 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	// pnow = (void*)((int*)pnow + max_totalpoint_a_single_traj); // this is wrong!!
 	pnow = (void*)((int*)pnow + max_totalkeyword_a_single_traj);
 
+	allcnt += sizeof(int)*max_totalkeyword_a_single_traj;
 
 
+	// *2 is okay, as the big max_totalkeyword_a_single_traj has dominance of mem!
+	//if (max_totalkeyword_a_single_traj * max_totalkeyword_a_single_traj *4.0 / 1024 / 1024 / 1024 * 1.5 > gpuStat*1.0) {
+	//	printf("****** too big mem! QUIT ABNORMAL \n");
+	//	assert(-1);
+	//	return;
+	//}
 
-
-
-
+	// we make accurate calculation
+	if (allcnt *1.0 / 1024 / 1024 / 1024 > gpuStat*1.0) {
+		printf("****** too big mem! QUIT ABNORMAL \n");
+		assert(-1);
+		return;
+	}
 
 
 	//// not here, we move these into the loop
@@ -6159,27 +6179,28 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			}
 
 
-			if (i == trajSetP.size() - 1 && j == trajSetQ.size() - 1) {
-				/*
+
+			if ((i == trajSetP.size() - 1) && (j == trajSetQ.size() - 1)) {
+				
 				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 					(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 					(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
 					(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
 					);
-				*/
+				
 				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+				CUDA_CALL(cudaStreamSynchronize(stream)); // because of stream, here is not wrong
+
 			}
-
-
-
 
 			//CUDA_CALL(cudaDeviceSynchronize());
 			// for tmp-mem usage, we must wait here !! but we ave stream though?? 有序 主要是防止下面和中间的CPU代码运行
-			CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
+			//CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!? -> maybe not
 			
 
 		}
 	}
+
 
 
 
