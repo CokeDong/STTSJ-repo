@@ -6214,18 +6214,19 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 						}
 					}
 					*/
+
+					computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
+						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
+						(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
+						(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
+						);
+					CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 					delete[]densepqCPU;
 
 				}
-
-				computeSimGPUV4 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
-					(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
-					(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
-					(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
-					);
-
-				CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+			
 				CUDA_CALL(cudaStreamSynchronize(stream));
+					
 					/*
 					computeSimGPU << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 						(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
