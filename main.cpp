@@ -74,13 +74,13 @@ int main() {
 	grid.init(trajDB); // clever£¡£¡
 
 	
-	/*
+	
 	printf("***** 1-cpu *****\n");
 	std::vector<trajPair> resultpaircpu;
 	std::vector<float> resultvaluecpu;
 	// for equality, we have to padding for CPU?? -----> no need!!
 	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
-	*/
+	
 
 	/*
 	printf("***** mul-cpu full *****\n");

@@ -2357,7 +2357,7 @@ __global__ void computeSimGPUV4(float* latDataPGPU1, float* latDataQGPU1, float*
 				// way2: store way 决定-> fetch way	是否合并访问 fetch from global memory!! 
 
 				//tsim = keypqGPU[pqid + tmpflagj*height + tmpflagi];
-				//tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi]; // np
+				tsim = densepqGPU[densepqindexx + tmpflagj*height + tmpflagi]; // np
 				//printf("densepqGPU[%d]= %f densepqindexx = %d\n tmpflagi = %d tmpflagj= %d\n", densepqindexx + tmpflagj*height + tmpflagi,tsim, densepqindexx, tmpflagi, tmpflagj);
 
 				float ssim = SSimGPU(latP, lonP, latQ, lonQ);
