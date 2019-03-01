@@ -6299,7 +6299,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	// here has about 2s latency
 	// rediculous
 	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
-		printf("%f\n", SimResult[i]);
+		//printf("%f\n", SimResult[i]);
 		result.push_back(SimResult[i]);
 	}
 

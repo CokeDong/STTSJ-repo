@@ -75,7 +75,7 @@ int main() {
 
 	
 	
-	printf("***** 1-cpu *****\n");
+	printf("*************** 1-cpu ***************\n");
 	std::vector<trajPair> resultpaircpu;
 	std::vector<float> resultvaluecpu;
 	// for equality, we have to padding for CPU?? -----> no need!!
@@ -97,7 +97,7 @@ int main() {
 	
 
 	
-	printf("***** 1-gpu coarse *****\n");
+	printf("*************** 1-gpu coarse ****************\n");
 	std::vector<trajPair> resultpaircoarsegpu;
 	std::vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
@@ -116,7 +116,7 @@ int main() {
 
 
 	// 不能太长轨迹 否则显存不足 已写 assert
-	printf("***** 1-gpu fine *****\n");
+	printf("*************** 1-gpu fine ***************\n");
 	std::vector<trajPair> resultpairfinegpu;
 	std::vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
@@ -135,7 +135,7 @@ int main() {
 
 	
 	// 可以任意长轨迹
-	printf("***** 1-gpu V3 fine *****\n");
+	printf("*************** 1-gpu V3 fine ***************\n");
 	std::vector<trajPair> resultpairfinegpu3;
 	std::vector<float> resultvaluefinegpu3;
 	grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
@@ -144,7 +144,7 @@ int main() {
 
 
 	// 不能太长轨迹 否则显存不足 -> 数据预处理 不要太极端 已写 assert
-	printf("***** 1-gpu V4 fine cusparse *****\n");
+	printf("*************** 1-gpu V4 fine cusparse ***************\n");
 	std::vector<trajPair> resultpairfinegpu4;
 	std::vector<float> resultvaluefinegpu4;
 	grid.joinExhaustedGPUV4(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4);
