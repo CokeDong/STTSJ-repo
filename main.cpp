@@ -8,7 +8,7 @@
 #include "util.h"
 
 
-using namespace std;
+// using namespace std; // cuda cusparse¿â not recommended
 
 
 //extern void split2(std::string s, std::string delim, std::vector<std::string>* ret); // for test
@@ -36,7 +36,7 @@ int main() {
 	bool first = false;
 	Preprocess pp;
 	if(first){
-		// can be done by python.
+		// can be done by python. -> ¼û python Ô¤´¦Àí  to do
 		// fooolly extraction
 		pp.VenuesExtraction("./NY/Venues.txt","./NY/VenuesExtc.txt");
 		pp.TipsExtraction("./NY/Tips.txt");

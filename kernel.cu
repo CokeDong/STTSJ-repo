@@ -5523,7 +5523,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 				textDataPIndexCPU.push_back(-1);
 				textDataPValueCPU.push_back(-1);
 				textPId++;
-
+				
+				// we can set it to 1 or we can set it to 0 if we omit, both are correct!
 				ppkcsrColInd.push_back(keywordcnt);
 				ppkcsrcolaccumulated++;
 				ppkcsrVal.push_back(1.0);
@@ -5787,7 +5788,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
 			//debug： index bugging!!
 			stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
-			densepqidx += stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ;
+			// debug:20190301 对齐问题？ 非逻辑问题
+			densepqidx += ((stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ - 1) / 8) * 8 + 8; // here is for 32-byte 对齐
 			//stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx;
 			//densepqidx += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
 		}
@@ -6034,7 +6036,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 			bool testing_cusparseSnnzs1 = false; // 放到预编译
 			if (testing_cusparseSnnzs1) {
 				// for good i,j filtering
-				if(i==2 && j==2) // 影响debug i = 2出问题
+				if(i==2 && j==2) // 影响debug i = 2出问题 -> debug: CUSPARSE函数 在 m/n = 1 出错 程式 bug:preprocess解决
 				{
 					int *nnzperrow = new int[max_totalkeyword_a_single_traj];
 					// 注意：keycntP 包括 padding !!
@@ -6236,6 +6238,8 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 						(StatInfoTable*)stattableGPU, (float*)DensepqGPU, (float*)SimResultGPU
 						);
 					CUDA_CALL(cudaEventRecord(kernel_stop, stream));
+					
+					// Memcpy包含同步
 					cudaMemcpy(SimResult, SimResultGPU, sizeof(float)*dataSizeP*dataSizeQ, cudaMemcpyDeviceToHost);
 
 				}

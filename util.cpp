@@ -102,13 +102,24 @@ void GetTF(std::vector<std::string>* keywords, std::vector<std::string>* corpus)
 
 
 void GetSample(std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int sizeP, int sizeQ) {
+	
+	int num = 5;
+	int* a = new int[num]();
+	a[0] = 0;
+	a[1] = 9;
+	a[2] = 50;
+	a[3] = 69;
+	a[4] = 107;
 
 	for (size_t i = 0; i < sizeP; i++) {
-		taskSet1.push_back(i); //
+		//taskSet1.push_back(a[rand() % num]);
+		taskSet1.push_back(i);
 	}
 	//set<size_t> Q;
+
 	for (size_t j = 0; j < sizeQ; j++) {
-		taskSet2.push_back(j); //
+		//taskSet2.push_back(a[rand() % num]);
+		taskSet2.push_back(j);
 	}
 
 }
