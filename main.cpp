@@ -96,13 +96,13 @@ int main() {
 	
 	
 
-	/*
+	
 	printf("***** 1-gpu coarse *****\n");
 	std::vector<trajPair> resultpaircoarsegpu;
 	std::vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
-	*/
+	
 
 
 	//// this is worse than Zero Copy, but very very tiny
@@ -115,13 +115,14 @@ int main() {
 
 
 
-	/*
+	// 不能太长轨迹 否则显存不足 已写 assert
 	printf("***** 1-gpu fine *****\n");
 	std::vector<trajPair> resultpairfinegpu;
 	std::vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
-	*/
+	
+
 	
 
 
@@ -133,16 +134,16 @@ int main() {
 	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
 
 	
-	/*
+	// 可以任意长轨迹
 	printf("***** 1-gpu V3 fine *****\n");
 	std::vector<trajPair> resultpairfinegpu3;
 	std::vector<float> resultvaluefinegpu3;
 	grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
-	*/
+	
 
 
-
+	// 不能太长轨迹 否则显存不足 -> 数据预处理 不要太极端 已写 assert
 	printf("***** 1-gpu V4 fine cusparse *****\n");
 	std::vector<trajPair> resultpairfinegpu4;
 	std::vector<float> resultvaluefinegpu4;
@@ -150,9 +151,7 @@ int main() {
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu4, resultvaluefinegpu4);
 
 
-
 	//sleep(10);
-
 	cout << "finished" << endl;
 #ifdef DIS_RESULT
 	getchar();

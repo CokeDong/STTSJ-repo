@@ -80,8 +80,9 @@
 // 数据集相关 must < THREADNUM, kernel is correct
 #define MAXTRAJLEN 256
 
-
-
+#define GPUSMALLMEM 200
+#define GPUDATAMEM 500
+#define GPUBIGMEM 10
 
 // not recommended??
 

@@ -3083,9 +3083,9 @@ void STSimilarityJoinCalcGPU(std::vector<STTrajectory> &trajSetP,
 	// CUDA_CALL
 
 	// here only for quick occupying GPU 
-	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024); 
-	void* gpuAddrStat = GPUMalloc((size_t)1 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrPSet = GPUMalloc((size_t)GPUSMALLMEM * 1024 * 1024);
+	void* gpuAddrQSet = GPUMalloc((size_t)GPUSMALLMEM * 1024 * 1024);
+	void* gpuAddrStat = GPUMalloc((size_t)GPUBIGMEM * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
@@ -3941,9 +3941,9 @@ void STSimilarityJoinCalcGPUV2(std::vector<STTrajectory> &trajSetP,
 	// CUDA_CALL
 
 	// here only for quick occupying GPU 
-	void* gpuAddrPSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrQSet = GPUMalloc((size_t)20 * 1024 * 1024);
-	void* gpuAddrStat = GPUMalloc((size_t)1 * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrPSet = GPUMalloc((size_t)GPUSMALLMEM * 1024 * 1024);
+	void* gpuAddrQSet = GPUMalloc((size_t)GPUSMALLMEM * 1024 * 1024);
+	void* gpuAddrStat = GPUMalloc((size_t)GPUBIGMEM * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 																	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
@@ -4222,12 +4222,23 @@ void STSimilarityJoinCalcGPUV2(std::vector<STTrajectory> &trajSetP,
 	keypqMatrixGPU = (float*)pnow;
 	pnow = (void*)((float*)pnow + pqid);
 
-	// debug: big int -> size_t
-	//OutGPUMemNeeded(pmqnid, pmqid,pqid);
-	printf("***** size_t ***** %zu %zu %zu\n", pmqnid, pmqid, pqid);
-	//printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
-	//printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
-	printf("***** total status size *****%f GB\n", (pmqnid + pmqid + pqid)*4.0 / 1024 / 1024 / 1024);
+
+
+
+	double memtotal = (pmqnid + pmqid + pqid)*4.0 / 1024 / 1024 / 1024;
+	if (memtotal > GPUBIGMEM*0.99) {
+		printf("****** too big mem! QUIT ABNORMAL \n");
+		assert(-1);
+		return;
+	}
+	else {
+		// debug: big int -> size_t
+		//OutGPUMemNeeded(pmqnid, pmqid,pqid);
+		printf("***** size_t ***** %zu %zu %zu\n", pmqnid, pmqid, pqid);
+		//printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
+		//printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
+		printf("***** total status size *****%f GB\n", memtotal);
+	}
 
 	// zero-copy 内存 
 	// 需要手动free!!
@@ -4274,8 +4285,8 @@ void STSimilarityJoinCalcGPUV2(std::vector<STTrajectory> &trajSetP,
 		);
 	//CUDA_CALL(cudaStreamSynchronize(stream));
 
-	// above three can be merged!
 
+	// above three can be merged!
 	computeSimGPUV2 << < dataSizeP*dataSizeQ, THREADNUM, 0, stream >> > ((float*)latDataPGPU, (float*)latDataQGPU, (float*)lonDataPGPU, (float*)lonDataQGPU,
 		(int*)textDataPIndexGPU, (int*)textDataQIndexGPU, (float*)textDataPValueGPU, (float*)textDataQValueGPU,
 		(int*)textIdxPGPU, (int*)textIdxQGPU, (int*)numWordPGPU, (int*)numWordQGPU,
@@ -4773,16 +4784,16 @@ void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
 	// GPUmem-alloc
 	// 需要手动free!!
 	// CUDA_CALL
-	int gpuData = 500;
+	int gpuData = GPUDATAMEM;
 	//int gpuQSet = 20;
-	int gpuStat = 6; // please be BIG ! 
+	int gpuStat = GPUBIGMEM; // please be BIG ! 
 	// here only for quick occupying GPU 
-	void* gpuAddrData = GPUMalloc((size_t)gpuData * 1024 * 1024);
+	void* gpuAddrData = GPUMalloc((size_t)GPUDATAMEM * 1024 * 1024);
 	//void* gpuAddrQSet = GPUMalloc((size_t)gpuQSet * 1024 * 1024);
-	void* gpuAddrStat = GPUMalloc((size_t)gpuStat * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrStat = GPUMalloc((size_t)GPUBIGMEM * 1024 * 1024 * 1024);
 
 
-																   //void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
+	//void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
 
 	cudaEvent_t memcpy_to_start, kernel_start, kernel_stop;
 	CUDA_CALL(cudaEventCreate(&memcpy_to_start));
@@ -5303,13 +5314,13 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	// GPUmem-alloc
 	// 需要手动free!!
 	// CUDA_CALL
-	int gpuData = 500;
+	int gpuData = GPUDATAMEM;
 	//int gpuQSet = 20;
-	int gpuStat = 6; // please be BIG ! 
+	int gpuStat = GPUBIGMEM; // please be BIG ! 
 					 // here only for quick occupying GPU 
-	void* gpuAddrData = GPUMalloc((size_t)gpuData * 1024 * 1024);
+	void* gpuAddrData = GPUMalloc((size_t)GPUDATAMEM * 1024 * 1024);
 	//void* gpuAddrQSet = GPUMalloc((size_t)gpuQSet * 1024 * 1024);
-	void* gpuAddrStat = GPUMalloc((size_t)gpuStat * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
+	void* gpuAddrStat = GPUMalloc((size_t)GPUBIGMEM * 1024 * 1024 * 1024); // 10GB need too much space for stats info.
 
 
 																		 //void* gpuStatInfo = GPUMalloc((size_t)200 * 1024 * 1024);
@@ -5788,7 +5799,7 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 		for (size_t j = 0; j < trajSetQ.size(); j++) {
 			//debug： index bugging!!
 			stattableCPU[i*dataSizeQ + j].DensepqIdx = densepqidx;
-			// debug:20190301 对齐问题？ 非逻辑问题
+			// debug:20190301 对齐问题  非逻辑问题
 			densepqidx += ((stattableCPU[i*dataSizeQ + j].pointNumP*stattableCPU[i*dataSizeQ + j].pointNumQ - 1) / 8) * 8 + 8; // here is for 32-byte 对齐
 			//stattableCPU[i*dataSizeP + j].DensepqIdx = densepqidx;
 			//densepqidx += stattableCPU[i*dataSizeP + j].pointNumP*stattableCPU[i*dataSizeP + j].pointNumQ;
