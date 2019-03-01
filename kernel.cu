@@ -4228,16 +4228,31 @@ void STSimilarityJoinCalcGPUV2(std::vector<STTrajectory> &trajSetP,
 	double memtotal = (pmqnid + pmqid + pqid)*4.0 / 1024 / 1024 / 1024;
 	if (memtotal > GPUBIGMEM*0.99) {
 		printf("****** too big mem! QUIT ABNORMAL \n");
+
+		free(stattableCPU);
+
+		if (gpuAddrPSet) CUDA_CALL(cudaFree(gpuAddrPSet));
+		if (gpuAddrQSet) CUDA_CALL(cudaFree(gpuAddrQSet));
+		if (gpuAddrStat) CUDA_CALL(cudaFree(gpuAddrStat));
+
+		// GPU stream management
+		if (memcpy_to_start) CUDA_CALL(cudaEventDestroy(memcpy_to_start));
+		if (kernel_start) CUDA_CALL(cudaEventDestroy(kernel_start));
+		if (kernel_stop)CUDA_CALL(cudaEventDestroy(kernel_stop));
+		if (stream) CUDA_CALL(cudaStreamDestroy(stream));
+		CUDA_CALL(cudaDeviceReset());
+		
 		assert(-1);
 		return;
 	}
 	else {
 		// debug: big int -> size_t
 		//OutGPUMemNeeded(pmqnid, pmqid,pqid);
-		printf("***** size_t ***** %zu %zu %zu\n", pmqnid, pmqid, pqid);
+		printf(" size_t  %zu %zu %zu\n", pmqnid, pmqid, pqid);
 		//printf("***** avg. wordcnt ***** %f\n", sqrt(pmqnid*1.0 / (SIZE_DATA*SIZE_DATA)));
 		//printf("***** avg. pointcnt ***** %f\n", sqrt(pqid*1.0 / (SIZE_DATA*SIZE_DATA)));
-		printf("***** total status size *****%f GB\n", memtotal);
+		printf(" total status size  %f GB\n", memtotal);
+
 	}
 
 	// zero-copy ÄÚ´æ 
@@ -5923,6 +5938,22 @@ void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	double memtotal = allcnt *1.0 / 1024 / 1024 / 1024;
 	if ( memtotal > gpuStat*1.0) {
 		printf("****** too big mem! QUIT ABNORMAL \n");
+
+		// donot forget this !
+		free(stattableCPU);
+		free(trajPStattable);
+		free(trajQStattable);
+		free(SimResult);
+
+		if (gpuAddrData)CUDA_CALL(cudaFree(gpuAddrData));
+		if (gpuAddrStat)CUDA_CALL(cudaFree(gpuAddrStat));
+
+		if (memcpy_to_start) CUDA_CALL(cudaEventDestroy(memcpy_to_start));
+		if (kernel_start) CUDA_CALL(cudaEventDestroy(kernel_start));
+		if (kernel_stop)CUDA_CALL(cudaEventDestroy(kernel_stop));
+		if (stream) CUDA_CALL(cudaStreamDestroy(stream));
+		CUDA_CALL(cudaDeviceReset());
+
 		assert(-1);
 		return;
 	}
