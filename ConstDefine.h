@@ -83,7 +83,7 @@
 #define GPUSMALLMEM 200
 #define GPUDATAMEM 500
 
-#define GPUBIGMEM 10
+#define GPUBIGMEM 4
 
 // not recommended??
 
