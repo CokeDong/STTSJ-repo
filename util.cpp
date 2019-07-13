@@ -294,7 +294,7 @@ void GetSample_Filtering(std::vector<STTrajectory> &dataptr, std::vector<size_t>
 			tmp.push_back(i);
 	}
 	random_shuffle(tmp.begin(), tmp.end());
-	cout << "len [" << MinLength << ',' << MaxLength << '] = ' << tmp.size() << endl;
+	cout << "len [" << MinLength << ',' << MaxLength << "] = " << tmp.size() << endl;
 
 
 	for (int i = 0; i < sizeP; ++i) {
