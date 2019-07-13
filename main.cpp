@@ -95,7 +95,7 @@ int main() {
 	
 	// if SIZE*SIZE too big, we get Resource temporarily unavailabl
 	printf("***** cpu  %d *****\n" , MAX_CPU_THREAD);
-	grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD, 3); // not that accurate!!
+	grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpairmcpu, resultvaluemcpu, MAX_CPU_THREAD, 3); // not that accurate!!
 	
 	
 	
