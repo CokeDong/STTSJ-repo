@@ -293,13 +293,14 @@ void GetSample_Filtering_Sorting(std::vector<STTrajectory> &dataptr, std::vector
 		if (dataptr.at(i).traj_length >= MinLength && dataptr.at(i).traj_length <= MaxLength)
 			tmp.push_back(i);
 	}
-	random_shuffle(tmp.begin(), tmp.end());
+	//random_shuffle(tmp.begin(), tmp.end());
 	cout << "len [" << MinLength << ',' << MaxLength << "] = " << tmp.size() << endl;
 
 	srand(1);
 	for (int i = 0; i < sizeP; ++i) {
 		taskSet1.push_back(tmp.at(rand() % tmp.size()));
 	}
+
 	srand(1);
 	for (int i = 0; i < sizeQ; ++i) {
 		taskSet2.push_back(tmp.at(rand() % tmp.size()));
@@ -376,7 +377,7 @@ void GetSample_Filtering_NoSorting(std::vector<STTrajectory> &dataptr, std::vect
 		if (dataptr.at(i).traj_length >= MinLength && dataptr.at(i).traj_length <= MaxLength)
 			tmp.push_back(i);
 	}
-	random_shuffle(tmp.begin(), tmp.end());
+	//random_shuffle(tmp.begin(), tmp.end());
 	cout << "len [" << MinLength << ',' << MaxLength << "] = " << tmp.size() << endl;
 
 	srand(1);

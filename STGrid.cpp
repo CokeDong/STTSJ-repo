@@ -287,10 +287,14 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 					GetSample_Filtering_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 				}
 				else
-				{
-					printf("No Sample Strategy!\n");
-					assert(0);
+				if (sampletype == 4) {
+					GetSample_Filtering_NoSorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 				}
+					else
+					{
+						printf("No Sample Strategy!\n");
+						assert(0);
+					}
 	
 	//GetSample(taskSet1, taskSet2, sizeP, sizeQ);
 	cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << endl;
