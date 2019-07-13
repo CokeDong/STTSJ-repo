@@ -172,12 +172,12 @@ int main() {
 	// add sorting schedular needed
 	// no-sorting
 	// 可以任意长轨迹 这里构成batch很重要
-	printf("*************** 1-gpu V3 fine no-sorting ***************\n");
-	std::vector<trajPair> resultpairfinegpu4;
-	std::vector<float> resultvaluefinegpu4;
-	//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4,2,4);
-	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
+	//printf("*************** 1-gpu V3 fine no-sorting ***************\n");
+	//std::vector<trajPair> resultpairfinegpu4;
+	//std::vector<float> resultvaluefinegpu4;
+	////grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
+	//grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4,2,4);
+	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 
 
 

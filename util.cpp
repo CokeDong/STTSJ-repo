@@ -293,6 +293,8 @@ void GetSample_Filtering_Sorting(std::vector<STTrajectory> &dataptr, std::vector
 		if (dataptr.at(i).traj_length >= MinLength && dataptr.at(i).traj_length <= MaxLength)
 			tmp.push_back(i);
 	}
+	//srand(1);
+	srand(time(0));
 	//random_shuffle(tmp.begin(), tmp.end());
 	cout << "len [" << MinLength << ',' << MaxLength << "] = " << tmp.size() << endl;
 
