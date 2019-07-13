@@ -67,14 +67,14 @@ int main() {
 	std::vector<trajPair> resultpair;
 	std::vector<float> resultvalue;
 
-	// 频繁调参使用变量！！
+	// 频繁调参使用变量！！不需要重新make -> figure of scalability
 	int SIZE = 16; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
 
 	
-	
+	// 单线程
 	printf("*************** 1-cpu ***************\n");
 	std::vector<trajPair> resultpaircpu;
 	std::vector<float> resultvaluecpu;
@@ -82,22 +82,23 @@ int main() {
 	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
 	
 
-	/*
-	printf("***** mul-cpu full *****\n");
-	std::vector<trajPair> resultpairmcpu;
-	std::vector<float> resultvaluemcpu;
-	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
-	*/
+	//// 多线程版本
+	//printf("***** mul-cpu full *****\n");
+	//std::vector<trajPair> resultpairmcpu;
+	//std::vector<float> resultvaluemcpu;
+	//grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
+
 
 
 	//printf("***** cpu  %d *****\n" , MAX_CPU_THREAD);
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD); // not that accurate!!
 	
 	
-	
 
 	
-	printf("*************** 1-gpu coarse ****************\n");
+
+	// baseline的算法 很慢
+	printf("*************** 1-gpu coarse(baseline) ****************\n");
 	std::vector<trajPair> resultpaircoarsegpu;
 	std::vector<float> resultvaluecoarsegpu;
 	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
@@ -115,16 +116,13 @@ int main() {
 
 
 
-	// 不能太长轨迹 否则显存不足 已写 assert
+	// 不能太长轨迹 否则显存不足 -> 数据预处理 自定义三个矩阵尤其第一个占用过大显存 不要太极端 已写 assert
 	printf("*************** 1-gpu fine ***************\n");
 	std::vector<trajPair> resultpairfinegpu;
 	std::vector<float> resultvaluefinegpu;
 	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
-
-	
-
 
 	//// not that important for performance improvement  -> 合并多个kernel
 	//printf("***** 1-gpu V2p1 fine *****\n");
@@ -133,8 +131,23 @@ int main() {
 	//grid.joinExhaustedGPUV2p1(SIZE, SIZE, resultpairfinegpu2, resultvaluefinegpu2);
 	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu2, resultvaluefinegpu2);
 
-	
-	// 可以任意长轨迹
+
+
+
+
+	//// 不能太长轨迹 否则显存不足 -> 数据预处理 用的是cusparse库 中间结果需要显存 不要太极端 已写 assert
+	//printf("*************** 1-gpu V3 fine cusparse nobatch ***************\n");
+	//std::vector<trajPair> resultpairfinegpu4;
+	//std::vector<float> resultvaluefinegpu4;
+	//grid.joinExhaustedGPUV4(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4);
+	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu4, resultvaluefinegpu4);
+
+
+
+
+
+	// no-sorting
+	// 可以任意长轨迹 这里构成batch很重要
 	printf("*************** 1-gpu V3 fine ***************\n");
 	std::vector<trajPair> resultpairfinegpu3;
 	std::vector<float> resultvaluefinegpu3;
@@ -143,12 +156,18 @@ int main() {
 	
 
 
-	// 不能太长轨迹 否则显存不足 -> 数据预处理 不要太极端 已写 assert
-	printf("*************** 1-gpu V4 fine cusparse ***************\n");
-	std::vector<trajPair> resultpairfinegpu4;
-	std::vector<float> resultvaluefinegpu4;
-	grid.joinExhaustedGPUV4(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4);
-	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu4, resultvaluefinegpu4);
+	// add no-flip
+
+
+
+
+
+	// add sorting schedular
+
+
+
+
+
 
 
 	//sleep(10);

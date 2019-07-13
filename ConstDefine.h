@@ -59,7 +59,7 @@
 
 #define SIZE_DATA 16
 
-
+#define MAXTRAJSIZE 49000
 // 这几个宏定义相关：THREADNUM = THREADROW * THREADCOLUMN
 
 // 处理 P Q num不平衡 not smart 16*16 is okay, only bound exsists imbalance!! 

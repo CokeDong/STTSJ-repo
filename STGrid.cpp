@@ -807,13 +807,11 @@ void STGrid::joinExhaustedGPUV3(
 
 	std::vector<size_t> taskSet1, taskSet2;
 
-	GetSample(taskSet1, taskSet2, sizeP, sizeQ);
 
+	//GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+	GetSample2( this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 
 	// filtering 
-
-
-
 
 
 
@@ -866,7 +864,7 @@ void STGrid::joinExhaustedGPUV3(
 				tmptaskq.push_back(taskSet2[j + k]);
 			}
 
-			//ATTENTION: BELOW 2 operation must match!: GetTaskPair and STSimilarityJoinCalcGPUV3
+			//ATTENTION: BELOW 2 operation must match!: GetTaskPair and STSimilarityJoinCalcGPUV3 耦合度太高
 
 			// get trajpair(taskpair)
 			std::vector<trajPair> tmptaskGPU; // 是否会太大？？？ 不会：max_size=2305843009213693951

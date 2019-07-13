@@ -306,6 +306,7 @@ void Preprocess::ReadTrajDBPointID(std::vector<STTrajectory> &trajdb, std::strin
 		trajdb.push_back(trajtmp);
 	}
 	cout << "maxtrajetory len= " << maxlen << endl;
+	cout << "maxtrajetory size= " << trajdb.size() << endl;
 	cout << "TrajDBpointsID reading finished" << endl;
 	fin.close();
 }

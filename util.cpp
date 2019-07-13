@@ -123,6 +123,136 @@ void GetSample(std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int
 		taskSet2.push_back(j);
 	}
 
+	delete[] along;
+}
+
+
+void RandPerm(int MaxNum, int TestNum, vector<size_t> &id) {
+	// O(n):
+	// MaxNum >= TestNum
+	vector<int> tmp;
+	for (int i = 0; i < MaxNum; ++i) {
+		tmp.push_back(i);
+	}
+	random_shuffle(tmp.begin(), tmp.end());
+
+	for (int i = 0; i < TestNum; ++i) {
+		id.push_back(tmp.at(i));
+	}
+}
+ 
+void GetSample2(std::vector<STTrajectory> &dataptr, std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int sizeP, int sizeQ) {
+
+	// make status!
+	int num = 5;
+	int* along = new int[num]();
+	along[0] = 0;
+	along[1] = 9;
+	along[2] = 50;
+	along[3] = 69;
+	along[4] = 107;
+
+	for (size_t i = 0; i < sizeP; i++) {
+		//taskSet1.push_back(a[rand() % num]);
+		taskSet1.push_back(i);
+	}
+	//set<size_t> Q;
+
+	for (size_t j = 0; j < sizeQ; j++) {
+		//taskSet2.push_back(a[rand() % num]);
+		taskSet2.push_back(j);
+	}
+
+	for (int i = 0; i < taskSet1.size() - 1; ++i) {
+		for (int j = i + 1; j < taskSet1.size(); ++j) {
+			if (dataptr.at(taskSet1.at(i)).traj_length > dataptr.at(taskSet1.at(j)).traj_length) {
+				std::swap(taskSet1.at(i), taskSet1.at(j));
+			}
+		}
+	}
+	// output:
+	cout << "P trajlen dist.:\n";
+	for (int i = 0; i < taskSet1.size(); i++)
+		cout << dataptr.at(taskSet1.at(i)).traj_length << ' ';
+	cout << endl;
+
+
+	for (int i = 0; i < taskSet2.size() - 1; ++i) {
+		for (int j = i + 1; j < taskSet2.size(); ++j) {
+			if (dataptr.at(taskSet2.at(i)).traj_length > dataptr.at(taskSet2.at(j)).traj_length) {
+				std::swap(taskSet2.at(i), taskSet2.at(j));
+			}
+		}
+	}
+	// output:
+	cout << "Q trajlen dist.:\n";
+	for (int i = 0; i < taskSet2.size(); i++)
+		cout << dataptr.at(taskSet2.at(i)).traj_length << ' ';
+	cout << endl;
+
+
+	delete[] along;
+}
+
+void GetSample_Sorting(std::vector<STTrajectory> &dataptr, std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int sizeP, int sizeQ) {
+
+	//// make status!
+
+	//int num = 5;
+	//int* along = new int[num]();
+	//along[0] = 0;
+	//along[1] = 9;
+	//along[2] = 50;
+	//along[3] = 69;
+	//along[4] = 107;
+
+	//for (size_t i = 0; i < sizeP; i++) {
+	//	//taskSet1.push_back(a[rand() % num]);
+	//	taskSet1.push_back(i);
+	//}
+	////set<size_t> Q;
+
+	//for (size_t j = 0; j < sizeQ; j++) {
+	//	//taskSet2.push_back(a[rand() % num]);
+	//	taskSet2.push_back(j);
+	//}
+
+	//delete[] along;
+
+
+	// way2:
+	RandPerm(sizeP * 3 > MAXTRAJSIZE ? MAXTRAJSIZE : sizeP * 3 , sizeP, taskSet1);
+	RandPerm(sizeQ * 3 > MAXTRAJSIZE ? MAXTRAJSIZE : sizeQ * 3 , sizeQ, taskSet2);
+
+
+
+	for (int i = 0; i < taskSet1.size()-1; ++i) {
+		for (int j = i + 1; j < taskSet1.size(); ++j) {
+			if (dataptr.at(taskSet1.at(i)).traj_length > dataptr.at(taskSet1.at(j)).traj_length) {
+				std::swap(taskSet1.at(i), taskSet1.at(j));
+			}
+		}
+	}
+	// output:
+	cout << "P trajlen dist.:\n";
+	for (int i = 0; i < taskSet1.size(); i++)
+		cout << dataptr.at(taskSet1.at(i)).traj_length << ' ';
+	cout << endl;
+	
+
+	for (int i = 0; i < taskSet2.size() - 1; ++i) {
+		for (int j = i + 1; j < taskSet2.size(); ++j) {
+			if (dataptr.at(taskSet2.at(i)).traj_length > dataptr.at(taskSet2.at(j)).traj_length) {
+				std::swap(taskSet2.at(i), taskSet2.at(j));
+			}
+		}
+	}
+	// output:
+	cout << "Q trajlen dist.:\n";
+	for (int i = 0; i < taskSet2.size(); i++)
+		cout << dataptr.at(taskSet2.at(i)).traj_length << ' ';
+	cout << endl;
+
 }
 
 
