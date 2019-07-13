@@ -159,13 +159,13 @@ int main() {
 	
 
 
-	// add no-flip
+	// add no-flip needed
 
 
 
 
 
-	// add sorting schedular
+	// add sorting schedular needed
 
 
 
