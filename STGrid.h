@@ -80,7 +80,8 @@ public:
 		std::vector<trajPair>& resultpair,
 		std::vector<float>& resultvalue,
 
-		int threadnum
+		int threadnum,
+		int sampletype
 		//std::vector<STTrajectory> &P,
 		//std::vector<STTrajectory> &Q
 	);

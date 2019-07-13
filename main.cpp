@@ -86,12 +86,12 @@ int main() {
 	printf("***** mul-cpu full *****\n");
 	std::vector<trajPair> resultpairmcpu;
 	std::vector<float> resultvaluemcpu;
-	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu,3);
 
-
-
-	//printf("***** cpu  %d *****\n" , MAX_CPU_THREAD);
-	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD); // not that accurate!!
+	//grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu,3);
+	
+	// if SIZE*SIZE too big, we get Resource temporarily unavailabl
+	printf("***** cpu  %d *****\n" , MAX_CPU_THREAD);
+	grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD, 3); // not that accurate!!
 	
 	
 	

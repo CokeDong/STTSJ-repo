@@ -255,7 +255,8 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	int sizeQ,
 	std::vector<trajPair>& resultpair,
 	std::vector<float>& resultvalue,
-	int threadnum) {
+	int threadnum,
+	int sampletype) {
 
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
@@ -268,7 +269,30 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	//set<size_t> P;
 
 	std::vector<size_t> taskSet1, taskSet2;
-	GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+
+	if (sampletype == 0) {
+		GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+	}
+	else
+		if (sampletype == 1) {
+			GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+
+		}
+		else
+			if (sampletype == 2) {
+				GetSample_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+			}
+			else
+				if (sampletype == 3) {
+					GetSample_Filtering(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+				}
+				else
+				{
+					printf("No Sample Strategy!\n");
+					assert(0);
+				}
+	
+	//GetSample(taskSet1, taskSet2, sizeP, sizeQ);
 	cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << endl;
 
 	// filtering 
