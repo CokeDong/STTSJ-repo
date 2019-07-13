@@ -182,6 +182,20 @@ public:
 		//std::vector<STTrajectory> &Q
 	);
 
+	void joinExhaustedGPU_Final(
+		//float epsilon,
+		//float alpha,
+		int sizeP,
+		int sizeQ,
+		//std::map<trajPair, float>& result
+		std::vector<trajPair>& resultpair,
+		std::vector<float>& resultvalue,
+		//std::vector<STTrajectory> &P,
+		//std::vector<STTrajectory> &Q
+		int type
+	);
+
+
 	// 类内定义的成员方法，编译器会将其优先编译成内联函数，这里没采用
 	void GetTaskPair(std::vector<size_t> &taskp, std::vector<size_t> &taskq, std::vector<trajPair> &resultpair);
 

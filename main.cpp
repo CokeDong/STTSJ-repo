@@ -101,7 +101,8 @@ int main() {
 	printf("*************** 1-gpu coarse(baseline) ****************\n");
 	std::vector<trajPair> resultpaircoarsegpu;
 	std::vector<float> resultvaluecoarsegpu;
-	grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
+	//grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu,0);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	
 
@@ -120,7 +121,8 @@ int main() {
 	printf("*************** 1-gpu fine ***************\n");
 	std::vector<trajPair> resultpairfinegpu;
 	std::vector<float> resultvaluefinegpu;
-	grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
+	//grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu, 1);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
 
@@ -151,7 +153,8 @@ int main() {
 	printf("*************** 1-gpu V3 fine ***************\n");
 	std::vector<trajPair> resultpairfinegpu3;
 	std::vector<float> resultvaluefinegpu3;
-	grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
+	//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 	
 
