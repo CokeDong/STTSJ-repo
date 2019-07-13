@@ -68,7 +68,7 @@ int main() {
 	std::vector<float> resultvalue;
 
 	// 频繁调参使用变量！！不需要重新make -> figure of scalability
-	int SIZE = 16; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 32; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
@@ -102,7 +102,7 @@ int main() {
 	std::vector<trajPair> resultpaircoarsegpu;
 	std::vector<float> resultvaluecoarsegpu;
 	//grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu,0,2);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu,0,3);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	
 
@@ -122,7 +122,7 @@ int main() {
 	std::vector<trajPair> resultpairfinegpu;
 	std::vector<float> resultvaluefinegpu;
 	//grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu, 1,2);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu, 1,3);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
 
@@ -154,7 +154,7 @@ int main() {
 	std::vector<trajPair> resultpairfinegpu3;
 	std::vector<float> resultvaluefinegpu3;
 	//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2,2);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2,3);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 	
 

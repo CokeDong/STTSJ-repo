@@ -29,7 +29,7 @@ void split3(std::string s, std::string delim, std::vector<std::string>* ret);
 void GetSample(std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int sizeP, int sizeQ);
 void GetSample2(std::vector<STTrajectory> &dataptr,std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int sizeP, int sizeQ);
 void GetSample_Sorting(std::vector<STTrajectory> &dataptr, std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int sizeP, int sizeQ);
-
+void GetSample_Filtering(std::vector<STTrajectory> &dataptr, std::vector<size_t> &taskSet1, std::vector<size_t> &taskSet2, int sizeP, int sizeQ);
 // this is a wrong coding!! -> stupid!
 //template<class T>
 //int getlength(T& arr)

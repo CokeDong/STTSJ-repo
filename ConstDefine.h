@@ -16,6 +16,7 @@
 #include <string>
 #include <cstdlib>
 
+#include <assert.h>
 
 #ifdef WIN32
 #include "WinTimer.h"

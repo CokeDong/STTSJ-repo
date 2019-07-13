@@ -31,14 +31,24 @@ void STGrid::joinExhaustedCPUonethread(
 	if (sampletype == 0) {
 		GetSample(taskSet1, taskSet2, sizeP, sizeQ);
 	}
-	if (sampletype == 1) {
-		GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+	else
+		if (sampletype == 1) {
+			GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 
-	}
-	if (sampletype == 2) {
-		GetSample_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
-	}
-
+		}
+		else
+			if (sampletype == 2) {
+				GetSample_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+			}
+			else
+				if (sampletype == 3) {
+					GetSample_Filtering(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+				}
+				else
+				{
+					printf("No Sample Strategy!\n"); 
+					assert(0);
+				}
 	cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << endl;
 
 	// filtering 
@@ -1064,17 +1074,27 @@ void STGrid::joinExhaustedGPU_Final(
 
 	std::vector<size_t> taskSet1, taskSet2;
 
-	if (sampletype == 0) {		
+	if (sampletype == 0) {
 		GetSample(taskSet1, taskSet2, sizeP, sizeQ);
 	}
-	if (sampletype == 1) {
-		GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+	else
+		if (sampletype == 1) {
+			GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 
-	}
-	if (sampletype == 2) {
-		GetSample_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
-	}
-
+		}
+		else
+			if (sampletype == 2) {
+				GetSample_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+			}
+			else
+				if (sampletype == 3) {
+					GetSample_Filtering(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+				}
+				else
+				{
+					printf("Invalid Sample Strategy!\n");
+					assert(0);
+				}
 
 	// filtering 
 
@@ -1144,18 +1164,26 @@ void STGrid::joinExhaustedGPU_Final(
 			if (type == 0) {
 				STSimilarityJoinCalcGPU(trajSetP, trajSetQ, partialResult);
 			}
+			else
 			if (type == 1) {
 				STSimilarityJoinCalcGPUV2(trajSetP, trajSetQ, partialResult);
 			}
+			else
 			if (type == 2) {
 				STSimilarityJoinCalcGPUV3(trajSetP, trajSetQ, partialResult);
 			}
+			else
 			if (type == 3) {
 				
 			}
+			else
 			if (type == 4) {
 
 			}
+			else {
+				printf("Invalid Calc Strategy!\n");
+				assert(0);
+			};
 
 			timer2.stop();
 			printf("GPU time once: %f s\n", timer2.elapse());
