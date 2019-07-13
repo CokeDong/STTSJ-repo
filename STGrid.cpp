@@ -15,7 +15,8 @@ void STGrid::joinExhaustedCPUonethread(
 	int sizeP,
 	int sizeQ,
 	std::vector<trajPair>& resultpair,
-	std::vector<float>& resultvalue) {
+	std::vector<float>& resultvalue,
+	int sampletype) {
 
 
 	MyTimer timer;
@@ -26,7 +27,17 @@ void STGrid::joinExhaustedCPUonethread(
 	//set<size_t> P;
 
 	std::vector<size_t> taskSet1, taskSet2;
-	GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+
+	if (sampletype == 0) {
+		GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+	}
+	if (sampletype == 1) {
+		GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+
+	}
+	if (sampletype == 2) {
+		GetSample_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+	}
 
 	cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << endl;
 
@@ -1042,7 +1053,8 @@ void STGrid::joinExhaustedGPU_Final(
 	std::vector<float>& resultvalue,
 	//std::vector<STTrajectory> &P,
 	//std::vector<STTrajectory> &Q
-	int type
+	int type,
+	int sampletype
 ) {
 	
 	// only one TrajDB - selfjoin
@@ -1052,9 +1064,17 @@ void STGrid::joinExhaustedGPU_Final(
 
 	std::vector<size_t> taskSet1, taskSet2;
 
+	if (sampletype == 0) {		
+		GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+	}
+	if (sampletype == 1) {
+		GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 
-	//GetSample(taskSet1, taskSet2, sizeP, sizeQ);
-	GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+	}
+	if (sampletype == 2) {
+		GetSample_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+	}
+
 
 	// filtering 
 

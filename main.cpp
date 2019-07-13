@@ -79,7 +79,7 @@ int main() {
 	std::vector<trajPair> resultpaircpu;
 	std::vector<float> resultvaluecpu;
 	// for equality, we have to padding for CPU?? -----> no need!!
-	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu);
+	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,2);
 	
 
 	//// 多线程版本
@@ -102,7 +102,7 @@ int main() {
 	std::vector<trajPair> resultpaircoarsegpu;
 	std::vector<float> resultvaluecoarsegpu;
 	//grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu,0);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu,0,2);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 	
 
@@ -122,7 +122,7 @@ int main() {
 	std::vector<trajPair> resultpairfinegpu;
 	std::vector<float> resultvaluefinegpu;
 	//grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu, 1);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu, 1,2);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
 
@@ -154,7 +154,7 @@ int main() {
 	std::vector<trajPair> resultpairfinegpu3;
 	std::vector<float> resultvaluefinegpu3;
 	//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2,2);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 	
 
