@@ -74,6 +74,10 @@
 
 #define THREADNUM 256 // = (THREADROW*THREADCOLUMN)
 
+
+//#define IFSORTING 1
+
+
 // NY: 200
 // LA:
 // TWITTER:
@@ -84,7 +88,7 @@
 #define GPUSMALLMEM 200
 #define GPUDATAMEM 500
 
-#define GPUBIGMEM 4
+#define GPUBIGMEM 10
 
 // not recommended??
 

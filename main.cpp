@@ -28,6 +28,8 @@
 
 void CheckSimResult(std::vector<trajPair> paircpu, std::vector<float> valuecpu, std::vector<trajPair> pairgpu, std::vector<float> valuegpu);
 
+
+
 int main() {
 
 	using namespace std;
@@ -68,19 +70,21 @@ int main() {
 	std::vector<float> resultvalue;
 
 	// 频繁调参使用变量！！不需要重新make -> figure of scalability
-	int SIZE = 64; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 128; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
 
 	
-	// 单线程
-	printf("*************** 1-cpu ***************\n");
-	std::vector<trajPair> resultpaircpu;
-	std::vector<float> resultvaluecpu;
-	// for equality, we have to padding for CPU?? -----> no need!!
-	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,3);
+
+	//// 单线程
+	//printf("*************** 1-cpu ***************\n");
+	//std::vector<trajPair> resultpaircpu;
+	//std::vector<float> resultvaluecpu;
+	//// for equality, we have to padding for CPU?? -----> no need!!
+	//grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,3);
 	
+
 
 	// 多线程版本
 	printf("***** mul-cpu full *****\n");
@@ -148,13 +152,13 @@ int main() {
 
 
 
-	// no-sorting
+	// sorting
 	// 可以任意长轨迹 这里构成batch很重要
-	printf("*************** 1-gpu V3 fine ***************\n");
+	printf("*************** 1-gpu V3 fine sorting ***************\n");
 	std::vector<trajPair> resultpairfinegpu3;
 	std::vector<float> resultvaluefinegpu3;
 	//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2,3);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3,2,3);
 	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 	
 
@@ -166,7 +170,14 @@ int main() {
 
 
 	// add sorting schedular needed
-
+	// no-sorting
+	// 可以任意长轨迹 这里构成batch很重要
+	printf("*************** 1-gpu V3 fine no-sorting ***************\n");
+	std::vector<trajPair> resultpairfinegpu4;
+	std::vector<float> resultvaluefinegpu4;
+	//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
+	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4,2,4);
+	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 
 
 

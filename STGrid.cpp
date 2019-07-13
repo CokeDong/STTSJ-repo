@@ -42,7 +42,7 @@ void STGrid::joinExhaustedCPUonethread(
 			}
 			else
 				if (sampletype == 3) {
-					GetSample_Filtering(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+					GetSample_Filtering_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 				}
 				else
 				{
@@ -168,7 +168,7 @@ void STGrid::joinExhaustedCPU(
 			}
 			else
 				if (sampletype == 3) {
-					GetSample_Filtering(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+					GetSample_Filtering_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 				}
 				else
 				{
@@ -284,7 +284,7 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 			}
 			else
 				if (sampletype == 3) {
-					GetSample_Filtering(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+					GetSample_Filtering_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 				}
 				else
 				{
@@ -311,6 +311,7 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	// 多线程同时读是可以的
 	// 多线程写 引入tmpresult
 	
+
 	// 总是无法满载！！
 	// 原因：threadnum  不够大 ---> MAX_CPU_THREAD
 
@@ -1139,8 +1140,12 @@ void STGrid::joinExhaustedGPU_Final(
 			}
 			else
 				if (sampletype == 3) {
-					GetSample_Filtering(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+					GetSample_Filtering_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
 				}
+				else
+					if (sampletype == 4) {
+						GetSample_Filtering_NoSorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+					}
 				else
 				{
 					printf("Invalid Sample Strategy!\n");
