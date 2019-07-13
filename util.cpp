@@ -287,13 +287,15 @@ void GetSample_Filtering(std::vector<STTrajectory> &dataptr, std::vector<size_t>
 
 
 	// way3:
-	int MinLength = 8;
+	int MinLength = 8,MaxLength = 16;
 	vector<int> tmp;
 	for (int i = 0; i < dataptr.size(); i++) {
-		if (dataptr.at(i).traj_length >= MinLength)
+		if (dataptr.at(i).traj_length >= MinLength && dataptr.at(i).traj_length <= MaxLength)
 			tmp.push_back(i);
 	}
 	random_shuffle(tmp.begin(), tmp.end());
+	cout << "len [" << MinLength << ',' << MaxLength << '] = ' << tmp.size() << endl;
+
 
 	for (int i = 0; i < sizeP; ++i) {
 		taskSet1.push_back(tmp.at(rand() % tmp.size()));

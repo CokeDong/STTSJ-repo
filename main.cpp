@@ -117,14 +117,15 @@ int main() {
 
 
 
-	// 不能太长轨迹 否则显存不足 -> 数据预处理 自定义三个矩阵尤其第一个占用过大显存 不要太极端 已写 assert
-	printf("*************** 1-gpu fine ***************\n");
-	std::vector<trajPair> resultpairfinegpu;
-	std::vector<float> resultvaluefinegpu;
-	//grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
-	grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu, 1,3);
-	//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
+	//// 不能太长轨迹 否则显存不足 -> 数据预处理 自定义三个矩阵尤其第一个占用过大显存 不要太极端 已写 assert
+	//printf("*************** 1-gpu fine no-budget-schedular ***************\n");
+	//std::vector<trajPair> resultpairfinegpu;
+	//std::vector<float> resultvaluefinegpu;
+	////grid.joinExhaustedGPUV2(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu);
+	//grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu, resultvaluefinegpu, 1,3);
+	////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu, resultvaluefinegpu);
 	
+
 
 	//// not that important for performance improvement  -> 合并多个kernel
 	//printf("***** 1-gpu V2p1 fine *****\n");
