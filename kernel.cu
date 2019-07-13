@@ -5142,6 +5142,7 @@ void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
 	
 	// have PROVED right,不足之处： statussizeonce 导致 block 数目不可控， 不平衡严重影响GPU性能!!  
 	// -> CUSP! is  useful here! 最大限度提高 block数目? not that obvious,only one-gemm for a grid! not that good! -> whether take advatage of dynamic parallelism?
+	int looptimes = 0;
 	for (size_t i = 0; i < stattableoffset.size(); i++) {
 
 		pnow = gpuAddrStat;
@@ -5227,16 +5228,20 @@ void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
 
 		//CUDA_CALL(cudaDeviceSynchronize());
 		CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
-
+		
+		++looptimes;
 	}
 
 	// out of FOR loop
 	// here is wrong !! why
 	//CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 
+	std::cout << "loop times = " << looptimes << std::endl;
+
 	float memcpy_time = 0.0, kernel_time = 0.0;
 	CUDA_CALL(cudaEventElapsedTime(&memcpy_time, memcpy_to_start, kernel_start));
 	CUDA_CALL(cudaEventElapsedTime(&kernel_time, kernel_start, kernel_stop));
+
 
 	printf("memcpy time: %.5f s\n", memcpy_time / 1000.0);
 	printf("kernel time: %.5f s\n", kernel_time / 1000.0);

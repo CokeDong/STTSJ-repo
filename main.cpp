@@ -68,7 +68,7 @@ int main() {
 	std::vector<float> resultvalue;
 
 	// 频繁调参使用变量！！不需要重新make -> figure of scalability
-	int SIZE = 32; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 64; // this is good or gloabal parameter not #define? maybe more convenient
 
 	STGrid grid;
 	grid.init(trajDB); // clever！！
@@ -79,14 +79,14 @@ int main() {
 	std::vector<trajPair> resultpaircpu;
 	std::vector<float> resultvaluecpu;
 	// for equality, we have to padding for CPU?? -----> no need!!
-	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,2);
+	grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,3);
 	
 
-	//// 多线程版本
-	//printf("***** mul-cpu full *****\n");
-	//std::vector<trajPair> resultpairmcpu;
-	//std::vector<float> resultvaluemcpu;
-	//grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu);
+	// 多线程版本
+	printf("***** mul-cpu full *****\n");
+	std::vector<trajPair> resultpairmcpu;
+	std::vector<float> resultvaluemcpu;
+	grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu,3);
 
 
 
@@ -94,7 +94,6 @@ int main() {
 	//grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpaircpu, resultvaluecpu, MAX_CPU_THREAD); // not that accurate!!
 	
 	
-
 	
 
 	// baseline的算法 很慢

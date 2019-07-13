@@ -140,7 +140,8 @@ void STGrid::joinExhaustedCPU(
 	int sizeP,
 	int sizeQ,
 	std::vector<trajPair>& resultpair,
-	std::vector<float>& resultvalue) {
+	std::vector<float>& resultvalue,
+	int sampletype) {
 	
 	// only one TrajDB - selfjoin
 	// get ID only one trajDB
@@ -149,7 +150,33 @@ void STGrid::joinExhaustedCPU(
 	timer.start();
 
 	std::vector<size_t> taskSet1, taskSet2;
-	GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+
+
+	//GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+
+	if (sampletype == 0) {
+		GetSample(taskSet1, taskSet2, sizeP, sizeQ);
+	}
+	else
+		if (sampletype == 1) {
+			GetSample2(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+
+		}
+		else
+			if (sampletype == 2) {
+				GetSample_Sorting(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+			}
+			else
+				if (sampletype == 3) {
+					GetSample_Filtering(this->dataPtr, taskSet1, taskSet2, sizeP, sizeQ);
+				}
+				else
+				{
+					printf("No Sample Strategy!\n");
+					assert(0);
+				}
+
+
 	cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << endl;
 
 	// filtering 

@@ -64,9 +64,8 @@ public:
 		int sizeQ,
 		//std::map<trajPair, float>& result
 		std::vector<trajPair>& resultpair,
-		std::vector<float>& resultvalue
-		
-
+		std::vector<float>& resultvalue,
+		int sampletype
 		//std::vector<STTrajectory> &P,
 		//std::vector<STTrajectory> &Q
 	);
