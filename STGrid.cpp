@@ -1343,7 +1343,9 @@ void STGrid::joinExhaustedGPU_Final(
 		timer2.start();
 
 		for (int di = 0; di < devicecnt; ++di) {
-			STSimilarityJoinCalcGPUV5(trajSetPP.at(di), trajSetQQ.at(di), partialResult.at(di),di);
+			for (int dj = 0; dj < devicecnt; ++dj) {
+				STSimilarityJoinCalcGPUV5(trajSetPP.at(di), trajSetQQ.at(dj), partialResult.at(di), di);
+			}
 		}
 
 		timer2.stop();
