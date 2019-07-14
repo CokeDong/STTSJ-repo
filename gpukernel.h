@@ -19,9 +19,6 @@ void STSimilarityJoinCalcGPU(std::vector<STTrajectory> &trajSetP,
 	std::vector<STTrajectory> &trajSetQ,
 	std::vector<float> &result);
 
-void STSimilarityJoinCalcGPUNoZeroCopy(std::vector<STTrajectory> &trajSetP,
-	std::vector<STTrajectory> &trajSetQ,
-	float *result);
 
 void STSimilarityJoinCalcGPUV2(std::vector<STTrajectory> &trajSetP,
 	std::vector<STTrajectory> &trajSetQ,
@@ -38,3 +35,13 @@ void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
 void STSimilarityJoinCalcGPUV4(std::vector<STTrajectory> &trajSetP,
 	std::vector<STTrajectory> &trajSetQ,
 	std::vector<float> &result);
+
+
+void STSimilarityJoinCalcGPUV5(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result,int deviceid);
+
+void STSimilarityJoinCalcGPUNoZeroCopy(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	float* result);
+

@@ -3,7 +3,7 @@
 
 //extern float calculateDistance(float LatA, float LonA, float LatB, float LonB); 
 
-using namespace std;
+//using namespace std;
 
 // 数据成员初始化是在进入构造函数之前完成的
 //STPoint::STPoint() {

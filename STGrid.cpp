@@ -2,7 +2,7 @@
 #include "util.h"
 
 
-using namespace std;
+//using namespace std;
 
 extern std::vector<float> cpuonethreadtimes;
 extern std::vector<float> cpumthreadtimes;
@@ -56,7 +56,7 @@ void STGrid::joinExhaustedCPUonethread(
 					printf("No Sample Strategy!\n"); 
 					assert(0);
 				}
-	cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	// filtering 
 
@@ -133,7 +133,7 @@ void STGrid::joinExhaustedCPUonethread(
 	// donot forget!
 	delete[] tmpresult;
 
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 	
 
@@ -184,7 +184,7 @@ void STGrid::joinExhaustedCPU(
 				}
 
 
-	cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	// filtering 
 
@@ -212,13 +212,13 @@ void STGrid::joinExhaustedCPU(
 
 	// 多线程读
 	float* tmpresult = new float[totaltaskCPU.size()];
-	std::vector<thread> thread_STSim;
+	std::vector<std::thread> thread_STSim;
 	for (size_t i = 0; i < totaltaskCPU.size(); i++) {
 	
 		// thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPU),this, epsilon, alpha, dataPtr[totaltaskCPU[i].first], dataPtr[totaltaskCPU[i].second],result));
 		
 		// only calculation, no judgement
-		thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPUV3), this, &dataPtr[totaltaskCPU[i].first], &dataPtr[totaltaskCPU[i].second], &tmpresult[i]));
+		thread_STSim.push_back(std::thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPUV3), this, &dataPtr[totaltaskCPU[i].first], &dataPtr[totaltaskCPU[i].second], &tmpresult[i]));
 		//threads_FD.push_back(thread(std::mem_fn(&Grid::FDCalculateParallelHandeler), this, &queryQueue[qID], &freqVectors[qID]));
 	}
 	std::for_each(thread_STSim.begin(), thread_STSim.end(), std::mem_fn(&std::thread::join));
@@ -247,7 +247,7 @@ void STGrid::joinExhaustedCPU(
 
 
 	delete[] tmpresult;
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 	
 
 
@@ -304,7 +304,7 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 					}
 	
 	//GetSample(taskSet1, taskSet2, sizeP, sizeQ);
-	cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskCPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	// filtering 
 
@@ -329,11 +329,11 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	float* tmpresult = new float[totaltaskCPU.size()];
 	
 	for (size_t j = 0; j < totaltaskCPU.size(); j += threadnum) {		
-		std::vector<thread> thread_STSim;
+		std::vector<std::thread> thread_STSim;
 		for (size_t i = 0; i < (j + threadnum > totaltaskCPU.size() ? totaltaskCPU.size()-j :threadnum); i++) {
 			// thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPU),this, epsilon, alpha, dataPtr[totaltaskCPU[i].first], dataPtr[totaltaskCPU[i].second],result));
 			// only calculation, no judgement
-			thread_STSim.push_back(thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPUV3), this, &dataPtr[totaltaskCPU[i + j].first], &dataPtr[totaltaskCPU[i + j].second], &tmpresult[i + j]));
+			thread_STSim.push_back(std::thread(std::mem_fn(&STGrid::STSimilarityJoinCalcCPUV3), this, &dataPtr[totaltaskCPU[i + j].first], &dataPtr[totaltaskCPU[i + j].second], &tmpresult[i + j]));
 			//threads_FD.push_back(thread(std::mem_fn(&Grid::FDCalculateParallelHandeler), this, &queryQueue[qID], &freqVectors[qID]));
 		}
 		std::for_each(thread_STSim.begin(), thread_STSim.end(), std::mem_fn(&std::thread::join));
@@ -365,7 +365,7 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	cpumthreadtimes.push_back(times);
 
 	delete[] tmpresult;
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 
 
@@ -452,7 +452,7 @@ void STGrid::joinExhaustedGPU(
 	*/
 	
 
-	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	
 
@@ -517,7 +517,7 @@ void STGrid::joinExhaustedGPU(
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 }
 
@@ -562,7 +562,7 @@ void STGrid::joinExhaustedGPUNZC(
 	*/
 
 
-	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 
 
@@ -639,7 +639,7 @@ void STGrid::joinExhaustedGPUNZC(
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 }
 
@@ -686,7 +686,7 @@ void STGrid::joinExhaustedGPUV2(
 	cout << "totaltaskGPU size: " << totaltaskGPU.size() << endl;
 	*/
 
-	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	//bedug: 注意作用域
 	//std::vector<STTrajectory> trajSetP, trajSetQ;
@@ -763,7 +763,7 @@ void STGrid::joinExhaustedGPUV2(
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 }
 
@@ -810,7 +810,7 @@ void STGrid::joinExhaustedGPUV2p1(
 	cout << "totaltaskGPU size: " << totaltaskGPU.size() << endl;
 	*/
 
-	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	
 
@@ -871,7 +871,7 @@ void STGrid::joinExhaustedGPUV2p1(
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 }
 
@@ -916,7 +916,7 @@ void STGrid::joinExhaustedGPUV3(
 	cout << "totaltaskGPU size: " << totaltaskGPU.size() << endl;
 	*/
 
-	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	//bedug: 注意作用域
 	//std::vector<STTrajectory> trajSetP, trajSetQ;
@@ -991,7 +991,7 @@ void STGrid::joinExhaustedGPUV3(
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 }
 
@@ -1039,7 +1039,7 @@ void STGrid::joinExhaustedGPUV4(
 	cout << "totaltaskGPU size: " << totaltaskGPU.size() << endl;
 	*/
 
-	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	//bedug: 注意作用域
 	//std::vector<STTrajectory> trajSetP, trajSetQ;
@@ -1114,7 +1114,7 @@ void STGrid::joinExhaustedGPUV4(
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 }
 
@@ -1184,106 +1184,190 @@ void STGrid::joinExhaustedGPU_Final(
 	cout << "totaltaskGPU size: " << totaltaskGPU.size() << endl;
 	*/
 
-	cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << endl;
+	std::cout << "totaltaskGPU size: " << taskSet1.size()*taskSet2.size() << std::endl;
 
 	//bedug: 注意作用域
 	//std::vector<STTrajectory> trajSetP, trajSetQ;
 	//std::vector<trajPair> resultpair;
 	//std::vector<float> resultvalue;
 
+	bool ifduelgpu = 1;
+	if (!ifduelgpu) {
+		for (size_t i = 0; i < taskSet1.size(); i += taskSet1.size()) { // ONLY once
 
 
-	for (size_t i = 0; i < taskSet1.size(); i += taskSet1.size()) { // ONLY once
-
-
-																	// Pbatch
-																	//bedug: 注意作用域
-		std::vector<size_t> tmptaskp;
-		std::vector<STTrajectory> trajSetP;
-		for (size_t k = 0; k < (i + taskSet1.size() > taskSet1.size() ? taskSet1.size() - i : taskSet1.size()); k++) {
-			trajSetP.push_back(this->dataPtr[taskSet1[i + k]]);
-			tmptaskp.push_back(taskSet1[i + k]);
-		}
-
-		for (size_t j = 0; j < taskSet2.size(); j += taskSet2.size()) { // ONLY once
-
-
-																		// Qbatch
+																		// Pbatch
 																		//bedug: 注意作用域
-			std::vector<size_t> tmptaskq;
-			std::vector<STTrajectory> trajSetQ;
-			for (size_t k = 0; k < (j + taskSet2.size() > taskSet2.size() ? taskSet2.size() - j : taskSet2.size()); k++) {
-				//debug: a tiny error
-				//trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
-				trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
-				tmptaskq.push_back(taskSet2[j + k]);
+			std::vector<size_t> tmptaskp;
+			std::vector<STTrajectory> trajSetP;
+			for (size_t k = 0; k < (i + taskSet1.size() > taskSet1.size() ? taskSet1.size() - i : taskSet1.size()); k++) {
+				trajSetP.push_back(this->dataPtr[taskSet1[i + k]]);
+				tmptaskp.push_back(taskSet1[i + k]);
 			}
 
-			//ATTENTION: BELOW 2 operation must match!: GetTaskPair and STSimilarityJoinCalcGPUV3 耦合度太高
+			for (size_t j = 0; j < taskSet2.size(); j += taskSet2.size()) { // ONLY once
 
-			// get trajpair(taskpair)
-			std::vector<trajPair> tmptaskGPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
-			GetTaskPair(tmptaskp, tmptaskq, tmptaskGPU);
 
-			// P Q batch-join
-			// only calculate the result here!!
-			MyTimer timer2;
-			timer2.start();
-			std::vector<float> partialResult;
+																			// Qbatch
+																			//bedug: 注意作用域
+				std::vector<size_t> tmptaskq;
+				std::vector<STTrajectory> trajSetQ;
+				for (size_t k = 0; k < (j + taskSet2.size() > taskSet2.size() ? taskSet2.size() - j : taskSet2.size()); k++) {
+					//debug: a tiny error
+					//trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
+					trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
+					tmptaskq.push_back(taskSet2[j + k]);
+				}
 
-			if (type == 0) {
-				STSimilarityJoinCalcGPU(trajSetP, trajSetQ, partialResult);
+				//ATTENTION: BELOW 2 operation must match!: GetTaskPair and STSimilarityJoinCalcGPUV3 耦合度太高 不是与STSimilarityJoinCalcGPUV3太高 而是与前面的tmptaskp tmptaskq 以及后面的得到partialResult要一致
+
+				// get trajpair(taskpair)
+				std::vector<trajPair> tmptaskGPU; // 是否会太大？？？ 不会：max_size=2305843009213693951
+				GetTaskPair(tmptaskp, tmptaskq, tmptaskGPU);
+
+				// P Q batch-join
+				// only calculate the result here!!
+				MyTimer timer2;
+				timer2.start();
+				std::vector<float> partialResult;
+
+				if (type == 0) {
+					STSimilarityJoinCalcGPU(trajSetP, trajSetQ, partialResult);
+				}
+				else
+					if (type == 1) {
+						STSimilarityJoinCalcGPUV2(trajSetP, trajSetQ, partialResult);
+					}
+					else
+						if (type == 2) {
+							STSimilarityJoinCalcGPUV3(trajSetP, trajSetQ, partialResult);
+						}
+						else
+							if (type == 3) {
+
+							}
+							else
+								if (type == 4) {
+
+								}
+								else
+									if (type == 5) {
+
+
+									}
+									else {
+										printf("Invalid Calc Strategy!\n");
+										assert(0);
+									};
+
+				timer2.stop();
+				printf("GPU time once: %f s\n", timer2.elapse());
+
+				// insert new result
+				for (size_t k = 0; k < partialResult.size(); k++) {
+					if (partialResult[k] > EPSILON) {
+						//result[tmptaskGPU[k]] = partialResult[k];
+						resultpair.push_back(tmptaskGPU[k]);
+						resultvalue.push_back(partialResult[k]);
+					}
+				}
+
+
+				/*
+				for (std::map<trajPair, float>::iterator it = partialResult.begin(); it != partialResult.end(); it++) {
+				//if ( (*it).second > EPSILON ) {
+				if (it->second > EPSILON) {
+				result.insert(*it);
+				}
+				}
+				*/
 			}
-			else
-			if (type == 1) {
-				STSimilarityJoinCalcGPUV2(trajSetP, trajSetQ, partialResult);
-			}
-			else
-			if (type == 2) {
-				STSimilarityJoinCalcGPUV3(trajSetP, trajSetQ, partialResult);
-			}
-			else
-			if (type == 3) {
-				
-			}
-			else
-			if (type == 4) {
 
-			}
-			else {
-				printf("Invalid Calc Strategy!\n");
-				assert(0);
-			};
+		}
+	}
 
-			timer2.stop();
-			printf("GPU time once: %f s\n", timer2.elapse());
+	else {
 
-			// insert new result
-			for (size_t k = 0; k < partialResult.size(); k++) {
-				if (partialResult[k] > EPSILON) {
-					//result[tmptaskGPU[k]] = partialResult[k];
-					resultpair.push_back(tmptaskGPU[k]);
-					resultvalue.push_back(partialResult[k]);
+
+		int devicecnt = 2;
+
+
+		std::vector<std::vector<size_t>> tmptaskpp(devicecnt);
+		std::vector<std::vector<STTrajectory>> trajSetPP(devicecnt);
+		for (int di = 0; di < devicecnt; ++di) {
+			//std::vector<size_t> tmptaskp;
+			//std::vector<STTrajectory> trajSetP;
+			int i = 0, j = 0;
+			for (size_t k = 0; k < (i + taskSet1.size() > taskSet1.size() ? taskSet1.size() - i : taskSet1.size()); k++) {
+				if (k % devicecnt == di) {
+					//tmptaskpp.at(di).push_back(this->dataPtr[taskSet1[i + k]]);
+					trajSetPP.at(di).push_back(this->dataPtr[taskSet1[i + k]]);
+					tmptaskpp.at(di).push_back(taskSet1[i + k]);
 				}
 			}
+		}
 
 
-			/*
-			for (std::map<trajPair, float>::iterator it = partialResult.begin(); it != partialResult.end(); it++) {
-			//if ( (*it).second > EPSILON ) {
-			if (it->second > EPSILON) {
-			result.insert(*it);
+
+		std::vector<std::vector<size_t>> tmptaskqq(devicecnt);
+		std::vector<std::vector<STTrajectory>> trajSetQQ(devicecnt);
+		for (int di = 0; di < devicecnt; ++di) {
+			//std::vector<size_t> tmptaskp;
+			//std::vector<STTrajectory> trajSetP;
+			int i = 0, j = 0;
+			for (size_t k = 0; k < (i + taskSet2.size() > taskSet2.size() ? taskSet2.size() - i : taskSet2.size()); k++) {
+				if (k % devicecnt == di) {
+					//tmptaskpp.at(di).push_back(this->dataPtr[taskSet1[i + k]]);
+					trajSetQQ.at(di).push_back(this->dataPtr[taskSet2[i + k]]);
+					tmptaskqq.at(di).push_back(taskSet2[i + k]);
+				}
 			}
+		}
+
+
+
+		std::vector<std::vector<trajPair>> tmptaskGPU(devicecnt); // 是否会太大？？？ 不会：max_size=2305843009213693951
+
+		for (int di = 0; di < devicecnt; ++di) {
+			//GetTaskPair(tmptaskp, tmptaskq, tmptaskGPU);
+			for (size_t i = 0; i < tmptaskpp.at(di).size(); i++) {
+				for (size_t j = 0; j < tmptaskqq.at(di).size(); j++) {
+					trajPair tmppair = trajPair(tmptaskpp.at(di).at(i), tmptaskqq.at(di).at(j));
+					tmptaskGPU.at(di).push_back(tmppair);
+				}
 			}
-			*/
+		}
+		std::vector<std::vector<float>> partialResult(devicecnt);
+
+		MyTimer timer2;
+		timer2.start();
+
+		for (int di = 0; di < devicecnt; ++di) {
+			STSimilarityJoinCalcGPUV5(trajSetPP.at(di), trajSetQQ.at(di), partialResult.at(di),di);
+		}
+
+		timer2.stop();
+		printf("GPU time once: %f s\n", timer2.elapse());
+
+		// insert new result
+		for (int di = 0; di < devicecnt; ++di) {
+			for (size_t k = 0; k < partialResult.at(di).size(); k++) {
+				if (partialResult.at(di).at(k) > EPSILON) {
+					//result[tmptaskGPU[k]] = partialResult[k];
+					resultpair.push_back(tmptaskGPU.at(di)[k]);
+					resultvalue.push_back(partialResult.at(di)[k]);
+				}
+			}
 		}
 
 	}
 
+
+
 	timer.stop();
 	printf("GPU time: %f s\n", timer.elapse());
 
-	cout << "finalresult size: " << resultpair.size() << endl;
+	std::cout << "finalresult size: " << resultpair.size() << std::endl;
 
 
 }

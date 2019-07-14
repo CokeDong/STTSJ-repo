@@ -1,6 +1,6 @@
 #include "STTrajectory.h"
 
-using namespace std;
+//using namespace std;
 
 void STTrajectory::GettingSTPointOnpointID(std::vector<STPoint> &pointdb) {
 
