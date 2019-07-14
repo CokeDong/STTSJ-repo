@@ -45,3 +45,6 @@ void STSimilarityJoinCalcGPUNoZeroCopy(std::vector<STTrajectory> &trajSetP,
 	std::vector<STTrajectory> &trajSetQ,
 	float* result);
 
+void STSimilarityJoinCalcGPUV6(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	std::vector<float> &result, int deviceid);
