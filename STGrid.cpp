@@ -15,7 +15,9 @@ extern std::vector<float> gpufinetimes;
 extern std::vector<float> gpufinenoFliptimes;
 extern std::vector<float> gpufinenoSortingtimes;
 
-
+extern void STSimilarityJoinCalcGPUNoZeroCopy(std::vector<STTrajectory> &trajSetP,
+	std::vector<STTrajectory> &trajSetQ,
+	float* result);
 
 void STGrid::init(const std::vector<STTrajectory> &dptr) {
 	dataPtr = dptr; // 常量引用传递
@@ -1361,7 +1363,7 @@ void STGrid::joinExhaustedGPU_Final(
 		std::vector<std::thread> thread_MGPU;
 		for (int di = 0; di < devicecnt; ++di) {
 			//thread_MGPU.push_back();
-			thread_MGPU.push_back(std::thread(&STSimilarityJoinCalcGPUV5,trajSetPP.at(di), trajSetQ, partialResult.at(di), di));
+			thread_MGPU.push_back(std::thread(&STSimilarityJoinCalcGPUV5, std::ref(trajSetPP.at(di)), std::ref(trajSetQ), std::ref(partialResult.at(di)), di));
 			//STSimilarityJoinCalcGPUV5(trajSetPP.at(di), trajSetQ, partialResult.at(di), di);
 
 		}

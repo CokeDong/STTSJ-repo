@@ -290,7 +290,7 @@ void GetSample_Filtering_Sorting(std::vector<STTrajectory> &dataptr, std::vector
 
 
 	// way3:
-	int MinLength = 8,MaxLength = 16;
+	int MinLength = 2,MaxLength = 24;
 	vector<int> tmp;
 	for (int i = 0; i < dataptr.size(); i++) {
 		if (dataptr.at(i).traj_length >= MinLength && dataptr.at(i).traj_length <= MaxLength)
@@ -380,7 +380,7 @@ void GetSample_Filtering_NoSorting(std::vector<STTrajectory> &dataptr, std::vect
 
 
 	// way3:
-	int MinLength = 8, MaxLength = 16;
+	int MinLength = 2, MaxLength = 24;
 	vector<int> tmp;
 	for (int i = 0; i < dataptr.size(); i++) {
 		if (dataptr.at(i).traj_length >= MinLength && dataptr.at(i).traj_length <= MaxLength)

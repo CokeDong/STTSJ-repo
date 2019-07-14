@@ -100,6 +100,8 @@ int main() {
 		grid.init(trajDB); // clever！！
 
 
+		// CPU version here.
+
 
 		//// 单线程
 		//printf("*************** 1-cpu ***************\n");
@@ -108,13 +110,11 @@ int main() {
 		//// for equality, we have to padding for CPU?? -----> no need!!
 		//grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,3);
 
-
-
+		
 		// 多线程版本
 		printf("***** mul-cpu full *****\n");
 		std::vector<trajPair> resultpairmcpu;
 		std::vector<float> resultvaluemcpu;
-
 		//grid.joinExhaustedCPU(SIZE,SIZE, resultpairmcpu, resultvaluemcpu,3);
 
 		// if SIZE*SIZE too big, we get Resource temporarily unavailabl
@@ -174,34 +174,39 @@ int main() {
 
 
 
+		// GPU version here. 
 
+		bool noF = 0, noB = 0;
+		if(!noF && !noB){
+			// sorting
+			// 可以任意长轨迹 这里构成batch很重要
+			printf("*************** 1-gpu V3 fine sorting ***************\n");
+			std::vector<trajPair> resultpairfinegpu3;
+			std::vector<float> resultvaluefinegpu3;
+			//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
+			grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2, 3);
+			//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
+		}else
+			if (!noF && noB) {
+			
+				printf("*************** 1-gpu V3 fine sorting ***************\n");
+				std::vector<trajPair> resultpairfinegpu3;
+				std::vector<float> resultvaluefinegpu3;
+				//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
+				grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2, 4);
+				//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
+			
+			}else
+				if (noF && !noB) {
+				
+				
+				}
+				else
+					if (noF && noB) {
+						
+					
+					}
 
-		// sorting
-		// 可以任意长轨迹 这里构成batch很重要
-		printf("*************** 1-gpu V3 fine sorting ***************\n");
-		std::vector<trajPair> resultpairfinegpu3;
-		std::vector<float> resultvaluefinegpu3;
-		//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
-		grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2, 3);
-		//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
-
-
-
-		// add no-flip needed
-
-
-
-
-
-		// add sorting schedular needed
-		// no-sorting
-		// 可以任意长轨迹 这里构成batch很重要
-		//printf("*************** 1-gpu V3 fine no-sorting ***************\n");
-		//std::vector<trajPair> resultpairfinegpu4;
-		//std::vector<float> resultvaluefinegpu4;
-		////grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
-		//grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu4, resultvaluefinegpu4,2,4);
-		////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 	
 	}
 
