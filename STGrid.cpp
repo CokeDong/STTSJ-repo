@@ -1,8 +1,12 @@
 #include "STGrid.h"
 #include "util.h"
+//#include "gpukernel.h"
+
 
 
 //using namespace std;
+
+
 
 extern std::vector<float> cpuonethreadtimes;
 extern std::vector<float> cpumthreadtimes;
@@ -10,6 +14,8 @@ extern std::vector<float> gpucoarsetimes;
 extern std::vector<float> gpufinetimes;
 extern std::vector<float> gpufinenoFliptimes;
 extern std::vector<float> gpufinenoSortingtimes;
+
+
 
 void STGrid::init(const std::vector<STTrajectory> &dptr) {
 	dataPtr = dptr; // 常量引用传递
@@ -1309,30 +1315,40 @@ void STGrid::joinExhaustedGPU_Final(
 
 
 
-		std::vector<std::vector<size_t>> tmptaskqq(devicecnt);
-		std::vector<std::vector<STTrajectory>> trajSetQQ(devicecnt);
-		for (int di = 0; di < devicecnt; ++di) {
-			//std::vector<size_t> tmptaskp;
-			//std::vector<STTrajectory> trajSetP;
-			int i = 0, j = 0;
-			for (size_t k = 0; k < (i + taskSet2.size() > taskSet2.size() ? taskSet2.size() - i : taskSet2.size()); k++) {
-				if (k % devicecnt == di) {
-					//tmptaskpp.at(di).push_back(this->dataPtr[taskSet1[i + k]]);
-					trajSetQQ.at(di).push_back(this->dataPtr[taskSet2[i + k]]);
-					tmptaskqq.at(di).push_back(taskSet2[i + k]);
-				}
-			}
+		//std::vector<std::vector<size_t>> tmptaskqq(devicecnt);
+		//std::vector<std::vector<STTrajectory>> trajSetQQ(devicecnt);
+		//for (int di = 0; di < devicecnt; ++di) {
+		//	//std::vector<size_t> tmptaskp;
+		//	//std::vector<STTrajectory> trajSetP;
+		//	int i = 0, j = 0;
+		//	for (size_t k = 0; k < (i + taskSet2.size() > taskSet2.size() ? taskSet2.size() - i : taskSet2.size()); k++) {
+		//		if (k % devicecnt == di) {
+		//			//tmptaskpp.at(di).push_back(this->dataPtr[taskSet1[i + k]]);
+		//			trajSetQQ.at(di).push_back(this->dataPtr[taskSet2[i + k]]);
+		//			tmptaskqq.at(di).push_back(taskSet2[i + k]);
+		//		}
+		//	}
+		//}
+
+
+		int j = 0;
+		std::vector<size_t> tmptaskq;
+		std::vector<STTrajectory> trajSetQ;
+		for (size_t k = 0; k < (j + taskSet2.size() > taskSet2.size() ? taskSet2.size() - j : taskSet2.size()); k++) {
+			//debug: a tiny error
+			//trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
+			trajSetQ.push_back(this->dataPtr[taskSet2[j + k]]);
+			tmptaskq.push_back(taskSet2[j + k]);
 		}
 
-
-
 		std::vector<std::vector<trajPair>> tmptaskGPU(devicecnt); // 是否会太大？？？ 不会：max_size=2305843009213693951
+
 
 		for (int di = 0; di < devicecnt; ++di) {
 			//GetTaskPair(tmptaskp, tmptaskq, tmptaskGPU);
 			for (size_t i = 0; i < tmptaskpp.at(di).size(); i++) {
-				for (size_t j = 0; j < tmptaskqq.at(di).size(); j++) {
-					trajPair tmppair = trajPair(tmptaskpp.at(di).at(i), tmptaskqq.at(di).at(j));
+				for (size_t j = 0; j < tmptaskq.size(); j++) {
+					trajPair tmppair = trajPair(tmptaskpp.at(di).at(i), tmptaskq.at(j));
 					tmptaskGPU.at(di).push_back(tmppair);
 				}
 			}
@@ -1342,11 +1358,15 @@ void STGrid::joinExhaustedGPU_Final(
 		MyTimer timer2;
 		timer2.start();
 
+		std::vector<std::thread> thread_MGPU;
 		for (int di = 0; di < devicecnt; ++di) {
-			for (int dj = 0; dj < devicecnt; ++dj) {
-				STSimilarityJoinCalcGPUV5(trajSetPP.at(di), trajSetQQ.at(dj), partialResult.at(di), di);
-			}
+			//thread_MGPU.push_back();
+			thread_MGPU.push_back(std::thread(&STSimilarityJoinCalcGPUV5,trajSetPP.at(di), trajSetQ, partialResult.at(di), di));
+			//STSimilarityJoinCalcGPUV5(trajSetPP.at(di), trajSetQ, partialResult.at(di), di);
+
 		}
+		std::for_each(thread_MGPU.begin(), thread_MGPU.end(), std::mem_fn(&std::thread::join));
+
 
 		timer2.stop();
 		printf("GPU time once: %f s\n", timer2.elapse());

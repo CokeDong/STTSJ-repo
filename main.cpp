@@ -87,10 +87,10 @@ int main() {
 	std::vector<float> resultvalue;
 
 	// 频繁调参使用变量！！不需要重新make -> figure of scalability
-	int SIZE = 128; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 256; // this is good or gloabal parameter not #define? maybe more convenient
 
 
-	int times = 10;
+	int times = 1;
 	
 	for (int tlooptimes = 0; tlooptimes < times; ++tlooptimes) {
 		
@@ -124,13 +124,13 @@ int main() {
 
 
 
-																												 // baseline的算法 很慢
-		printf("*************** 1-gpu coarse(baseline) ****************\n");
-		std::vector<trajPair> resultpaircoarsegpu;
-		std::vector<float> resultvaluecoarsegpu;
-		//grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
-		grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu, 0, 3);
-		//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
+		//// baseline的算法 很慢
+		//printf("*************** 1-gpu coarse(baseline) ****************\n");
+		//std::vector<trajPair> resultpaircoarsegpu;
+		//std::vector<float> resultvaluecoarsegpu;
+		////grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
+		//grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu, 0, 3);
+		////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 
 
 

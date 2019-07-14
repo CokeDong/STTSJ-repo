@@ -7218,7 +7218,7 @@ void STSimilarityJoinCalcGPUV6(std::vector<STTrajectory> &trajSetP,
 	// zero-copy 内存 
 	// 需要手动free!!
 	float *SimResult, *SimResultGPU;
-
+	SimResult = new float[dataSizeP*dataSizeQ];
 
 	//CUDA_CALL(cudaHostAlloc((void**)&SimResult, dataSizeP*dataSizeQ * sizeof(float), cudaHostAllocMapped));
 	//CUDA_CALL(cudaHostGetDevicePointer((void**)&SimResultGPU, SimResult, 0));
@@ -7406,7 +7406,11 @@ void STSimilarityJoinCalcGPUV6(std::vector<STTrajectory> &trajSetP,
 		if (i == stattableoffset.size() - 1) {
 			CUDA_CALL(cudaEventRecord(kernel_stop, stream));
 		}
-
+		/*
+		cudaDeviceSynchronize()：该方法将停止CPU端线程的执行，直到GPU端完成之前CUDA的任务，包括kernel函数、数据拷贝等。
+		cudaThreadSynchronize()：该方法的作用和cudaDeviceSynchronize()基本相同，但它不是一个被推荐的方法，也许在后期版本的CUDA中会被删除。
+		cudaStreamSynchronize()：这个方法接受一个stream ID，它将阻止CPU执行直到GPU端完成相应stream ID的所有CUDA任务，但其它stream中的CUDA任务可能执行完也可能没有执行完。
+		*/
 		//CUDA_CALL(cudaDeviceSynchronize());
 		CUDA_CALL(cudaStreamSynchronize(stream)); // be here is good,and necessary! really necessary to ensure correctness!
 
