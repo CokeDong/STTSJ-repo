@@ -32,8 +32,10 @@ std::vector<float> cpuonethreadtimes;
 std::vector<float> cpumthreadtimes;
 std::vector<float> gpucoarsetimes;
 std::vector<float> gpufinetimes;
+
 std::vector<float> gpufinenoFliptimes;
 std::vector<float> gpufinenoSortingtimes;
+
 int timeseeds;
 
 
@@ -90,7 +92,7 @@ int main() {
 	int SIZE = 256; // this is good or gloabal parameter not #define? maybe more convenient
 
 
-	int times = 1;
+	int times = 10;
 	
 	for (int tlooptimes = 0; tlooptimes < times; ++tlooptimes) {
 		
@@ -100,7 +102,9 @@ int main() {
 		grid.init(trajDB); // clever！！
 
 
-		// CPU version here.
+
+
+		/********************  CPU version here. ********************/
 
 
 		//// 单线程
@@ -109,8 +113,8 @@ int main() {
 		//std::vector<float> resultvaluecpu;
 		//// for equality, we have to padding for CPU?? -----> no need!!
 		//grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,3);
-
 		
+
 		// 多线程版本
 		printf("***** mul-cpu full *****\n");
 		std::vector<trajPair> resultpairmcpu;
@@ -124,13 +128,20 @@ int main() {
 
 
 
+
+
+
+
+		 /********************  GPU version here. ********************/
+
+
 		//// baseline的算法 很慢
-		//printf("*************** 1-gpu coarse(baseline) ****************\n");
-		//std::vector<trajPair> resultpaircoarsegpu;
-		//std::vector<float> resultvaluecoarsegpu;
-		////grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
-		//grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu, 0, 3);
-		////CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
+		printf("*************** 1-gpu coarse(baseline) ****************\n");
+		std::vector<trajPair> resultpaircoarsegpu;
+		std::vector<float> resultvaluecoarsegpu;
+		//grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
+		grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu, 0, 3);
+		//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
 
 
 
@@ -163,8 +174,6 @@ int main() {
 
 
 
-
-
 		//// 不能太长轨迹 否则显存不足 -> 数据预处理 用的是cusparse库 中间结果需要显存 不要太极端 已写 assert
 		//printf("*************** 1-gpu V3 fine cusparse nobatch ***************\n");
 		//std::vector<trajPair> resultpairfinegpu4;
@@ -174,10 +183,9 @@ int main() {
 
 
 
-		// GPU version here. 
 
-		bool noF = 0, noB = 0;
-		if(!noF && !noB){
+		bool noB = 0;
+		if(!noB){
 			// sorting
 			// 可以任意长轨迹 这里构成batch很重要
 			printf("*************** 1-gpu V3 fine sorting ***************\n");
@@ -187,25 +195,17 @@ int main() {
 			grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2, 3);
 			//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 		}else
-			if (!noF && noB) {
+		{		
+			printf("*************** 1-gpu V3 fine sorting ***************\n");
+			std::vector<trajPair> resultpairfinegpu3;
+			std::vector<float> resultvaluefinegpu3;
+			//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
+			grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2, 4);
+			//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
 			
-				printf("*************** 1-gpu V3 fine sorting ***************\n");
-				std::vector<trajPair> resultpairfinegpu3;
-				std::vector<float> resultvaluefinegpu3;
-				//grid.joinExhaustedGPUV3(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3);
-				grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpairfinegpu3, resultvaluefinegpu3, 2, 4);
-				//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpairfinegpu3, resultvaluefinegpu3);
-			
-			}else
-				if (noF && !noB) {
-				
-				
-				}
-				else
-					if (noF && noB) {
-						
-					
-					}
+		}
+		
+
 
 	
 	}

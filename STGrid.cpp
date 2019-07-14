@@ -15,9 +15,7 @@ extern std::vector<float> gpufinetimes;
 extern std::vector<float> gpufinenoFliptimes;
 extern std::vector<float> gpufinenoSortingtimes;
 
-extern void STSimilarityJoinCalcGPUNoZeroCopy(std::vector<STTrajectory> &trajSetP,
-	std::vector<STTrajectory> &trajSetQ,
-	float* result);
+
 
 void STGrid::init(const std::vector<STTrajectory> &dptr) {
 	dataPtr = dptr; // 常量引用传递
@@ -1127,6 +1125,7 @@ void STGrid::joinExhaustedGPUV4(
 }
 
 
+
 void STGrid::joinExhaustedGPU_Final(
 	//float epsilon,
 	//float alpha,
@@ -1252,18 +1251,14 @@ void STGrid::joinExhaustedGPU_Final(
 						}
 						else
 							if (type == 3) {
-
+								STSimilarityJoinCalcGPUV31(trajSetP, trajSetQ, partialResult);
 							}
 							else
-								if (type == 4) {
-
-								}
-								else
-									if (type == 5) {
-
-
-									}
-									else {
+								//if (type == 4) {
+								//	STSimilarityJoinCalcGPUV32(trajSetP, trajSetQ, partialResult);
+								//}
+								//	else
+							{
 										printf("Invalid Calc Strategy!\n");
 										assert(0);
 									};
@@ -1361,9 +1356,15 @@ void STGrid::joinExhaustedGPU_Final(
 		timer2.start();
 
 		std::vector<std::thread> thread_MGPU;
+
+		bool noF = 1;
+
 		for (int di = 0; di < devicecnt; ++di) {
 			//thread_MGPU.push_back();
-			thread_MGPU.push_back(std::thread(&STSimilarityJoinCalcGPUV5, std::ref(trajSetPP.at(di)), std::ref(trajSetQ), std::ref(partialResult.at(di)), di));
+			if(!noF)
+				thread_MGPU.push_back(std::thread(&STSimilarityJoinCalcGPUVmgpu, std::ref(trajSetPP.at(di)), std::ref(trajSetQ), std::ref(partialResult.at(di)), di));
+			else
+				thread_MGPU.push_back(std::thread(&STSimilarityJoinCalcGPUVmgpuNoF, std::ref(trajSetPP.at(di)), std::ref(trajSetQ), std::ref(partialResult.at(di)), di));
 			//STSimilarityJoinCalcGPUV5(trajSetPP.at(di), trajSetQ, partialResult.at(di), di);
 
 		}
