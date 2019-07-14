@@ -90,6 +90,8 @@
 
 #define GPUBIGMEM 10
 
+#define DEBUGMODE 1
+
 // not recommended??
 
 

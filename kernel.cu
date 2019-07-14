@@ -11,6 +11,16 @@
 #include "cusparse.h"
 
 
+
+extern std::vector<float> cpuonethreadtimes;
+extern std::vector<float> cpumthreadtimes;
+extern std::vector<float> gpucoarsetimes;
+extern std::vector<float> gpufinetimes;
+extern std::vector<float> gpufinenoFliptimes;
+extern std::vector<float> gpufinenoSortingtimes;
+
+
+
 //using namespace std;
 
 
@@ -3406,6 +3416,9 @@ void STSimilarityJoinCalcGPU(std::vector<STTrajectory> &trajSetP,
 	printf("memcpy time: %.5f s\n", memcpy_time / 1000.0);
 	printf("kernel time: %.5f s\n", kernel_time / 1000.0);
 
+	// adding here, omit other time as we consider data with HEAVY calc. task with ADEQUATE PCIe bandwidth 
+	gpucoarsetimes.push_back(kernel_time / 1000.0);
+
 	// rediculous
 	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
 		result.push_back(SimResult[i]);
@@ -5246,6 +5259,7 @@ void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
 	printf("memcpy time: %.5f s\n", memcpy_time / 1000.0);
 	printf("kernel time: %.5f s\n", kernel_time / 1000.0);
 
+	gpufinetimes.push_back(kernel_time / 1000.0);
 
 	// here has about 2s latency
 	// rediculous

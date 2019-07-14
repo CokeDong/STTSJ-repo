@@ -4,6 +4,13 @@
 
 using namespace std;
 
+extern std::vector<float> cpuonethreadtimes;
+extern std::vector<float> cpumthreadtimes;
+extern std::vector<float> gpucoarsetimes;
+extern std::vector<float> gpufinetimes;
+extern std::vector<float> gpufinenoFliptimes;
+extern std::vector<float> gpufinenoSortingtimes;
+
 void STGrid::init(const std::vector<STTrajectory> &dptr) {
 	dataPtr = dptr; // 常量引用传递
 }
@@ -352,7 +359,10 @@ void STGrid::joinExhaustedCPUconfigurablethread(
 	
 
 	timer.stop();
-	printf("CPU time: %f s\n", timer.elapse());
+	float times = timer.elapse();
+	printf("CPU time: %f s\n", times);
+
+	cpumthreadtimes.push_back(times);
 
 	delete[] tmpresult;
 	cout << "finalresult size: " << resultpair.size() << endl;
