@@ -3,6 +3,9 @@
 
 using namespace std;
 // global function for Preprocess class; global wheels
+
+extern int timeseeds;
+
 void split(std::string s, std::string delim, std::vector<std::string>* ret)
 {
 	size_t last = 0;
@@ -299,13 +302,15 @@ void GetSample_Filtering_Sorting(std::vector<STTrajectory> &dataptr, std::vector
 	cout << "len [" << MinLength << ',' << MaxLength << "] = " << tmp.size() << endl;
 
 	//srand(1);
-	srand(time(0));
+	//srand(time(0));
+	srand(timeseeds); 
 	for (int i = 0; i < sizeP; ++i) {
 		taskSet1.push_back(tmp.at(rand() % tmp.size()));
 	}
 
 	//srand(1);
-	srand(time(0));
+	//srand(time(0));
+	srand(timeseeds);
 	for (int i = 0; i < sizeQ; ++i) {
 		taskSet2.push_back(tmp.at(rand() % tmp.size()));
 	}

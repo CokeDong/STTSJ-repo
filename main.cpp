@@ -34,6 +34,8 @@ std::vector<float> gpucoarsetimes;
 std::vector<float> gpufinetimes;
 std::vector<float> gpufinenoFliptimes;
 std::vector<float> gpufinenoSortingtimes;
+int timeseeds;
+
 
 float ave(std::vector<float> a) {
 	float sum = 0;
@@ -89,9 +91,11 @@ int main() {
 
 
 	int times = 10;
-
-	for (int tlooptimes = 0; tlooptimes < times; ++tlooptimes) {
 	
+	for (int tlooptimes = 0; tlooptimes < times; ++tlooptimes) {
+		
+		timeseeds = tlooptimes;
+		
 		STGrid grid;
 		grid.init(trajDB); // clever！！
 
@@ -106,7 +110,7 @@ int main() {
 
 
 
-						   // 多线程版本
+		// 多线程版本
 		printf("***** mul-cpu full *****\n");
 		std::vector<trajPair> resultpairmcpu;
 		std::vector<float> resultvaluemcpu;
