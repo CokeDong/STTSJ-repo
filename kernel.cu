@@ -1002,6 +1002,8 @@ __global__ void computeTSimpmqNoF(float* latDataPGPU1, float* latDataQGPU1, floa
 
 						keypmqGPU[pmqid + tmpflagi2*width + tmpflagj2] += keypmqnGPU[pmqnid + (textidq - textQid + k)*height + tmpflagi];
 						
+						//keypmqGPU[pmqid + tmpflagi2*height + tmpflagj2] += keypmqnGPU[pmqnid + (textidq - textQid + k)*height + tmpflagi];
+
 						//printf("pmq s2-> blockId:%d threadId:%d xindex:%d yindex:%d value:%.5f\n", bId, tId, tId / THREADROW2, tId % THREADROW2, tmppmq[tId / THREADROW2][tId % THREADROW2]);
 					}
 
@@ -1241,8 +1243,10 @@ __global__ void computeTSimpqNoF(float* latDataPGPU1, float* latDataQGPU1, float
 					//tmppq[tId % THREADROW2][tId / THREADROW2] += keypmqGPU[pmqid + (textidp - textPid + k)*height + tmpflagi];
 
 					if ((tmpflagi2 < pointNumQ) && (tmpflagj2 < pointNumP)) {
+
 						keypqGPU[pqid + tmpflagi2*width + tmpflagj2] += keypmqGPU[pmqid + (textidp - textPid + k)*height + tmpflagi];
 						//printf("pq-> blockId:%d threadId:%d value:%.5f\n", bId, tId, tmppmq[tId / THREADROW2][tId % THREADROW2]);
+
 					}
 					//printf("pq-> blockId:%d threadId:%d value:%.5f\n", bId, tId, tmppmq[tId % THREADROW2][tId / THREADROW2]);
 				}

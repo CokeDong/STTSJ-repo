@@ -1357,7 +1357,7 @@ void STGrid::joinExhaustedGPU_Final(
 
 		std::vector<std::thread> thread_MGPU;
 
-		bool noF = 1;
+		bool noF = 0; // BUGGY, NOT 1 plz. NEED FIX!!!!
 
 		for (int di = 0; di < devicecnt; ++di) {
 			//thread_MGPU.push_back();

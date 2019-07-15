@@ -54,13 +54,14 @@ int main() {
 	using namespace std;
 
 	std::cout << "hello world" << endl;
-	bool first = false;
+	bool first = 0; // buggy, not recommended but I.
 	Preprocess pp;
+	std::string sfilename = "NY";
 	if(first){
 		// can be done by python. -> 见 python 预处理  to do
 		// fooolly extraction
-		pp.VenuesExtraction("./NY/Venues.txt","./NY/VenuesExtc.txt");
-		pp.TipsExtraction("./NY/Tips.txt");
+		pp.VenuesExtraction("./"+ sfilename+"/Venues.txt","./" + sfilename + "/VenuesExtc.txt");
+		pp.TipsExtraction("./" + sfilename + "/Tips.txt");
 	}
 
 	//test test;
@@ -78,9 +79,10 @@ int main() {
 	// 引用传递 比指针传递 更简单
 
 	// 已验证 无问题！！but too slow!! -> stringstream v.s. std::string, no big difference!!
-	pp.ReadPointDBLL(pointDB, "./NY/VenuesExtc.txt");
-	pp.ReadPointDBKeyword(pointDB, "./NY/tfidf.txt");
-	pp.ReadTrajDBPointID(trajDB, "./NY/TrajExtc.txt", pointDB);
+
+	pp.ReadPointDBLL(pointDB, "./" + sfilename + "/VenuesExtc.txt");
+	pp.ReadPointDBKeyword(pointDB, "./" + sfilename + "/tfidf.txt");
+	pp.ReadTrajDBPointID(trajDB, "./" + sfilename + "/TrajExtc.txt", pointDB);
 
 	pp.ReadTrajDBPoint(trajDB, pointDB);
 
