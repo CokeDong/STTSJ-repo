@@ -56,7 +56,7 @@ int main() {
 	std::cout << "hello world" << endl;
 	bool first = 0; // buggy, not recommended but I.
 	Preprocess pp;
-	std::string sfilename = "NY";
+	std::string sfilename = "LA";
 	if(first){
 		// can be done by python. -> 见 python 预处理  to do
 		// fooolly extraction
@@ -90,8 +90,37 @@ int main() {
 	std::vector<trajPair> resultpair;
 	std::vector<float> resultvalue;
 
+
+
+	// aborted not accurate. as 1 and extreme data exists
+	//// adding status info.
+	size_t lenavg = 0;
+	size_t keyavg = 0;
+	
+	size_t trajcnt = 0;
+	size_t pointcnt = 0;
+	for (int i = 0; i < trajDB.size(); ++i) {
+		if(trajDB.at(i).traj_length > 1 && trajDB.at(i).traj_length < 25){
+			lenavg += trajDB.at(i).traj_length;
+			++trajcnt;
+			pointcnt += trajDB.at(i).traj_of_stpoint.size();
+			for (int j = 0; j < trajDB.at(i).traj_of_stpoint.size(); ++j) {
+				for (int k = 0; k < trajDB.at(i).traj_of_stpoint.at(j).keywords.size(); ++k) {
+					if (trajDB.at(i).traj_of_stpoint.at(j).keywords.at(k).keywordvalue > 0.1)
+						keyavg++;
+				}
+				
+			}
+		}
+	}
+	lenavg /= trajcnt;
+	keyavg /= pointcnt;
+	printf("trajcnt = %zu pointcnt= %zu lenavg = %zu  keyavg = %zu\n", trajcnt, pointcnt,lenavg, keyavg);
+
+
+
 	// 频繁调参使用变量！！不需要重新make -> figure of scalability
-	int SIZE = 256; // this is good or gloabal parameter not #define? maybe more convenient
+	int SIZE = 128; // this is good or gloabal parameter not #define? maybe more convenient
 
 
 	int times = 10;
@@ -102,6 +131,8 @@ int main() {
 		
 		STGrid grid;
 		grid.init(trajDB); // clever！！
+
+
 
 
 

@@ -1199,7 +1199,7 @@ void STGrid::joinExhaustedGPU_Final(
 	//std::vector<float> resultvalue;
 
 	bool ifduelgpu = 1;
-	if (!ifduelgpu) {
+	if (type == 0 || !ifduelgpu) {
 		for (size_t i = 0; i < taskSet1.size(); i += taskSet1.size()) { // ONLY once
 
 
