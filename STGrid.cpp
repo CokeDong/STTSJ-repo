@@ -1198,7 +1198,7 @@ void STGrid::joinExhaustedGPU_Final(
 	//std::vector<trajPair> resultpair;
 	//std::vector<float> resultvalue;
 
-	bool ifduelgpu = 1;
+	bool ifduelgpu = 0;
 	if (type == 0 || !ifduelgpu) {
 		for (size_t i = 0; i < taskSet1.size(); i += taskSet1.size()) { // ONLY once
 
@@ -1357,7 +1357,7 @@ void STGrid::joinExhaustedGPU_Final(
 
 		std::vector<std::thread> thread_MGPU;
 
-		bool noF = 0; // BUGGY, NOT 1 plz. NEED FIX!!!!
+		bool noF = 0; // CRAPPY, TODO.
 
 		for (int di = 0; di < devicecnt; ++di) {
 			//thread_MGPU.push_back();

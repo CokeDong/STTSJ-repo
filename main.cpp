@@ -140,14 +140,15 @@ int main() {
 		/********************  CPU version here. ********************/
 
 
-		//// 单线程
-		//printf("*************** 1-cpu ***************\n");
-		//std::vector<trajPair> resultpaircpu;
-		//std::vector<float> resultvaluecpu;
-		//// for equality, we have to padding for CPU?? -----> no need!!
-		//grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,3);
+		// 单线程
+		printf("*************** 1-cpu ***************\n");
+		std::vector<trajPair> resultpaircpu;
+		std::vector<float> resultvaluecpu;
+		// for equality, we have to padding for CPU?? -----> no need!!
+		grid.joinExhaustedCPUonethread(SIZE, SIZE, resultpaircpu, resultvaluecpu,3);
 		
 
+		/*
 		// 多线程版本
 		printf("***** mul-cpu full *****\n");
 		std::vector<trajPair> resultpairmcpu;
@@ -157,7 +158,7 @@ int main() {
 		// if SIZE*SIZE too big, we get Resource temporarily unavailabl
 		printf("***** cpu  %d *****\n", MAX_CPU_THREAD);
 		grid.joinExhaustedCPUconfigurablethread(SIZE, SIZE, resultpairmcpu, resultvaluemcpu, MAX_CPU_THREAD, 3); // not that accurate!!
-
+		*/
 
 
 
@@ -168,6 +169,7 @@ int main() {
 		 /********************  GPU version here. ********************/
 
 
+		/*
 		//// baseline的算法 很慢
 		printf("*************** 1-gpu coarse(baseline) ****************\n");
 		std::vector<trajPair> resultpaircoarsegpu;
@@ -175,7 +177,7 @@ int main() {
 		//grid.joinExhaustedGPU(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu);
 		grid.joinExhaustedGPU_Final(SIZE, SIZE, resultpaircoarsegpu, resultvaluecoarsegpu, 0, 3);
 		//CheckSimResult(resultpairmcpu, resultvaluemcpu, resultpaircoarsegpu, resultvaluecoarsegpu);
-
+		*/
 
 
 		//// this is worse than Zero Copy, but very very tiny
