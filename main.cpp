@@ -32,6 +32,7 @@ std::vector<float> cpuonethreadtimes;
 std::vector<float> cpumthreadtimes;
 std::vector<float> gpucoarsetimes;
 std::vector<float> gpufinetimes;
+std::vector<float> gpuonefinetimes;
 
 std::vector<float> gpufinenoFliptimes;
 std::vector<float> gpufinenoSortingtimes;
@@ -246,7 +247,8 @@ int main() {
 	}
 
 	printf("\n\n********** time average here: ***********\n");
-
+	cout << "1cpu:   " << ave(cpuonethreadtimes) << endl;
+	cout << "1gpu:   " << ave(gpuonefinetimes) << endl;
 	cout << "mcpu:   " << ave(cpumthreadtimes) << endl;
 	cout << "gpu-c:   " << ave(gpucoarsetimes) << endl;
 	cout << "gpu-f   " << ave(gpufinetimes) << endl;

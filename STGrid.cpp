@@ -12,6 +12,8 @@ extern std::vector<float> cpuonethreadtimes;
 extern std::vector<float> cpumthreadtimes;
 extern std::vector<float> gpucoarsetimes;
 extern std::vector<float> gpufinetimes;
+extern std::vector<float> gpuonefinetimes;
+
 extern std::vector<float> gpufinenoFliptimes;
 extern std::vector<float> gpufinenoSortingtimes;
 
@@ -133,8 +135,12 @@ void STGrid::joinExhaustedCPUonethread(
 		}
 	}
 
+
 	timer.stop();
-	printf("CPU time: %f s\n", timer.elapse());
+	float times = timer.elapse();
+	printf("CPU time: %f s\n", times);
+
+	cpuonethreadtimes.push_back(times);
 	
 	// donot forget!
 	delete[] tmpresult;

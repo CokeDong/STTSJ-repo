@@ -16,6 +16,8 @@ extern std::vector<float> cpuonethreadtimes;
 extern std::vector<float> cpumthreadtimes;
 extern std::vector<float> gpucoarsetimes;
 extern std::vector<float> gpufinetimes;
+extern std::vector<float> gpuonefinetimes;
+
 extern std::vector<float> gpufinenoFliptimes;
 extern std::vector<float> gpufinenoSortingtimes;
 
@@ -5574,7 +5576,7 @@ void STSimilarityJoinCalcGPUV3(std::vector<STTrajectory> &trajSetP,
 	printf("kernel time: %.5f s\n", kernel_time / 1000.0);
 
 	gpufinetimes.push_back(kernel_time / 1000.0);
-
+	
 	// here has about 2s latency
 	// rediculous
 	for (size_t i = 0; i < dataSizeP*dataSizeQ; i++) {
@@ -6083,7 +6085,8 @@ void STSimilarityJoinCalcGPUV31(std::vector<STTrajectory> &trajSetP,
 	printf("memcpy time: %.5f s\n", memcpy_time / 1000.0);
 	printf("kernel time: %.5f s\n", kernel_time / 1000.0);
 
-	gpufinetimes.push_back(kernel_time / 1000.0);
+	//gpufinetimes.push_back(kernel_time / 1000.0);
+	gpuonefinetimes.push_back(kernel_time / 1000.0);
 
 	// here has about 2s latency
 	// rediculous
